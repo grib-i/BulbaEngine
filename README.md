@@ -1,6 +1,6 @@
 <div>
 <div>
-<img src="git-assets/logo.svg" width="220" alt="BulbaEngine Logo">
+<img src="assets-git/logo.svg" width="220" alt="BulbaEngine Logo">
 <h1>BulbaEngine</h1>
 </div>
 
@@ -86,8 +86,8 @@ The project focuses on:
 
 <div align="center">
 
-<img src="git-assets/showcase/scene.png" width="400" alt="BulbaEngine Scene">
-<img src="git-assets/showcase/renderer.png" width="400" alt="BulbaEngine Renderer">
+<img src="assets-git/showcase/texture.png" width="400" alt="BulbaEngine Scene">
+<img src="assets-git/showcase/objects3d.png" width="400" alt="BulbaEngine Renderer">
 
 </div>
 
