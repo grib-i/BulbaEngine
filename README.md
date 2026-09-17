@@ -1,8 +1,9 @@
-<div align="center">
+<div>
 
-<img src="git-assets/logo.png" width="220" alt="BulbaEngine Logo">
-
-<h1>BulbaEngine</h1>
+<h1>
+<img src="git-assets/logo.png" width="70" alt="BulbaEngine Logo" style="vertical-align: middle;">
+BulbaEngine
+</h1>
 
 <p>
 <b>Lightweight and experimental game engine written in C</b>
@@ -11,8 +12,6 @@
 <p>
 Low-level. Modular. Experimental.
 </p>
-
-<br>
 
 </div>
 
