@@ -72,7 +72,7 @@ BLB_Object3D *BLB_CreateCube3D(HMM_Vec3 scale, HMM_Vec3 position, BLB_Texture *t
     object->mesh.indices[i] = indices[i];
   }
 
-  HMM_Vec2 face_uvs[4] = {HMM_V2(0.0f, 1.0f), HMM_V2(1.0f, 1.0f), HMM_V2(1.0f, 0.0f), HMM_V2(0.0f, 0.0f)};
+  HMM_Vec2 face_uvs[4] = {HMM_V2(0.0f, 0.0f), HMM_V2(1.0f, 0.0f), HMM_V2(1.0f, 1.0f), HMM_V2(0.0f, 1.0f)};
   for (size_t face = 0; face < 6; face++) {
     for (size_t corner = 0; corner < 4; corner++) {
       size_t index = face * 4 + corner;

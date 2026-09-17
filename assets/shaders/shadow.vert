@@ -7,5 +7,7 @@ layout(push_constant) uniform PushConstants {
 } push_constants;
 
 void main() {
-  gl_Position = push_constants.mvp * vec4(in_position, 1.0);
+  gl_Position =
+    push_constants.mvp *
+      vec4(in_position, 1.0);
 }

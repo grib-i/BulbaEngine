@@ -49,10 +49,10 @@ BLB_Object2D *BLB_CreateCube2D(HMM_Vec2 scale, HMM_Vec2 position, BLB_Texture *t
   for (size_t i = 0; i < 4; i++)
     object->polygon->vertices[i] = object->polygon->base_vertices[i];
 
-  object->polygon->uvs[0] = HMM_V2(0.0f, 1.0f);
-  object->polygon->uvs[1] = HMM_V2(1.0f, 1.0f);
-  object->polygon->uvs[2] = HMM_V2(1.0f, 0.0f);
-  object->polygon->uvs[3] = HMM_V2(0.0f, 0.0f);
+  object->polygon->uvs[0] = HMM_V2(0.0f, 0.0f);
+  object->polygon->uvs[1] = HMM_V2(1.0f, 0.0f);
+  object->polygon->uvs[2] = HMM_V2(1.0f, 1.0f);
+  object->polygon->uvs[3] = HMM_V2(0.0f, 1.0f);
 
   object->polygon->indices[0] = 0;
   object->polygon->indices[1] = 1;

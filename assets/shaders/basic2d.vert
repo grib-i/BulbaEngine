@@ -3,9 +3,10 @@
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec4 in_color;
 layout(location = 2) in vec3 in_normal;
+layout(location = 3) in vec2 in_uv;
 
 layout(location = 0) out vec4 out_color;
-layout(location = 1) out vec2 out_position;
+layout(location = 1) out vec2 out_uv;
 
 layout(push_constant) uniform PushConstants {
   vec4 viewport;
@@ -19,9 +20,14 @@ void main() {
   vec2 clip = vec2(
       (in_position.x / width) * 2.0 - 1.0,
       (in_position.y / height) * 2.0 - 1.0
-  );
+    );
 
-  gl_Position = vec4(clip, 0.0, 1.0);
+  gl_Position = vec4(
+      clip,
+      0.0,
+      1.0
+    );
+
   out_color = in_color;
-  out_position = in_position.xy;
+  out_uv = in_uv;
 }

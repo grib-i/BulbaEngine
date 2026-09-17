@@ -1,6 +1,5 @@
+#include "debug.h"
 #include <bulba/bulba.h>
-
-#include "bulba/core/platform.h"
 
 #include <stdio.h>
 
@@ -43,32 +42,8 @@ int main(void) {
   BLB_SetSceneVisible(scene, true);
   BLB_SetSceneClear(scene, true, 8, 10, 16, 255);
 
-  // 3d objest
-  BLB_Object3D *cube1 = BLB_CreateCube3D(HMM_V3(2.8f, 2.8f, 2.8f), HMM_V3(-3.4f, 0.0f, -9.0f), NULL);
-
-  BLB_Object3D *cube2 = BLB_CreateCube3D(HMM_V3(2.8f, 2.8f, 2.8f), HMM_V3(0.0f, 0.0f, -20.0f), NULL);
-
-  if (cube1) {
-    BLB_Material_SetName(cube1->material, "GlowRed3D");
-    BLB_Material_SetBaseColor(cube1->material, 0.80f, 0.08f, 0.08f, 1.0f);
-    BLB_Material_SetEmission(cube1->material, 1.0f, 0.08f, 0.03f, 1.0f, 0.18f);
-    BLB_Material_SetGlow(cube1->material, 100.0f, 1.8f, 22.0f);
-    BLB_Material_SetRenderMode(cube1->material, BLB_RENDER_OPAQUE);
-    cube1->layer = 10;
-    cube1->visible = true;
-    BLB_AddObject3D(scene, cube1);
-  }
-
-  if (cube2) {
-    BLB_Material_SetName(cube2->material, "GlowBlue3D");
-    BLB_Material_SetBaseColor(cube2->material, 0.05f, 0.20f, 0.92f, 1.0f);
-    BLB_Material_SetEmission(cube2->material, 0.04f, 0.22f, 1.0f, 1.0f, 0.22f);
-    BLB_Material_SetGlow(cube2->material, 1.15f, 2.0f, 2.1f);
-    BLB_Material_SetRenderMode(cube2->material, BLB_RENDER_OPAQUE);
-    cube2->layer = 11;
-    cube2->visible = true;
-    BLB_AddObject3D(scene, cube2);
-  }
+  // textures
+  BLB_Texture *sprite_list = BLB_Texture_Load2D("assets/textures/potato.png");
 
   // light for 3d
   BLB_SuperObject3D *point_light =
@@ -86,7 +61,7 @@ int main(void) {
   }
 
   // 2d objests
-  BLB_Object2D *test_square = BLB_CreateCube2D(HMM_V2(180.0f, 180.0f), HMM_V2(100.0f, 120.0f), NULL);
+  BLB_Object2D *test_square = BLB_CreateCube2D(HMM_V2(180.0f, 180.0f), HMM_V2(100.0f, 800.0f), sprite_list);
   if (test_square) {
     BLB_Material_SetName(test_square->material, "GlowGreen2D");
     BLB_Material_SetBaseColor(test_square->material, 0.03f, 0.86f, 0.18f, 1.0f);
@@ -118,6 +93,12 @@ int main(void) {
   BLB_InitFPS(&fps);
   char fps_buffer[64];
 
+  if (!sprite_list)
+    printd("TEXTURE LOAD FAILED\n");
+  else
+    printd("TEXTURE: %ux%u\n", BLB_Texture_GetWidth(sprite_list), BLB_Texture_GetHeight(sprite_list));
+  BLB_Texture_Release(sprite_list);
+
   while (!BLB_WindowShouldClose(window)) {
     BLB_WindowPollEvents(window);
 
@@ -137,12 +118,6 @@ int main(void) {
       BLB_SetText2D(fps_text, fps_buffer);
     }
 
-    if (cube1)
-      BLB_Rotate(cube1, HMM_V3(0.0f, 24.0f, 0.0f));
-
-    if (cube2)
-      BLB_Rotate(cube2, HMM_V3(14.0f, -20.0f, 0.0f));
-
     int result = BLB_DrawScene(scene, &vk);
 
     if (result == -2) {
@@ -157,8 +132,6 @@ int main(void) {
 
   BLB_DestroyText2D(fps_text);
   BLB_DestroyCube2D(test_square);
-  BLB_DestroyCube3D(cube1);
-  BLB_DestroyCube3D(cube2);
   BLB_DestroyScene(scene);
   BLB_DestroyCamera(camera);
   VULKAN_Shutdown(&vk);
