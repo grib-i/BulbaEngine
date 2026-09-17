@@ -1,0 +1,39 @@
+# Build
+build/
+cmake-build-*/
+
+# C/C++ generated files
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+Makefile
+
+# IDE
+.zed/
+.vscode/
+.idea/
+
+# Local cache
+.cache/
+
+# Local files
+ideas/
+
+# Environment / secrets
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db

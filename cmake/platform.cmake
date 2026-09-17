@@ -1,0 +1,26 @@
+if(WIN32)
+  target_compile_definitions(
+    bulba_engine
+    PUBLIC
+    BLB_PLATFORM_WINDOWS=1
+  )
+elseif(ANDROID)
+  target_compile_definitions(
+    bulba_engine
+    PUBLIC
+    BLB_PLATFORM_ANDROID=1
+    BLB_PLATFORM_MOBILE=1
+  )
+elseif(APPLE)
+  target_compile_definitions(
+    bulba_engine
+    PUBLIC
+    BLB_PLATFORM_MACOS=1
+  )
+else()
+  target_compile_definitions(
+    bulba_engine
+    PUBLIC
+    BLB_PLATFORM_LINUX=1
+  )
+endif()

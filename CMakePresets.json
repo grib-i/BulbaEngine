@@ -1,0 +1,60 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PROJECT_NAME": "bulba",
+        "BLB_BUILD_APP": "ON",
+        "BLB_BUILD_SHADERS": "ON"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "PROJECT_NAME": "bulba",
+        "BLB_BUILD_APP": "ON",
+        "BLB_BUILD_SHADERS": "ON"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/windows-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PROJECT_NAME": "bulba",
+        "BLB_BUILD_APP": "ON",
+        "BLB_BUILD_SHADERS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-debug",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release",
+      "configurePreset": "linux-release"
+    },
+    {
+      "name": "windows-debug",
+      "configurePreset": "windows-debug"
+    }
+  ]
+}

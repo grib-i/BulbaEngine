@@ -1,0 +1,166 @@
+#!/bin/bash
+
+PROJECT_NAME="bulba"
+BUILD_TYPE="Debug"
+CLEAN=0
+
+for ARG in "$@"; do
+  case "$ARG" in
+    debug)
+      BUILD_TYPE="Debug"
+      ;;
+    release)
+      BUILD_TYPE="Release"
+      ;;
+    clean)
+      CLEAN=1
+      ;;
+    *)
+      echo "[ERROR] Unknown argument: $ARG"
+      echo "Usage: ./install [debug|release] [clean]"
+      exit 1
+      ;;
+  esac
+done
+
+fail() {
+  echo
+  echo "[ERROR] $1"
+  exit 1
+}
+
+check_command() {
+  command -v "$1" >/dev/null 2>&1 || fail "Command not found: $1"
+}
+
+echo "================================"
+echo "BulbaEngine"
+echo "Build type: $BUILD_TYPE"
+echo "================================"
+echo
+
+check_command cmake
+check_command ninja
+
+echo "[OK] Required tools found"
+
+if [ "$CLEAN" -eq 1 ]; then
+  echo
+  echo "[CLEAN] Removing build directory..."
+
+  if ! rm -rf build; then
+    fail "Failed to remove build directory"
+  fi
+
+  echo "[OK] Build directory removed"
+fi
+
+echo
+
+if [ "$BUILD_TYPE" == "Debug" ]; then
+  BUILD_DIR="build/debug"
+
+  echo "[1/3] Configuring Debug..."
+
+  if ! cmake -S . -B "$BUILD_DIR" \
+    -G Ninja \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DPROJECT_NAME="$PROJECT_NAME" \
+    -DBLB_BUILD_APP=ON \
+    -DBLB_BUILD_SHADERS=ON; then
+    fail "CMake configuration failed"
+  fi
+
+  echo "[OK] CMake configuration"
+
+  echo
+  echo "[2/3] Building Debug..."
+
+  if ! cmake --build "$BUILD_DIR" -j"$(nproc)"; then
+    fail "Debug build failed"
+  fi
+
+  echo "[OK] Debug build"
+
+  if [ ! -f "$BUILD_DIR/$PROJECT_NAME" ]; then
+    fail "Debug binary was not created"
+  fi
+
+  echo "[OK] Debug binary found"
+
+  echo
+  echo "[3/3] Running test binary..."
+
+  if ! "./$BUILD_DIR/$PROJECT_NAME"; then
+    fail "Debug application exited with an error"
+  fi
+
+  echo
+  echo "================================"
+  echo "[SUCCESS] Debug completed"
+  echo "================================"
+
+  exit 0
+fi
+
+BUILD_DIR="build/release"
+
+echo "[1/4] Configuring Release..."
+
+if ! cmake -S . -B "$BUILD_DIR" \
+  -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DPROJECT_NAME="$PROJECT_NAME" \
+  -DBLB_BUILD_APP=OFF \
+  -DBLB_BUILD_SHADERS=ON \
+  -DCMAKE_INSTALL_PREFIX=/usr/local; then
+  fail "CMake configuration failed"
+fi
+
+echo "[OK] CMake configuration"
+
+echo
+echo "[2/4] Building Release..."
+
+if ! cmake --build "$BUILD_DIR" -j"$(nproc)"; then
+  fail "Release build failed"
+fi
+
+echo "[OK] Release build"
+
+LIBRARY="$BUILD_DIR/libbulba_engine.so"
+
+if [ ! -f "$LIBRARY" ]; then
+  fail "Release library was not created: $LIBRARY"
+fi
+
+echo "[OK] Release library found"
+
+echo
+echo "[3/4] Installing..."
+
+if ! sudo cmake --install "$BUILD_DIR"; then
+  fail "Installation failed"
+fi
+
+echo "[OK] Installation completed"
+
+if [ ! -f "/usr/local/lib/libbulba_engine.so" ]; then
+  fail "Installed library was not found"
+fi
+
+echo "[OK] Installed library verified"
+
+echo
+echo "[4/4] Updating linker cache..."
+
+if ! sudo ldconfig; then
+  fail "ldconfig failed"
+fi
+
+echo "[OK] Linker cache updated"
+
+echo
+echo "================================"
+echo "[SUCCESS] Release installed"
+echo "================================"
