@@ -23,7 +23,7 @@ Low-level. Modular. Experimental.
 <a href="https://github.com/grib-i/BulbaEngine">
 <img src="https://img.shields.io/github/commit-activity/y/grib-i/BulbaEngine?style=for-the-badge&label=Activity">
 </a>
-<a href="#license">
+<a href="LICENSE">
 <img src="https://img.shields.io/github/license/grib-i/BulbaEngine?style=for-the-badge&label=License">
 </a>
 
@@ -57,7 +57,7 @@ Low-level. Modular. Experimental.
 
 **BulbaEngine** is a lightweight game and graphics engine written in **C**.
 
-It focuses on:
+The project focuses on:
 
 - low-level control
 - modular architecture
@@ -72,56 +72,20 @@ It focuses on:
 
 ## 📌 Project Status
 
-<table>
-<tr>
-<td><b>Version</b></td>
-<td><code>0.54.13</code></td>
-</tr>
-<tr>
-<td><b>Status</b></td>
-<td>🧪 Experimental</td>
-</tr>
-<tr>
-<td><b>Language</b></td>
-<td>C</td>
-</tr>
-<tr>
-<td><b>Build System</b></td>
-<td>CMake</td>
-</tr>
-<tr>
-<td><b>Platforms</b></td>
-<td>Linux · Windows</td>
-</tr>
-<tr>
-<td><b>Architecture</b></td>
-<td>Modular</td>
-</tr>
-</table>
-
----
-
-## 🎮 Demo
-
-<div align="center">
-
-<!-- Replace this with your GIF later -->
-
-<img src="git-assets/showcase/demo.gif" width="820" alt="BulbaEngine Demo">
-
-<br><br>
-
-<a href="https://grib-i.github.io/BulbaEngine-demo/">
-<img src="https://img.shields.io/badge/▶%20PLAY%20DEMO-FF8C00?style=for-the-badge">
-</a>
-
-</div>
-
-> Interactive browser demo powered by WebAssembly.
+| Property         | Value           |
+| ---------------- | --------------- |
+| **Version**      | `0.54.13`       |
+| **Status**       | 🧪 Experimental |
+| **Language**     | C               |
+| **Build System** | CMake           |
+| **Platforms**    | Linux · Windows |
+| **Architecture** | Modular         |
 
 ---
 
 ## 📸 Showcase
+
+> More screenshots and demos will be added here.
 
 <div align="center">
 
@@ -153,52 +117,113 @@ It focuses on:
 - CMake
 - Git
 
+### Clone
+
+```bash
+git clone https://github.com/grib-i/BulbaEngine.git
+cd BulbaEngine
+```
+
+### Build
+
+```bash
+cmake -B build
+cmake --build build
+```
+
+### Run
+
+```bash
+./build/BulbaEngine
+```
+
+---
+
+## 🌿 Development
+
+BulbaEngine uses a simple branch structure:
+
+```text
+main
+└── Stable releases
+
+develop
+└── Active development
+
+feature/*
+└── Individual features and experiments
+```
+
+Create a feature branch:
+
+```bash
+git switch develop
+git switch -c feature/physics
+```
+
+Push it:
+
+```bash
+git push -u origin feature/physics
+```
+
+Merge it back into `develop`:
+
+```bash
+git switch develop
+git merge feature/physics
+git push
+```
+
+Stable releases are merged into `main`.
+
+---
+
+## 📚 Documentation
+
+<div align="center">
+
+<a href="docs/">
+<img src="https://img.shields.io/badge/📖%20Documentation-6C63FF?style=for-the-badge">
+</a>
+
+<a href="https://github.com/grib-i/BulbaEngine/wiki">
+<img src="https://img.shields.io/badge/🌐%20Wiki-24292F?style=for-the-badge&logo=github">
+</a>
+
+</div>
+
+---
+
+## 🎮 Demo
+
+<div align="center">
+
+<!-- Demo GIF will be added here -->
+
+<img src="git-assets/showcase/demo.gif" width="820" alt="BulbaEngine Demo">
+
+<br><br>
+
+<a href="https://grib-i.github.io/BulbaEngine-demo/">
+<img src="https://img.shields.io/badge/▶%20Play%20Demo-FF8C00?style=for-the-badge">
+</a>
+
+</div>
+
 ---
 
 ## 🛣️ Roadmap
 
-<table>
-<tr>
-<th>System</th>
-<th>Status</th>
-</tr>
-
-<tr>
-<td>Core</td>
-<td>🟢 Active</td>
-</tr>
-
-<tr>
-<td>Math</td>
-<td>🟢 Active</td>
-</tr>
-
-<tr>
-<td>Renderer</td>
-<td>🟡 Developing</td>
-</tr>
-
-<tr>
-<td>Physics</td>
-<td>🟡 Planned</td>
-</tr>
-
-<tr>
-<td>Audio</td>
-<td>🟡 Planned</td>
-</tr>
-
-<tr>
-<td>Scripting</td>
-<td>🟡 Developing</td>
-</tr>
-
-<tr>
-<td>WebAssembly</td>
-<td>🟡 Planned</td>
-</tr>
-
-</table>
+| System          | Status        |
+| --------------- | ------------- |
+| **Core**        | 🟢 Active     |
+| **Math**        | 🟢 Active     |
+| **Renderer**    | 🟡 Developing |
+| **Physics**     | 🟡 Planned    |
+| **Audio**       | 🟡 Planned    |
+| **Scripting**   | 🟡 Developing |
+| **WebAssembly** | 🟡 Planned    |
 
 ---
 
@@ -217,10 +242,6 @@ See the project documentation for development guidelines.
 <a href="https://github.com/grib-i/BulbaEngine">
 <img src="https://img.shields.io/badge/⭐%20Star%20the%20repository-181717?style=for-the-badge&logo=github">
 </a>
-
-<br><br>
-
-If BulbaEngine is useful or interesting to you, consider giving the project a ⭐
 
 </div>
 
@@ -243,9 +264,5 @@ Copyright © 2026 **grib_i**
 ### BulbaEngine
 
 <sub>Built with C • Experiment • Break things • Build again</sub>
-
-<br><br>
-
-<img src="git-assets/logo.png" width="90" alt="BulbaEngine">
 
 </div>
