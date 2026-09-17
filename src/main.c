@@ -43,7 +43,8 @@ int main(void) {
   BLB_SetSceneClear(scene, true, 8, 10, 16, 255);
 
   // textures
-  BLB_Texture *sprite_list = BLB_Texture_Load2D("assets/textures/potato.png");
+  BLB_Texture **sprite_list = BLB_SpriteListAuto_Load2D("assets/textures/zta-stones.png", 1);
+  BLB_Texture *sprite = BLB_Texture_Load2D("assets/textures/zta-stones.png");
 
   // light for 3d
   BLB_SuperObject3D *point_light =
@@ -61,17 +62,41 @@ int main(void) {
   }
 
   // 2d objests
-  BLB_Object2D *test_square = BLB_CreateCube2D(HMM_V2(180.0f, 180.0f), HMM_V2(100.0f, 800.0f), sprite_list);
-  if (test_square) {
-    BLB_Material_SetName(test_square->material, "GlowGreen2D");
-    BLB_Material_SetBaseColor(test_square->material, 0.03f, 0.86f, 0.18f, 1.0f);
-    BLB_Material_SetEmission(test_square->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
-    BLB_Material_SetGlow(test_square->material, 0.8f, 22.0f, 2.2f);
-    BLB_Material_SetRenderMode(test_square->material, BLB_RENDER_OPAQUE);
-    test_square->layer = 50;
-    test_square->visible = true;
-    test_square->rotation = 0.0f;
-    BLB_AddObject2D(scene, test_square);
+  BLB_Object2D *test_squares[11];
+
+  for (int i = 0; i < 5; i++) {
+    HMM_Vec2 size = HMM_V2((float)sprite_list[i]->width / 3, (float)sprite_list[i]->height / 3);
+    test_squares[i] = BLB_CreateCube2D(size, HMM_V2(220.0f * (i + 1), 300.0f), sprite_list[i]);
+
+    if (test_squares[i]) {
+      BLB_Material_SetName(test_squares[i]->material, "GlowGreen2D");
+      BLB_Material_SetEmission(test_squares[i]->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
+      BLB_Material_SetGlow(test_squares[i]->material, 0.8f, 22.0f, 2.2f);
+      BLB_Material_SetRenderMode(test_squares[i]->material, BLB_RENDER_OPAQUE);
+      test_squares[i]->layer = 50;
+      test_squares[i]->visible = true;
+      test_squares[i]->rotation = 0.0f;
+
+      BLB_AddObject2D(scene, test_squares[i]);
+    }
+  }
+
+  for (int i = 5; i < 12; i++) {
+    HMM_Vec2 size = HMM_V2((float)sprite_list[i]->width / 3, (float)sprite_list[i]->height / 3);
+
+    test_squares[i] = BLB_CreateCube2D(size, HMM_V2(220.0f * (i - 4), 600.0f), sprite_list[i]);
+
+    if (test_squares[i]) {
+      BLB_Material_SetName(test_squares[i]->material, "GlowGreen2D");
+      BLB_Material_SetEmission(test_squares[i]->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
+      BLB_Material_SetGlow(test_squares[i]->material, 0.8f, 22.0f, 2.2f);
+      BLB_Material_SetRenderMode(test_squares[i]->material, BLB_RENDER_OPAQUE);
+      test_squares[i]->layer = 50;
+      test_squares[i]->visible = true;
+      test_squares[i]->rotation = 0.0f;
+
+      BLB_AddObject2D(scene, test_squares[i]);
+    }
   }
 
   // fps text
@@ -96,8 +121,8 @@ int main(void) {
   if (!sprite_list)
     printd("TEXTURE LOAD FAILED\n");
   else
-    printd("TEXTURE: %ux%u\n", BLB_Texture_GetWidth(sprite_list), BLB_Texture_GetHeight(sprite_list));
-  BLB_Texture_Release(sprite_list);
+    printd("TEXTURE: %ux%u\n", BLB_Texture_GetWidth(sprite_list[0]), BLB_Texture_GetHeight(sprite_list[0]));
+  BLB_SpriteList_Destroy(sprite_list);
 
   while (!BLB_WindowShouldClose(window)) {
     BLB_WindowPollEvents(window);
@@ -129,9 +154,13 @@ int main(void) {
       break;
     }
   }
+  for (int i = 0; i < 11; i++) {
+    if (test_squares[i]) {
+      BLB_DestroyCube2D(test_squares[i]);
+    }
+  }
 
   BLB_DestroyText2D(fps_text);
-  BLB_DestroyCube2D(test_square);
   BLB_DestroyScene(scene);
   BLB_DestroyCamera(camera);
   VULKAN_Shutdown(&vk);

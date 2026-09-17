@@ -9,6 +9,13 @@ typedef enum { BLB_TEXTURE_2D = 0, BLB_TEXTURE_3D = 1, BLB_TEXTURE_CUBE = 2 } BL
 
 typedef enum { BLB_TEXTURE_FORMAT_RGBA8 = 0 } BLB_TextureFormat;
 
+typedef struct {
+  uint32_t x;
+  uint32_t y;
+  uint32_t width;
+  uint32_t height;
+} BLB_AutoSpriteRect;
+
 typedef struct BLB_Texture {
   size_t ref_count;
 
@@ -28,6 +35,13 @@ typedef struct BLB_Texture {
 } BLB_Texture;
 
 BLB_Texture *BLB_Texture_Load2D(const char *path);
+
+BLB_Texture *BLB_SpriteList_Load2D(const char *path, uint32_t sprite_x, uint32_t sprite_y, uint32_t sprite_width, uint32_t sprite_height,
+                                   uint32_t distance);
+
+BLB_Texture **BLB_SpriteListAuto_Load2D(const char *path, uint32_t distance);
+
+void BLB_SpriteList_Destroy(BLB_Texture **textures);
 
 BLB_Texture *BLB_Texture_Create2D(uint32_t width, uint32_t height, const void *pixels, size_t pixel_size);
 
