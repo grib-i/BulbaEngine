@@ -48,7 +48,10 @@ float point_attenuation(
     return 0.0;
 
   float d =
-    max(distance_to_light, 0.05);
+    max(
+      distance_to_light,
+      0.05
+    );
 
   float inverse_square =
     1.0 /
@@ -62,7 +65,9 @@ float point_attenuation(
         distance_to_light
       );
 
-  return inverse_square * fade * fade;
+  return inverse_square *
+    fade *
+    fade;
 }
 
 float spot_factor(
@@ -100,27 +105,36 @@ void main() {
   vec4 texture_color =
     texture(diffuse_texture, in_uv);
 
-  vec4 surface_color =
-    texture_color * in_color;
-
   vec3 base =
-    max(surface_color.rgb, vec3(0.0));
+    texture_color.rgb *
+      in_color.rgb;
 
   float alpha =
-    surface_color.a;
+    texture_color.a *
+      in_color.a;
+
+  if (alpha <= 0.001)
+    discard;
 
   float emission =
-    max(push_constants.material.y, 0.0);
+    max(
+      push_constants.material.y,
+      0.0
+    );
 
   float glow =
-    max(push_constants.material.z, 0.0);
+    max(
+      push_constants.material.z,
+      0.0
+    );
 
   if (
     push_constants.material.x < 0.5 ||
       light_count == 0u
   ) {
     vec3 self_lit =
-      base * (1.0 + emission + glow);
+      base *
+        (1.0 + emission + glow);
 
     out_color = vec4(
         min(self_lit, vec3(1.0)),
@@ -138,20 +152,30 @@ void main() {
 
   for (
     uint i = 0u;
-    i < light_count && i < MAX_LIGHTS;
+    i < light_count &&
+      i < MAX_LIGHTS;
     i++
   ) {
     GPULight light =
       lights[i];
 
     vec3 light_color =
-      max(light.color.rgb, vec3(0.0));
+      max(
+        light.color.rgb,
+        vec3(0.0)
+      );
 
     float intensity =
-      max(light.parameters.x, 0.0);
+      max(
+        light.parameters.x,
+        0.0
+      );
 
     float ambient =
-      max(light.parameters.y, 0.0);
+      max(
+        light.parameters.y,
+        0.0
+      );
 
     float attenuation =
       1.0;
@@ -161,7 +185,9 @@ void main() {
 
     if (light.cone.w == LIGHT_DIRECTIONAL) {
       direction_to_light =
-        normalize(-light.direction.xy);
+        normalize(
+          -light.direction.xy
+        );
     } else {
       vec2 to_light =
         light.position.xy -
@@ -174,12 +200,16 @@ void main() {
         continue;
 
       direction_to_light =
-        to_light / distance_to_light;
+        to_light /
+          distance_to_light;
 
       attenuation =
         point_attenuation(
           distance_to_light,
-          max(light.cone.x, 0.0001)
+          max(
+            light.cone.x,
+            0.0001
+          )
         );
 
       if (light.cone.w == LIGHT_SPOT) {
@@ -198,7 +228,10 @@ void main() {
 
     float diffuse =
       max(
-        dot(normal, direction_to_light),
+        dot(
+          normal,
+          direction_to_light
+        ),
         0.0
       );
 

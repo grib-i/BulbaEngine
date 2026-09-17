@@ -94,7 +94,7 @@ void VULKAN_RendererDrawTriangle(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec
                              .roundness = 0.0f,
                              .glow_radius = 0.0f,
                              .glow_falloff = 0.0f,
-                             .render_mode = BLB_RENDER_OPAQUE};
+                             .render_mode = BLB_RENDER_TRANSPARENT};
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
 
@@ -142,7 +142,7 @@ void VULKAN_RendererDrawTriangle2D(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_V
                              .roundness = 0.0f,
                              .glow_radius = 0.0f,
                              .glow_falloff = 0.0f,
-                             .render_mode = BLB_RENDER_OPAQUE};
+                             .render_mode = BLB_RENDER_TRANSPARENT};
 
   (void)mvp;
   (void)camera_position;
@@ -198,7 +198,7 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
                              .roundness = 0.0f,
                              .glow_radius = 0.0f,
                              .glow_falloff = 0.0f,
-                             .render_mode = BLB_RENDER_OPAQUE};
+                             .render_mode = BLB_RENDER_TRANSPARENT};
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
 

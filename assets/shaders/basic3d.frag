@@ -26,7 +26,6 @@ layout(std430, set = 0, binding = 0) readonly buffer LightBuffer {
 };
 
 layout(set = 0, binding = 1) uniform sampler2DShadow shadow_map;
-
 layout(set = 1, binding = 0) uniform sampler2D diffuse_texture;
 
 layout(location = 0) in vec4 in_color;
@@ -151,27 +150,36 @@ void main() {
   vec4 texture_color =
     texture(diffuse_texture, in_uv);
 
-  vec4 surface_color =
-    texture_color * in_color;
-
   vec3 base =
-    max(surface_color.rgb, vec3(0.0));
+    texture_color.rgb *
+      in_color.rgb;
 
   float alpha =
-    surface_color.a;
+    texture_color.a *
+      in_color.a;
+
+  if (alpha <= 0.001)
+    discard;
 
   float lighting_enabled =
     push_constants.material.x;
 
   float emission =
-    max(push_constants.material.y, 0.0);
+    max(
+      push_constants.material.y,
+      0.0
+    );
 
   float glow =
-    max(push_constants.material.z, 0.0);
+    max(
+      push_constants.material.z,
+      0.0
+    );
 
   if (lighting_enabled < 0.5) {
     vec3 self_lit =
-      base * (1.0 + emission + glow);
+      base *
+        (1.0 + emission + glow);
 
     out_color = vec4(
         min(self_lit, vec3(1.0)),
@@ -190,20 +198,32 @@ void main() {
   float ambient_light =
     0.12;
 
-  for (uint i = 0u;
-    i < light_count && i < MAX_LIGHTS;
-    i++) {
+  for (
+    uint i = 0u;
+    i < light_count &&
+      i < MAX_LIGHTS;
+    i++
+  ) {
     GPULight light =
       lights[i];
 
     vec3 light_color =
-      max(light.color.rgb, vec3(0.0));
+      max(
+        light.color.rgb,
+        vec3(0.0)
+      );
 
     float intensity =
-      max(light.parameters.x, 0.0);
+      max(
+        light.parameters.x,
+        0.0
+      );
 
     float ambient =
-      max(light.parameters.y, 0.0);
+      max(
+        light.parameters.y,
+        0.0
+      );
 
     float attenuation =
       1.0;
@@ -216,7 +236,9 @@ void main() {
 
     if (light.cone.w == LIGHT_DIRECTIONAL) {
       direction_to_light =
-        normalize(-light.direction.xyz);
+        normalize(
+          -light.direction.xyz
+        );
 
       casts_shadow =
         true;
@@ -225,7 +247,8 @@ void main() {
         light.cone.w == LIGHT_SPOT
     ) {
       vec3 to_light =
-        light.position.xyz - in_position;
+        light.position.xyz -
+          in_position;
 
       float distance_to_light =
         length(to_light);
@@ -234,12 +257,16 @@ void main() {
         continue;
 
       direction_to_light =
-        to_light / distance_to_light;
+        to_light /
+          distance_to_light;
 
       attenuation =
         point_attenuation(
           distance_to_light,
-          max(light.cone.x, 0.0001)
+          max(
+            light.cone.x,
+            0.0001
+          )
         );
 
       if (light.cone.w == LIGHT_SPOT) {
@@ -258,16 +285,21 @@ void main() {
 
     float ndotl =
       max(
-        dot(normal, direction_to_light),
+        dot(
+          normal,
+          direction_to_light
+        ),
         0.0
       );
 
     float diffuse =
-      ndotl * ndotl *
+      ndotl *
+        ndotl *
         (3.0 - 2.0 * ndotl);
 
     float shadow =
-      casts_shadow && diffuse > 0.0
+      casts_shadow &&
+        diffuse > 0.0
       ? shadow_visibility(
         in_position,
         normal,
@@ -296,7 +328,8 @@ void main() {
       (emission + glow);
 
   vec3 final_color =
-    lit_color + self_lit;
+    lit_color +
+      self_lit;
 
   out_color = vec4(
       min(final_color, vec3(1.0)),
