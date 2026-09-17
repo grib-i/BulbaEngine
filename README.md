@@ -31,10 +31,12 @@ Low-level. Modular. Experimental.
 
 <br>
 
-<img src="https://img.shields.io/badge/Language-C-00599C?style=for-the-badge&logo=c">
-<img src="https://img.shields.io/badge/CMake-064F8C?style=for-the-badge&logo=cmake">
-<img src="https://img.shields.io/badge/Linux-000000?style=for-the-badge&logo=linux">
-<img src="https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows">
+<div>
+  <img src="https://img.shields.io/badge/Language-C-00599C?style=for-the-badge&logo=c">
+  <img src="https://img.shields.io/badge/CMake-064F8C?style=for-the-badge&logo=cmake">
+  <img src="https://img.shields.io/badge/Linux-000000?style=for-the-badge&logo=linux">
+  <img src="https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows">
+</div>
 
 <br><br>
 
@@ -135,11 +137,13 @@ sudo apt install \
 
 ## 🚀 Getting Started
 
-### Install
+### Clone
 
 ```bash
 git clone https://github.com/grib-i/BulbaEngine.git && cd BulbaEngine
 ```
+
+## install
 
 ```bash
 ./install
@@ -272,4 +276,28 @@ See the project documentation for development guidelines.
 
 ## ⭐ Support
 
-<a href
+<a href="https://github.com/grib-i/BulbaEngine">
+<img src="https://img.shields.io/badge/⭐%20Star%20the%20repository-181717?style=for-the-badge&logo=github">
+</a>
+
+---
+
+## 📄 License
+
+BulbaEngine is licensed under the **MIT License**.
+
+<a href="LICENSE">
+<img src="https://img.shields.io/badge/View%20License-MIT-green?style=for-the-badge">
+</a>
+
+Copyright © 2026 **grib_i**
+
+---
+
+<div align="center">
+
+### BulbaEngine
+
+<sub>Built with C • Experiment • Break things • Build again</sub>
+
+</div>
