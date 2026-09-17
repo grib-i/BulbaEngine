@@ -1,8 +1,6 @@
 <div>
-<div>
-<img src="assets-git/logo.svg" width="220" alt="BulbaEngine Logo">
-<h1>BulbaEngine</h1>
-</div>
+
+<h1><img src="assets-git/logo.svg" width="36" alt="BulbaEngine Logo"> BulbaEngine</h1>
 
 <p>
 <b>Lightweight and experimental game engine written in C</b>
