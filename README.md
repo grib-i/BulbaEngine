@@ -1,9 +1,8 @@
 <div>
-
-<h1>
-<img src="git-assets/logo.png" width="70" alt="BulbaEngine Logo" style="vertical-align: middle;">
-BulbaEngine
-</h1>
+<div>
+<img src="git-assets/logo.svg" width="220" alt="BulbaEngine Logo">
+<h1>BulbaEngine</h1>
+</div>
 
 <p>
 <b>Lightweight and experimental game engine written in C</b>
@@ -12,6 +11,8 @@ BulbaEngine
 <p>
 Low-level. Modular. Experimental.
 </p>
+
+<br>
 
 </div>
 
@@ -39,13 +40,13 @@ Low-level. Modular. Experimental.
 
 <br><br>
 
-<a href="#documentation">
+<a href="https://grib-i.github.io/BulbaEngineDocs/">
 <img src="https://img.shields.io/badge/📚%20Documentation-6C63FF?style=for-the-badge">
 </a>
-<a href="#getting-started">
+<a href="https://grib-i.github.io/BulbaEngineDocs/en/getting-started/">
 <img src="https://img.shields.io/badge/🚀%20Getting%20Started-2EA043?style=for-the-badge">
 </a>
-<a href="#roadmap">
+<a href="https://grib-i.github.io/BulbaEngineDocs/en/roadmap/">
 <img src="https://img.shields.io/badge/🛣️%20Roadmap-9B59B6?style=for-the-badge">
 </a>
 
@@ -72,7 +73,7 @@ The project focuses on:
 
 | Property         | Value           |
 | ---------------- | --------------- |
-| **Version**      | `0.54.13`       |
+| **Version**      | `0.5.14`        |
 | **Status**       | 🧪 Experimental |
 | **Language**     | C               |
 | **Build System** | CMake           |
@@ -241,7 +242,7 @@ Stable releases are merged into `main`.
 
 ## 📚 Documentation
 
-<a href="docs/">
+<a href="https://grib-i.github.io/BulbaEngineDocs/">
 <img src="https://img.shields.io/badge/📖%20Documentation-6C63FF?style=for-the-badge">
 </a>
 
