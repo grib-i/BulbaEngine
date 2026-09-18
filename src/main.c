@@ -149,15 +149,13 @@ int main(void) {
   }
 
   BLB_FPS fps;
-  BLB_InitFPS(&fps);
+  BLB_InitFPS(&fps, &vk, 60, false);
   char fps_buffer[64];
 
   int a = 100;
   while (!BLB_WindowShouldClose(window)) {
     BLB_WindowPollEvents(window);
-
-    double now = BLB_Platform_TimeSeconds();
-    BLB_UpdateFPS(&fps, now);
+    BLB_UpdateFPS(&fps);
 
     float delta_time = BLB_GetDeltaTime(&fps);
     if (delta_time <= 0.0f)
@@ -168,7 +166,7 @@ int main(void) {
     BLB_SetSceneDeltaTime(scene, delta_time);
 
     if (fps_text) {
-      snprintf(fps_buffer, sizeof(fps_buffer), "FPS: %.1f", BLB_GetFPS(&fps));
+      snprintf(fps_buffer, sizeof(fps_buffer), "FPS: %d", (int)BLB_GetFPS(&fps));
       BLB_SetText2D(fps_text, fps_buffer);
     }
 

@@ -177,8 +177,4 @@ void VULKAN_Shutdown(VULKAN *vulkan);
 
 const char *VULKAN_GetLastError(const VULKAN *vulkan);
 
-int VULKAN_CreateSwapchain(VULKAN *vulkan);
-
-void VULKAN_DestroySwapchain(VULKAN *vulkan);
-
 #endif

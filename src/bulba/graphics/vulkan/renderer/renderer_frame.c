@@ -1,4 +1,5 @@
 #include "bulba/graphics/vulkan/renderer.h"
+#include "bulba/graphics/vulkan/swapchain.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -19,19 +20,17 @@ int create_depth_resources(VULKAN *vulkan) {
   }
 
   for (uint32_t i = 0; i < vulkan->swapchain_image_count; i++) {
-    VkImageCreateInfo image_info = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-        .imageType = VK_IMAGE_TYPE_2D,
-        .format = VK_FORMAT_D32_SFLOAT,
-        .extent = {vulkan->swapchain_extent.width, vulkan->swapchain_extent.height, 1},
-        .mipLevels = 1,
-        .arrayLayers = 1,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
-    };
+    VkImageCreateInfo image_info = {.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                                    .imageType = VK_IMAGE_TYPE_2D,
+                                    .format = VK_FORMAT_D32_SFLOAT,
+                                    .extent = {vulkan->swapchain_extent.width, vulkan->swapchain_extent.height, 1},
+                                    .mipLevels = 1,
+                                    .arrayLayers = 1,
+                                    .samples = VK_SAMPLE_COUNT_1_BIT,
+                                    .tiling = VK_IMAGE_TILING_OPTIMAL,
+                                    .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                                    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                                    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
 
     if (vkCreateImage(vulkan->device, &image_info, NULL, &vulkan->depth_images[i]) != VK_SUCCESS)
       return -1;
@@ -44,10 +43,7 @@ int create_depth_resources(VULKAN *vulkan) {
       return -1;
 
     VkMemoryAllocateInfo alloc = {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .allocationSize = requirements.size,
-        .memoryTypeIndex = memory_type
-    };
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, .allocationSize = requirements.size, .memoryTypeIndex = memory_type};
 
     if (vkAllocateMemory(vulkan->device, &alloc, NULL, &vulkan->depth_memories[i]) != VK_SUCCESS)
       return -1;
@@ -60,14 +56,7 @@ int create_depth_resources(VULKAN *vulkan) {
         .image = vulkan->depth_images[i],
         .viewType = VK_IMAGE_VIEW_TYPE_2D,
         .format = VK_FORMAT_D32_SFLOAT,
-        .subresourceRange = {
-            .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1
-        }
-    };
+        .subresourceRange = {.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1}};
 
     if (vkCreateImageView(vulkan->device, &view, NULL, &vulkan->depth_image_views[i]) != VK_SUCCESS)
       return -1;
@@ -103,20 +92,15 @@ int create_framebuffers(VULKAN *vulkan) {
     return -1;
 
   for (uint32_t i = 0; i < vulkan->swapchain_image_count; i++) {
-    VkImageView attachments[] = {
-        vulkan->swapchain_image_views[i],
-        vulkan->depth_image_views[i]
-    };
+    VkImageView attachments[] = {vulkan->swapchain_image_views[i], vulkan->depth_image_views[i]};
 
-    VkFramebufferCreateInfo info = {
-        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass = vulkan->render_pass,
-        .attachmentCount = 2,
-        .pAttachments = attachments,
-        .width = vulkan->swapchain_extent.width,
-        .height = vulkan->swapchain_extent.height,
-        .layers = 1
-    };
+    VkFramebufferCreateInfo info = {.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                                    .renderPass = vulkan->render_pass,
+                                    .attachmentCount = 2,
+                                    .pAttachments = attachments,
+                                    .width = vulkan->swapchain_extent.width,
+                                    .height = vulkan->swapchain_extent.height,
+                                    .layers = 1};
 
     if (vkCreateFramebuffer(vulkan->device, &info, NULL, &vulkan->framebuffers[i]) != VK_SUCCESS)
       return -1;
@@ -126,21 +110,17 @@ int create_framebuffers(VULKAN *vulkan) {
 }
 
 int create_command_resources(VULKAN *vulkan) {
-  VkCommandPoolCreateInfo pool = {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-      .queueFamilyIndex = vulkan->graphics_queue_family
-  };
+  VkCommandPoolCreateInfo pool = {.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+                                  .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+                                  .queueFamilyIndex = vulkan->graphics_queue_family};
 
   if (vkCreateCommandPool(vulkan->device, &pool, NULL, &vulkan->command_pool) != VK_SUCCESS)
     return -1;
 
-  VkCommandBufferAllocateInfo alloc = {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = vulkan->command_pool,
-      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount = VULKAN_MAX_FRAMES_IN_FLIGHT
-  };
+  VkCommandBufferAllocateInfo alloc = {.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+                                       .commandPool = vulkan->command_pool,
+                                       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+                                       .commandBufferCount = VULKAN_MAX_FRAMES_IN_FLIGHT};
 
   if (vkAllocateCommandBuffers(vulkan->device, &alloc, vulkan->command_buffers) != VK_SUCCESS)
     return -1;
@@ -149,14 +129,9 @@ int create_command_resources(VULKAN *vulkan) {
 }
 
 int create_sync(VULKAN *vulkan) {
-  VkSemaphoreCreateInfo semaphore = {
-      .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
-  };
+  VkSemaphoreCreateInfo semaphore = {.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
 
-  VkFenceCreateInfo fence = {
-      .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-      .flags = VK_FENCE_CREATE_SIGNALED_BIT
-  };
+  VkFenceCreateInfo fence = {.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
   for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++) {
     if (vkCreateSemaphore(vulkan->device, &semaphore, NULL, &vulkan->image_available[i]) != VK_SUCCESS)
@@ -178,7 +153,8 @@ int VULKAN_RendererBeginFrame(VULKAN *vulkan) {
   if (result != VK_SUCCESS)
     return -1;
 
-  result = vkAcquireNextImageKHR(vulkan->device, vulkan->swapchain, UINT64_MAX, vulkan->image_available[frame], VK_NULL_HANDLE, &vulkan->current_image);
+  result =
+      vkAcquireNextImageKHR(vulkan->device, vulkan->swapchain, UINT64_MAX, vulkan->image_available[frame], VK_NULL_HANDLE, &vulkan->current_image);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR)
     return -2;
@@ -203,9 +179,7 @@ int VULKAN_RendererBeginFrame(VULKAN *vulkan) {
   if (vkResetCommandBuffer(vulkan->command_buffers[frame], 0) != VK_SUCCESS)
     return -1;
 
-  VkCommandBufferBeginInfo begin = {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-  };
+  VkCommandBufferBeginInfo begin = {.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
   if (vkBeginCommandBuffer(vulkan->command_buffers[frame], &begin) != VK_SUCCESS)
     return -1;
@@ -222,36 +196,25 @@ void VULKAN_RendererBeginMainPass(VULKAN *vulkan) {
   if (!vulkan || vulkan->main_render_pass_begun)
     return;
 
-  VkClearValue clear_values[2] = {
-      {.color = {{
-          vulkan->clear_color[0],
-          vulkan->clear_color[1],
-          vulkan->clear_color[2],
-          vulkan->clear_color[3]
-      }}},
-      {.depthStencil = {1.0f, 0}}
-  };
+  VkClearValue clear_values[2] = {{.color = {{vulkan->clear_color[0], vulkan->clear_color[1], vulkan->clear_color[2], vulkan->clear_color[3]}}},
+                                  {.depthStencil = {1.0f, 0}}};
 
-  VkRenderPassBeginInfo render = {
-      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-      .renderPass = vulkan->render_pass,
-      .framebuffer = vulkan->framebuffers[vulkan->current_image],
-      .renderArea = {.offset = {0, 0}, .extent = vulkan->swapchain_extent},
-      .clearValueCount = 2,
-      .pClearValues = clear_values
-  };
+  VkRenderPassBeginInfo render = {.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                                  .renderPass = vulkan->render_pass,
+                                  .framebuffer = vulkan->framebuffers[vulkan->current_image],
+                                  .renderArea = {.offset = {0, 0}, .extent = vulkan->swapchain_extent},
+                                  .clearValueCount = 2,
+                                  .pClearValues = clear_values};
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
   vkCmdBeginRenderPass(command, &render, VK_SUBPASS_CONTENTS_INLINE);
 
-  VkViewport viewport = {
-      .x = 0.0f,
-      .y = 0.0f,
-      .width = (float)vulkan->swapchain_extent.width,
-      .height = (float)vulkan->swapchain_extent.height,
-      .minDepth = 0.0f,
-      .maxDepth = 1.0f
-  };
+  VkViewport viewport = {.x = 0.0f,
+                         .y = 0.0f,
+                         .width = (float)vulkan->swapchain_extent.width,
+                         .height = (float)vulkan->swapchain_extent.height,
+                         .minDepth = 0.0f,
+                         .maxDepth = 1.0f};
 
   VkRect2D scissor = {.offset = {0, 0}, .extent = vulkan->swapchain_extent};
   vkCmdSetViewport(command, 0, 1, &viewport);
@@ -262,7 +225,6 @@ void VULKAN_RendererBeginMainPass(VULKAN *vulkan) {
   vulkan->text_vertex_cursor = 0;
   vulkan->main_render_pass_begun = true;
 }
-
 
 void VULKAN_RendererSetClearColor(VULKAN *vulkan, float r, float g, float b, float a) {
   if (!vulkan)
@@ -290,25 +252,17 @@ void VULKAN_RendererBeginShadowPass(VULKAN *vulkan) {
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
   VkClearValue clear = {.depthStencil = {1.0f, 0}};
-  VkRenderPassBeginInfo render = {
-      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-      .renderPass = vulkan->shadow_render_pass,
-      .framebuffer = vulkan->shadow_framebuffers[vulkan->current_frame],
-      .renderArea = {.offset = {0, 0}, .extent = {VULKAN_SHADOW_MAP_SIZE, VULKAN_SHADOW_MAP_SIZE}},
-      .clearValueCount = 1,
-      .pClearValues = &clear
-  };
+  VkRenderPassBeginInfo render = {.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                                  .renderPass = vulkan->shadow_render_pass,
+                                  .framebuffer = vulkan->shadow_framebuffers[vulkan->current_frame],
+                                  .renderArea = {.offset = {0, 0}, .extent = {VULKAN_SHADOW_MAP_SIZE, VULKAN_SHADOW_MAP_SIZE}},
+                                  .clearValueCount = 1,
+                                  .pClearValues = &clear};
 
   vkCmdBeginRenderPass(command, &render, VK_SUBPASS_CONTENTS_INLINE);
 
   VkViewport viewport = {
-      .x = 0.0f,
-      .y = 0.0f,
-      .width = (float)VULKAN_SHADOW_MAP_SIZE,
-      .height = (float)VULKAN_SHADOW_MAP_SIZE,
-      .minDepth = 0.0f,
-      .maxDepth = 1.0f
-  };
+      .x = 0.0f, .y = 0.0f, .width = (float)VULKAN_SHADOW_MAP_SIZE, .height = (float)VULKAN_SHADOW_MAP_SIZE, .minDepth = 0.0f, .maxDepth = 1.0f};
   VkRect2D scissor = {.offset = {0, 0}, .extent = {VULKAN_SHADOW_MAP_SIZE, VULKAN_SHADOW_MAP_SIZE}};
   vkCmdSetViewport(command, 0, 1, &viewport);
   vkCmdSetScissor(command, 0, 1, &scissor);
@@ -330,28 +284,24 @@ int VULKAN_RendererEndFrame(VULKAN *vulkan) {
 
   VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-  VkSubmitInfo submit = {
-      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-      .waitSemaphoreCount = 1,
-      .pWaitSemaphores = &vulkan->image_available[vulkan->current_frame],
-      .pWaitDstStageMask = &wait_stage,
-      .commandBufferCount = 1,
-      .pCommandBuffers = &command,
-      .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &vulkan->render_finished[vulkan->current_frame]
-  };
+  VkSubmitInfo submit = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                         .waitSemaphoreCount = 1,
+                         .pWaitSemaphores = &vulkan->image_available[vulkan->current_frame],
+                         .pWaitDstStageMask = &wait_stage,
+                         .commandBufferCount = 1,
+                         .pCommandBuffers = &command,
+                         .signalSemaphoreCount = 1,
+                         .pSignalSemaphores = &vulkan->render_finished[vulkan->current_frame]};
 
   if (vkQueueSubmit(vulkan->graphics_queue, 1, &submit, vulkan->in_flight[vulkan->current_frame]) != VK_SUCCESS)
     return -1;
 
-  VkPresentInfoKHR present = {
-      .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-      .waitSemaphoreCount = 1,
-      .pWaitSemaphores = &vulkan->render_finished[vulkan->current_frame],
-      .swapchainCount = 1,
-      .pSwapchains = &vulkan->swapchain,
-      .pImageIndices = &vulkan->current_image
-  };
+  VkPresentInfoKHR present = {.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                              .waitSemaphoreCount = 1,
+                              .pWaitSemaphores = &vulkan->render_finished[vulkan->current_frame],
+                              .swapchainCount = 1,
+                              .pSwapchains = &vulkan->swapchain,
+                              .pImageIndices = &vulkan->current_image};
 
   VkResult result = vkQueuePresentKHR(vulkan->present_queue, &present);
   vulkan->current_frame = (vulkan->current_frame + 1) % VULKAN_MAX_FRAMES_IN_FLIGHT;
@@ -366,23 +316,10 @@ void VULKAN_RendererClear(VULKAN *vulkan, float r, float g, float b, float a) {
   if (!vulkan)
     return;
 
-  VkClearAttachment attachments[2] = {
-      {
-          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-          .colorAttachment = 0,
-          .clearValue = {.color = {{r, g, b, a}}}
-      },
-      {
-          .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
-          .clearValue = {.depthStencil = {1.0f, 0}}
-      }
-  };
+  VkClearAttachment attachments[2] = {{.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .colorAttachment = 0, .clearValue = {.color = {{r, g, b, a}}}},
+                                      {.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .clearValue = {.depthStencil = {1.0f, 0}}}};
 
-  VkClearRect rect = {
-      .rect = {.offset = {0, 0}, .extent = vulkan->swapchain_extent},
-      .baseArrayLayer = 0,
-      .layerCount = 1
-  };
+  VkClearRect rect = {.rect = {.offset = {0, 0}, .extent = vulkan->swapchain_extent}, .baseArrayLayer = 0, .layerCount = 1};
 
   vkCmdClearAttachments(vulkan->command_buffers[vulkan->current_frame], 2, attachments, 1, &rect);
 }
@@ -413,7 +350,7 @@ int VULKAN_RendererRecreateSwapchain(VULKAN *vulkan) {
   destroy_depth_resources(vulkan);
   VULKAN_DestroySwapchain(vulkan);
 
-  if (VULKAN_CreateSwapchain(vulkan) != 0)
+  if (VULKAN_CreateSwapchain(vulkan, false) != 0)
     return -1;
   if (create_depth_resources(vulkan) != 0)
     return -1;
