@@ -58,10 +58,12 @@ static void write_light_2d(VulkanGPULight *destination, BLB_Light2D *source) {
 
 void update_light_buffer_3d(VULKAN *vulkan) {
   size_t count = vulkan->light3d_count;
+
   if (count > VULKAN_MAX_LIGHTS)
     count = VULKAN_MAX_LIGHTS;
 
   VulkanLightBufferData *buffer = (VulkanLightBufferData *)vulkan->light_buffers_3d[vulkan->current_frame].mapped;
+
   memset(buffer, 0, sizeof(*buffer));
 
   buffer->camera_position[0] = vulkan->camera_position.x;
@@ -70,11 +72,13 @@ void update_light_buffer_3d(VULKAN *vulkan) {
   buffer->camera_position[3] = 1.0f;
 
   memcpy(buffer->shadow_mvp, &vulkan->shadow_mvp.Elements[0][0], sizeof(buffer->shadow_mvp));
+
   buffer->shadow_params[0] = vulkan->shadow_enabled ? 1.0f : 0.0f;
   buffer->shadow_params[1] = vulkan->shadow_bias;
 
   for (size_t i = 0; i < count; i++) {
     BLB_Light3D *source = vulkan->lights3d[i];
+
     if (!source || !source->enabled)
       continue;
 
@@ -85,10 +89,12 @@ void update_light_buffer_3d(VULKAN *vulkan) {
 
 void update_light_buffer_2d(VULKAN *vulkan) {
   size_t count = vulkan->light2d_count;
+
   if (count > VULKAN_MAX_LIGHTS)
     count = VULKAN_MAX_LIGHTS;
 
   VulkanLightBufferData *buffer = (VulkanLightBufferData *)vulkan->light_buffers_2d[vulkan->current_frame].mapped;
+
   memset(buffer, 0, sizeof(*buffer));
 
   buffer->camera_position[0] = vulkan->camera_position.x;
@@ -98,6 +104,7 @@ void update_light_buffer_2d(VULKAN *vulkan) {
 
   for (size_t i = 0; i < count; i++) {
     BLB_Light2D *source = vulkan->lights2d[i];
+
     if (!source || !source->enabled)
       continue;
 
@@ -108,25 +115,13 @@ void update_light_buffer_2d(VULKAN *vulkan) {
 
 int create_light_descriptor_layout(VULKAN *vulkan, VkDescriptorSetLayout *layout) {
   VkDescriptorSetLayoutBinding bindings[] = {
-      {
-          .binding = 0,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-          .descriptorCount = 1,
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-      },
-      {
-          .binding = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-          .descriptorCount = 1,
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-      }
-  };
+      {.binding = 0,
+       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+       .descriptorCount = 1,
+       .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT},
+      {.binding = 1, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1, .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT}};
 
-  VkDescriptorSetLayoutCreateInfo info = {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-      .bindingCount = 2,
-      .pBindings = bindings
-  };
+  VkDescriptorSetLayoutCreateInfo info = {.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, .bindingCount = 2, .pBindings = bindings};
 
   if (vkCreateDescriptorSetLayout(vulkan->device, &info, NULL, layout) != VK_SUCCESS)
     return -1;
@@ -135,75 +130,73 @@ int create_light_descriptor_layout(VULKAN *vulkan, VkDescriptorSetLayout *layout
 }
 
 int create_light_buffers(VULKAN *vulkan, VULKAN_Buffer *buffers) {
+  if (!vulkan || !buffers)
+    return -1;
+
   for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++) {
-    if (create_buffer(vulkan, sizeof(VulkanLightBufferData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &buffers[i]) != 0)
+    if (create_buffer(vulkan, sizeof(VulkanLightBufferData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &buffers[i]) != 0) {
+      for (uint32_t j = 0; j < i; j++)
+        destroy_buffer(vulkan, &buffers[j]);
+
       return -1;
+    }
   }
 
   return 0;
 }
 
 void destroy_light_buffers(VULKAN *vulkan, VULKAN_Buffer *buffers) {
+  if (!vulkan || !buffers)
+    return;
+
   for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++)
     destroy_buffer(vulkan, &buffers[i]);
 }
 
 int create_light_descriptors(VULKAN *vulkan, VkDescriptorSetLayout layout, VkDescriptorPool *pool, VkDescriptorSet *sets, VULKAN_Buffer *buffers) {
-  VkDescriptorPoolSize pool_sizes[] = {
-      {
-          .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-          .descriptorCount = VULKAN_MAX_FRAMES_IN_FLIGHT
-      },
-      {
-          .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-          .descriptorCount = VULKAN_MAX_FRAMES_IN_FLIGHT
-      }
-  };
+  if (!vulkan || !pool || !sets || !buffers)
+    return -1;
+
+  VkDescriptorPoolSize pool_sizes[] = {{.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = VULKAN_MAX_FRAMES_IN_FLIGHT},
+                                       {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = VULKAN_MAX_FRAMES_IN_FLIGHT}};
 
   VkDescriptorPoolCreateInfo pool_info = {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = VULKAN_MAX_FRAMES_IN_FLIGHT,
-      .poolSizeCount = 2,
-      .pPoolSizes = pool_sizes
-  };
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, .maxSets = VULKAN_MAX_FRAMES_IN_FLIGHT, .poolSizeCount = 2, .pPoolSizes = pool_sizes};
 
   if (vkCreateDescriptorPool(vulkan->device, &pool_info, NULL, pool) != VK_SUCCESS)
     return -1;
 
   VkDescriptorSetLayout layouts[VULKAN_MAX_FRAMES_IN_FLIGHT];
+
   for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++)
     layouts[i] = layout;
 
-  VkDescriptorSetAllocateInfo alloc = {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-      .descriptorPool = *pool,
-      .descriptorSetCount = VULKAN_MAX_FRAMES_IN_FLIGHT,
-      .pSetLayouts = layouts
-  };
+  VkDescriptorSetAllocateInfo alloc = {.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+                                       .descriptorPool = *pool,
+                                       .descriptorSetCount = VULKAN_MAX_FRAMES_IN_FLIGHT,
+                                       .pSetLayouts = layouts};
 
-  if (vkAllocateDescriptorSets(vulkan->device, &alloc, sets) != VK_SUCCESS)
+  if (vkAllocateDescriptorSets(vulkan->device, &alloc, sets) != VK_SUCCESS) {
+    vkDestroyDescriptorPool(vulkan->device, *pool, NULL);
+    *pool = VK_NULL_HANDLE;
+
     return -1;
+  }
 
   for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++) {
-    VkDescriptorBufferInfo buffer_info = {
-        .buffer = buffers[i].buffer,
-        .offset = 0,
-        .range = sizeof(VulkanLightBufferData)
-    };
+    VkDescriptorBufferInfo buffer_info = {.buffer = buffers[i].buffer, .offset = 0, .range = sizeof(VulkanLightBufferData)};
+
+    VkDescriptorImageInfo shadow_image = {
+        .sampler = vulkan->shadow_sampler, .imageView = vulkan->shadow_image_views[i], .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
 
     VkWriteDescriptorSet writes[2] = {0};
+
     writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     writes[0].dstSet = sets[i];
     writes[0].dstBinding = 0;
     writes[0].descriptorCount = 1;
     writes[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     writes[0].pBufferInfo = &buffer_info;
-
-    VkDescriptorImageInfo shadow_image = {
-        .sampler = vulkan->shadow_sampler,
-        .imageView = vulkan->shadow_image_views[i],
-        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-    };
 
     writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     writes[1].dstSet = sets[i];
@@ -219,12 +212,15 @@ int create_light_descriptors(VULKAN *vulkan, VkDescriptorSetLayout layout, VkDes
 }
 
 void destroy_light_descriptors(VULKAN *vulkan, VkDescriptorPool *pool, VkDescriptorSetLayout *layout) {
-  if (*pool != VK_NULL_HANDLE) {
+  if (!vulkan)
+    return;
+
+  if (pool && *pool != VK_NULL_HANDLE) {
     vkDestroyDescriptorPool(vulkan->device, *pool, NULL);
     *pool = VK_NULL_HANDLE;
   }
 
-  if (*layout != VK_NULL_HANDLE) {
+  if (layout && *layout != VK_NULL_HANDLE) {
     vkDestroyDescriptorSetLayout(vulkan->device, *layout, NULL);
     *layout = VK_NULL_HANDLE;
   }
@@ -235,6 +231,7 @@ void VULKAN_RendererSetCameraPosition(VULKAN *vulkan, HMM_Vec3 position) {
     return;
 
   vulkan->camera_position = position;
+
   update_light_buffer_3d(vulkan);
   update_light_buffer_2d(vulkan);
 }
@@ -262,8 +259,10 @@ void VULKAN_RendererClearLights3D(VULKAN *vulkan) {
     return;
 
   vulkan->light3d_count = 0;
+
   for (size_t i = 0; i < VULKAN_MAX_LIGHTS; i++)
     vulkan->lights3d[i] = NULL;
+
   update_light_buffer_3d(vulkan);
 }
 
@@ -290,7 +289,9 @@ void VULKAN_RendererClearLights2D(VULKAN *vulkan) {
     return;
 
   vulkan->light2d_count = 0;
+
   for (size_t i = 0; i < VULKAN_MAX_LIGHTS; i++)
     vulkan->lights2d[i] = NULL;
+
   update_light_buffer_2d(vulkan);
 }
