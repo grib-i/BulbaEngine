@@ -321,7 +321,7 @@ BLB_Texture **BLB_SpriteListAuto_Load2D(const char *path, uint32_t distance) {
 
   qsort(sprites, sprite_count, sizeof(*sprites), BLB_AutoSpriteRect_Compare);
 
-  BLB_Texture **textures = calloc(sprite_count + 1, sizeof(*textures));
+  BLB_Texture **textures = calloc(sprite_count + 1, sizeof(BLB_Texture *));
 
   if (!textures) {
     free(sprites);
@@ -367,8 +367,6 @@ BLB_Texture **BLB_SpriteListAuto_Load2D(const char *path, uint32_t distance) {
     }
 
     free(sprite_pixels);
-
-    printf("SPRITE %zu: x=%u y=%u width=%u height=%u\n", i, rect->x, rect->y, rect->width, rect->height);
   }
 
   textures[sprite_count] = NULL;

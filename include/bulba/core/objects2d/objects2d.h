@@ -13,20 +13,28 @@
 typedef struct {
   BLB_EntityId entity_id;
   BLB_ComponentMask component_mask;
+
   BLB_Material *material;
   BLB_Texture *texture;
+
   HMM_Vec2 position;
   float rotation;
   HMM_Vec2 scale;
+
   BLB_Polygon2D *polygon;
+
   BLB_RenderMode render_mode;
 
   float *delta_time;
+
   unsigned char color[4];
+
   float glow;
   float emission;
   float roundness;
+
   unsigned short layer;
+
   bool visible;
 } BLB_Object2D;
 

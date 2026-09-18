@@ -1,7 +1,9 @@
+#include "bulba/core/render/material.h"
 #include "debug.h"
 #include <bulba/bulba.h>
 
 #include <stdio.h>
+#include <time.h>
 
 int main(void) {
   BLB_Window *window = BLB_CreateWindow(1200, 900, "BulbaEngine");
@@ -43,8 +45,8 @@ int main(void) {
   BLB_SetSceneClear(scene, true, 8, 10, 16, 255);
 
   // textures
-  BLB_Texture **sprite_list = BLB_SpriteListAuto_Load2D("assets/textures/zta-stones.png", 1);
-  BLB_Texture *sprite = BLB_Texture_Load2D("assets/textures/zta-stones.png");
+  // BLB_Texture **sprite_list = BLB_SpriteListAuto_Load2D("assets/textures/zta-stones.png", 1);
+  // BLB_Texture *sprite = BLB_Texture_Load2D("assets/textures/zta-stones.png");
 
   // light for 3d
   BLB_SuperObject3D *point_light =
@@ -62,41 +64,73 @@ int main(void) {
   }
 
   // 2d objests
-  BLB_Object2D *test_squares[11];
+  BLB_Object2D *square2d = BLB_CreateSquare2D(HMM_V2(100, 100), HMM_V2(200.0f, 100.0f), NULL);
+  if (square2d) {
+    BLB_Material_SetName(square2d->material, "GlowGreen2D");
+    BLB_Material_SetEmission(square2d->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
+    BLB_Material_SetGlow(square2d->material, 0.8f, 22.0f, 2.2f);
+    BLB_Material_SetRenderMode(square2d->material, BLB_RENDER_OPAQUE);
+    square2d->layer = 50;
+    square2d->visible = true;
+    square2d->rotation = 0.0f;
 
-  for (int i = 0; i < 5; i++) {
-    HMM_Vec2 size = HMM_V2((float)sprite_list[i]->width / 3, (float)sprite_list[i]->height / 3);
-    test_squares[i] = BLB_CreateCube2D(size, HMM_V2(220.0f * (i + 1), 300.0f), sprite_list[i]);
-
-    if (test_squares[i]) {
-      BLB_Material_SetName(test_squares[i]->material, "GlowGreen2D");
-      BLB_Material_SetEmission(test_squares[i]->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
-      BLB_Material_SetGlow(test_squares[i]->material, 0.8f, 22.0f, 2.2f);
-      BLB_Material_SetRenderMode(test_squares[i]->material, BLB_RENDER_OPAQUE);
-      test_squares[i]->layer = 50;
-      test_squares[i]->visible = true;
-      test_squares[i]->rotation = 0.0f;
-
-      BLB_AddObject2D(scene, test_squares[i]);
-    }
+    BLB_AddObject2D(scene, square2d);
   }
 
-  for (int i = 5; i < 12; i++) {
-    HMM_Vec2 size = HMM_V2((float)sprite_list[i]->width / 3, (float)sprite_list[i]->height / 3);
+  BLB_Object2D *circle = BLB_CreateCircle2D(HMM_V2(100, 100), HMM_V2(200.0f, 250.0f), 4, NULL);
+  if (circle) {
+    BLB_Material_SetName(circle->material, "GlowGreen2D");
+    BLB_Material_SetEmission(circle->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
+    BLB_Material_SetGlow(circle->material, 0.8f, 22.0f, 2.2f);
+    BLB_Material_SetRenderMode(circle->material, BLB_RENDER_OPAQUE);
+    circle->layer = 50;
+    circle->visible = true;
+    circle->rotation = 0.0f;
 
-    test_squares[i] = BLB_CreateCube2D(size, HMM_V2(220.0f * (i - 4), 600.0f), sprite_list[i]);
+    BLB_AddObject2D(scene, circle);
+  }
 
-    if (test_squares[i]) {
-      BLB_Material_SetName(test_squares[i]->material, "GlowGreen2D");
-      BLB_Material_SetEmission(test_squares[i]->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
-      BLB_Material_SetGlow(test_squares[i]->material, 0.8f, 22.0f, 2.2f);
-      BLB_Material_SetRenderMode(test_squares[i]->material, BLB_RENDER_OPAQUE);
-      test_squares[i]->layer = 50;
-      test_squares[i]->visible = true;
-      test_squares[i]->rotation = 0.0f;
+  // 3d objects
+  BLB_Object3D *sphere = BLB_CreateSphere3D(HMM_V3(2, 2, 2), HMM_V3(0.0f, 0.0f, -10.0f), 4, NULL);
 
-      BLB_AddObject2D(scene, test_squares[i]);
-    }
+  if (sphere) {
+    BLB_Material_SetName(sphere->material, "GlowGreen2D");
+    BLB_Material_SetEmission(sphere->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
+    BLB_Material_SetGlow(sphere->material, 0.8f, 22.0f, 2.2f);
+    BLB_Material_SetBaseColor(sphere->material, 1.0f, 0.140f, 0.105f, 1.0f);
+    BLB_Material_SetRenderMode(sphere->material, BLB_RENDER_OPAQUE);
+    sphere->layer = 1;
+    sphere->visible = true;
+
+    BLB_AddObject3D(scene, sphere);
+  }
+
+  BLB_Object3D *torus = BLB_CreateTorus3D(HMM_V3(2, 2, 2), HMM_V3(-5.0f, 0.0f, -10.0f), 4, 0.0f, 0.0f, NULL);
+
+  if (torus) {
+    BLB_Material_SetName(torus->material, "GlowGreen2D");
+    BLB_Material_SetEmission(torus->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
+    BLB_Material_SetGlow(torus->material, 0.8f, 22.0f, 2.2f);
+    BLB_Material_SetBaseColor(torus->material, 1.0f, 0.140f, 0.105f, 1.0f);
+    BLB_Material_SetRenderMode(torus->material, BLB_RENDER_OPAQUE);
+    torus->layer = 1;
+    torus->visible = true;
+
+    BLB_AddObject3D(scene, torus);
+  }
+
+  BLB_Object3D *cube = BLB_CreateCube3D(HMM_V3(2, 2, 2), HMM_V3(5.0f, 0.0f, -10.0f), NULL);
+
+  if (cube) {
+    BLB_Material_SetName(cube->material, "GlowGreen2D");
+    BLB_Material_SetEmission(cube->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
+    BLB_Material_SetGlow(cube->material, 0.8f, 0.1f, 2.2f);
+    BLB_Material_SetBaseColor(cube->material, 0.127f, 0.181f, 0.181f, 1.0f);
+    BLB_Material_SetRenderMode(cube->material, BLB_RENDER_OPAQUE);
+    cube->layer = 1;
+    cube->visible = true;
+
+    BLB_AddObject3D(scene, cube);
   }
 
   // fps text
@@ -110,7 +144,7 @@ int main(void) {
     BLB_Material_SetBaseColor(fps_text->material, 1.0f, 1.0f, 1.0f, 1.0f);
     BLB_Material_SetEmission(fps_text->material, 1.0f, 1.0f, 1.0f, 1.0f, 0.2f);
     BLB_Material_SetRenderMode(fps_text->material, BLB_RENDER_TRANSPARENT);
-    fps_text->layer = 1000;
+    fps_text->layer = 10;
     BLB_AddText2D(scene, fps_text);
   }
 
@@ -118,12 +152,7 @@ int main(void) {
   BLB_InitFPS(&fps);
   char fps_buffer[64];
 
-  if (!sprite_list)
-    printd("TEXTURE LOAD FAILED\n");
-  else
-    printd("TEXTURE: %ux%u\n", BLB_Texture_GetWidth(sprite_list[0]), BLB_Texture_GetHeight(sprite_list[0]));
-  BLB_SpriteList_Destroy(sprite_list);
-
+  int a = 100;
   while (!BLB_WindowShouldClose(window)) {
     BLB_WindowPollEvents(window);
 
@@ -144,6 +173,11 @@ int main(void) {
     }
 
     int result = BLB_DrawScene(scene, &vk);
+    BLB_Rotate3D(sphere, HMM_V3(a, a, 0));
+
+    BLB_Rotate3D(cube, HMM_V3(a, a, a));
+
+    BLB_Rotate3D(torus, HMM_V3(a, a, 0));
 
     if (result == -2) {
       if (VULKAN_RendererRecreateSwapchain(&vk) != 0)
@@ -154,11 +188,13 @@ int main(void) {
       break;
     }
   }
-  for (int i = 0; i < 11; i++) {
-    if (test_squares[i]) {
-      BLB_DestroyCube2D(test_squares[i]);
-    }
-  }
+
+  BLB_DestroySphere3D(sphere);
+  BLB_DestroyCube3D(cube);
+  BLB_DestroyTorus3D(torus);
+
+  BLB_DestroySquare2D(square2d);
+  BLB_DestroyCircle2D(circle);
 
   BLB_DestroyText2D(fps_text);
   BLB_DestroyScene(scene);

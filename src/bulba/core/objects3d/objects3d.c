@@ -1,6 +1,6 @@
 #include "bulba/core/objects3d/objects3d.h"
 
-void BLB_Move(BLB_Object3D *object, HMM_Vec3 velocity) {
+void BLB_Move3D(BLB_Object3D *object, HMM_Vec3 velocity) {
   if (!object)
     return;
 
@@ -10,14 +10,14 @@ void BLB_Move(BLB_Object3D *object, HMM_Vec3 velocity) {
   object->position = HMM_AddV3(object->position, velocity);
 }
 
-void BLB_SetPosition(BLB_Object3D *object, HMM_Vec3 position) {
+void BLB_SetPosition3D(BLB_Object3D *object, HMM_Vec3 position) {
   if (!object)
     return;
 
   object->position = position;
 }
 
-void BLB_Rotate(BLB_Object3D *object, HMM_Vec3 angular_velocity) {
+void BLB_Rotate3D(BLB_Object3D *object, HMM_Vec3 angular_velocity) {
   if (!object)
     return;
 
@@ -27,14 +27,14 @@ void BLB_Rotate(BLB_Object3D *object, HMM_Vec3 angular_velocity) {
   object->rotation = HMM_AddV3(object->rotation, angular_velocity);
 }
 
-void BLB_SetRotation(BLB_Object3D *object, HMM_Vec3 rotation) {
+void BLB_SetRotation3D(BLB_Object3D *object, HMM_Vec3 rotation) {
   if (!object)
     return;
 
   object->rotation = rotation;
 }
 
-void BLB_Scale(BLB_Object3D *object, HMM_Vec3 scale_velocity) {
+void BLB_Scale3D(BLB_Object3D *object, HMM_Vec3 scale_velocity) {
   if (!object)
     return;
 
@@ -44,14 +44,14 @@ void BLB_Scale(BLB_Object3D *object, HMM_Vec3 scale_velocity) {
   object->scale = HMM_AddV3(object->scale, scale_velocity);
 }
 
-void BLB_SetScale(BLB_Object3D *object, HMM_Vec3 scale) {
+void BLB_SetScale3D(BLB_Object3D *object, HMM_Vec3 scale) {
   if (!object)
     return;
 
   object->scale = scale;
 }
 
-void BLB_Transform(BLB_Object3D *object, HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale) {
+void BLB_Transform3D(BLB_Object3D *object, HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale) {
   if (!object)
     return;
 
