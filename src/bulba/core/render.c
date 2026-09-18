@@ -15,42 +15,64 @@ static void rgb(const unsigned char color[4], float output[4]) {
 static BLB_RenderMode normalize_render_mode(BLB_RenderMode mode) {
   if (mode < BLB_RENDER_OPAQUE || mode >= BLB_RENDER_MODE_COUNT)
     return BLB_RENDER_OPAQUE;
+
   return mode;
 }
 
 static int compare_object3d(const void *a, const void *b) {
   BLB_Object3D *aa = *(BLB_Object3D **)a;
   BLB_Object3D *bb = *(BLB_Object3D **)b;
+
   if (!aa || !bb)
     return 0;
+
   BLB_RenderMode am = aa->material ? aa->material->render_mode : aa->render_mode;
   BLB_RenderMode bm = bb->material ? bb->material->render_mode : bb->render_mode;
-  if (normalize_render_mode(am) != normalize_render_mode(bm))
-    return (int)normalize_render_mode(am) - (int)normalize_render_mode(bm);
+
+  am = normalize_render_mode(am);
+  bm = normalize_render_mode(bm);
+
+  if (am != bm)
+    return (int)am - (int)bm;
+
   return (int)aa->layer - (int)bb->layer;
 }
 
 static int compare_object2d(const void *a, const void *b) {
   BLB_Object2D *aa = *(BLB_Object2D **)a;
   BLB_Object2D *bb = *(BLB_Object2D **)b;
+
   if (!aa || !bb)
     return 0;
+
   BLB_RenderMode am = aa->material ? aa->material->render_mode : aa->render_mode;
   BLB_RenderMode bm = bb->material ? bb->material->render_mode : bb->render_mode;
-  if (normalize_render_mode(am) != normalize_render_mode(bm))
-    return (int)normalize_render_mode(am) - (int)normalize_render_mode(bm);
+
+  am = normalize_render_mode(am);
+  bm = normalize_render_mode(bm);
+
+  if (am != bm)
+    return (int)am - (int)bm;
+
   return (int)aa->layer - (int)bb->layer;
 }
 
 static int compare_text2d(const void *a, const void *b) {
   BLB_Text2D *aa = *(BLB_Text2D **)a;
   BLB_Text2D *bb = *(BLB_Text2D **)b;
+
   if (!aa || !bb)
     return 0;
+
   BLB_RenderMode am = aa->material ? aa->material->render_mode : aa->render_mode;
   BLB_RenderMode bm = bb->material ? bb->material->render_mode : bb->render_mode;
-  if (normalize_render_mode(am) != normalize_render_mode(bm))
-    return (int)normalize_render_mode(am) - (int)normalize_render_mode(bm);
+
+  am = normalize_render_mode(am);
+  bm = normalize_render_mode(bm);
+
+  if (am != bm)
+    return (int)am - (int)bm;
+
   return (int)aa->layer - (int)bb->layer;
 }
 
@@ -103,6 +125,7 @@ static bool build_shadow_matrix(BLB_Scene *scene, HMM_Mat4 *shadow_vp) {
 
   for (int i = 0; i < scene->light3d_count; i++) {
     BLB_Light3D *candidate = scene->lights3d[i];
+
     if (candidate && candidate->enabled && candidate->type == BLB_LIGHT_DIRECTIONAL) {
       light = candidate;
       break;
@@ -118,13 +141,17 @@ static bool build_shadow_matrix(BLB_Scene *scene, HMM_Mat4 *shadow_vp) {
   if (scene->object3d_count > 0) {
     HMM_Vec3 target = HMM_V3(0.0f, 0.0f, 0.0f);
     int count = 0;
+
     for (int i = 0; i < scene->object3d_count; i++) {
       BLB_Object3D *object = scene->objects3d[i];
+
       if (!object || !object->visible)
         continue;
+
       target = HMM_AddV3(target, object->position);
       count++;
     }
+
     if (count > 0)
       target_z = HMM_MulV3F(target, 1.0f / (float)count).z;
   }
@@ -132,14 +159,18 @@ static bool build_shadow_matrix(BLB_Scene *scene, HMM_Mat4 *shadow_vp) {
   HMM_Vec3 target = HMM_V3(0.0f, 0.0f, target_z);
   HMM_Vec3 eye = HMM_SubV3(target, HMM_MulV3F(direction, 60.0f));
   HMM_Vec3 up = fabsf(HMM_DotV3(direction, HMM_V3(0.0f, 1.0f, 0.0f))) > 0.98f ? HMM_V3(0.0f, 0.0f, 1.0f) : HMM_V3(0.0f, 1.0f, 0.0f);
+
   HMM_Mat4 view = HMM_LookAt_RH(eye, target, up);
   HMM_Mat4 projection = HMM_Orthographic_RH_ZO(-35.0f, 35.0f, 35.0f, -35.0f, 0.1f, 140.0f);
+
   *shadow_vp = HMM_MulM4(projection, view);
+
   return true;
 }
 
 static VulkanMaterial vulkan_material_from(const BLB_Material *material, bool lighting) {
   VulkanMaterial result = {0};
+
   result.lighting_enabled = lighting && material && material->lighting_enabled;
   result.emission = material ? material->emission_strength : 0.0f;
   result.glow = material ? material->glow_strength : 0.0f;
@@ -147,36 +178,45 @@ static VulkanMaterial vulkan_material_from(const BLB_Material *material, bool li
   result.glow_radius = material ? material->glow_radius : 0.0f;
   result.glow_falloff = material ? material->glow_falloff : 0.0f;
   result.render_mode = normalize_render_mode(material ? material->render_mode : BLB_RENDER_OPAQUE);
+
   return result;
 }
 
 static BLB_Material material_fallback3d(const BLB_Object3D *object) {
   BLB_Material material = {0};
+
   material.domain = BLB_MATERIAL_3D;
   material.render_mode = normalize_render_mode(object->render_mode);
   material.lighting_enabled = true;
   material.depth_enabled = true;
+
   rgb(object->color, material.base_color);
+
   material.emission_strength = object->emission;
   material.glow_strength = object->glow;
   material.glow_radius = object->glow > 0.0f ? 1.0f : 0.0f;
   material.glow_falloff = 2.0f;
   material.roughness = object->roundness;
+
   return material;
 }
 
 static BLB_Material material_fallback2d(const BLB_Object2D *object) {
   BLB_Material material = {0};
+
   material.domain = BLB_MATERIAL_2D;
   material.render_mode = normalize_render_mode(object->render_mode);
   material.lighting_enabled = false;
   material.depth_enabled = false;
+
   rgb(object->color, material.base_color);
+
   material.emission_strength = object->emission;
   material.glow_strength = object->glow;
   material.glow_radius = object->glow > 0.0f ? 18.0f : 0.0f;
   material.glow_falloff = 2.0f;
   material.roughness = object->roundness;
+
   return material;
 }
 
@@ -186,18 +226,22 @@ static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, BLB_Camer
   HMM_Mat4 model;
   HMM_Mat4 rotation;
   float normal_rows[12];
+
   build_model(object->position, object->rotation, pass_scale, &model, &rotation, normal_rows);
 
   HMM_Mat4 view = BLB_CameraView(camera);
   HMM_Mat4 projection = BLB_CameraProjection(camera, aspect);
   HMM_Mat4 mvp = HMM_MulM4(projection, HMM_MulM4(view, model));
+
   float model_rows[12];
   extract_matrix_rows(&model, model_rows);
 
   BLB_Material pass = *material;
+
   pass.emission_strength *= glow_mul;
   pass.glow_strength *= glow_mul;
   pass.base_color[3] *= glow_mul;
+
   VulkanMaterial vk_material = vulkan_material_from(&pass, true);
 
   VULKAN_RendererDrawPolygon3D(renderer, object->polygon, &mvp.Elements[0][0], model_rows, normal_rows, pass.base_color[0], pass.base_color[1],
@@ -210,6 +254,7 @@ static void draw_object3d(BLB_Object3D *object, VULKAN *renderer, BLB_Camera *ca
 
   BLB_Material fallback;
   const BLB_Material *material = object->material;
+
   if (!material) {
     fallback = material_fallback3d(object);
     material = &fallback;
@@ -222,41 +267,50 @@ static void draw_object3d(BLB_Object3D *object, VULKAN *renderer, BLB_Camera *ca
 
   float radius = material->glow_radius;
   float steps = 6.0f;
+
   for (int i = 1; i <= 6; i++) {
     float t = (float)i / steps;
     float envelope = powf(fmaxf(0.0f, 1.0f - t), fmaxf(material->glow_falloff, 0.2f));
     float scale_mul = 1.0f + radius * 0.035f * t;
+
     draw_object3d_pass(object, renderer, camera, aspect, material, scale_mul, envelope * material->glow_strength * 0.32f);
   }
 }
 
 static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, const BLB_Material *material, float scale_mul, float glow_mul) {
+  BLB_Material pass = *material;
+
+  pass.emission_strength *= glow_mul;
+  pass.glow_strength *= glow_mul;
+  pass.base_color[3] *= glow_mul;
+
+  VulkanMaterial vk_material = vulkan_material_from(&pass, false);
+
+  if (scale_mul == 1.0f) {
+    VULKAN_RendererDrawPolygon2D(renderer, object->polygon, (float)renderer->swapchain_extent.width, (float)renderer->swapchain_extent.height,
+                                 pass.base_color[0], pass.base_color[1], pass.base_color[2], pass.base_color[3], &vk_material, object->texture);
+    return;
+  }
+
   float angle = HMM_AngleDeg(object->rotation);
   float c = cosf(angle);
   float s = sinf(angle);
-  size_t count = *object->polygon->vertex_count;
-  HMM_Vec2 *vertices = malloc(sizeof(HMM_Vec2) * count);
-  if (!vertices)
-    return;
+  size_t count = object->polygon->vertex_count;
+  HMM_Vec2 vertices[count];
 
   for (size_t i = 0; i < count; i++) {
     float x = object->polygon->vertices[i].x * object->scale.x * scale_mul;
     float y = object->polygon->vertices[i].y * object->scale.y * scale_mul;
+
     vertices[i].x = object->position.x + x * c - y * s;
     vertices[i].y = object->position.y + x * s + y * c;
   }
 
   BLB_Polygon2D transformed = *object->polygon;
   transformed.vertices = vertices;
-  BLB_Material pass = *material;
-  pass.emission_strength *= glow_mul;
-  pass.glow_strength *= glow_mul;
-  pass.base_color[3] *= glow_mul;
-  VulkanMaterial vk_material = vulkan_material_from(&pass, false);
 
   VULKAN_RendererDrawPolygon2D(renderer, &transformed, (float)renderer->swapchain_extent.width, (float)renderer->swapchain_extent.height,
                                pass.base_color[0], pass.base_color[1], pass.base_color[2], pass.base_color[3], &vk_material, object->texture);
-  free(vertices);
 }
 
 static void draw_object2d(BLB_Object2D *object, VULKAN *renderer) {
@@ -265,6 +319,7 @@ static void draw_object2d(BLB_Object2D *object, VULKAN *renderer) {
 
   BLB_Material fallback;
   const BLB_Material *material = object->material;
+
   if (!material) {
     fallback = material_fallback2d(object);
     material = &fallback;
@@ -276,10 +331,12 @@ static void draw_object2d(BLB_Object2D *object, VULKAN *renderer) {
     return;
 
   float base_size = fmaxf(fabsf(object->scale.x), fmaxf(fabsf(object->scale.y), 1.0f));
+
   for (int i = 1; i <= 7; i++) {
     float t = (float)i / 7.0f;
     float envelope = powf(fmaxf(0.0f, 1.0f - t), fmaxf(material->glow_falloff, 0.2f));
     float scale_mul = 1.0f + (material->glow_radius / base_size) * t;
+
     draw_object2d_pass(object, renderer, material, scale_mul, envelope * material->glow_strength * 0.22f);
   }
 }
@@ -295,6 +352,7 @@ static void draw_text2d(BLB_Text2D *text, VULKAN *renderer) {
 
   BLB_Material fallback = {0};
   const BLB_Material *material = text->material;
+
   if (!material) {
     fallback.domain = BLB_MATERIAL_2D;
     fallback.base_color[0] = text->color[0] / 255.0f;
@@ -309,6 +367,7 @@ static void draw_text2d(BLB_Text2D *text, VULKAN *renderer) {
   }
 
   float glyph_scale = text->font.size > 0 ? text->size / (float)text->font.size : 1.0f;
+
   if (glyph_scale <= 0.0f)
     glyph_scale = 0.001f;
 
@@ -322,6 +381,7 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
     return -1;
 
   int result = VULKAN_RendererBeginFrame(renderer);
+
   if (result != 0)
     return result;
 
@@ -335,18 +395,21 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
   if (scene->enabled) {
     for (int i = 0; i < scene->object3d_count; i++) {
       BLB_Object3D *object = scene->objects3d[i];
+
       if (object && object->delta_time)
         *object->delta_time = scene->delta_time;
     }
 
     for (int i = 0; i < scene->object2d_count; i++) {
       BLB_Object2D *object = scene->objects2d[i];
+
       if (object && object->delta_time)
         *object->delta_time = scene->delta_time;
     }
 
     for (int i = 0; i < scene->text2d_count; i++) {
       BLB_Text2D *text = scene->text2d[i];
+
       if (text && text->delta_time)
         *text->delta_time = scene->delta_time;
     }
@@ -365,6 +428,7 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
 
   HMM_Mat4 shadow_vp = HMM_M4D(1.0f);
   bool shadow_enabled = scene->enabled && scene->visible && build_shadow_matrix(scene, &shadow_vp);
+
   VULKAN_RendererSetShadow(renderer, &shadow_vp.Elements[0][0], shadow_enabled, 0.002f);
 
   if (shadow_enabled) {
@@ -372,14 +436,18 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
 
     for (int i = 0; i < scene->object3d_count; i++) {
       BLB_Object3D *object = scene->objects3d[i];
+
       if (!object || !object->visible || !object->polygon || object->render_mode != BLB_RENDER_OPAQUE)
         continue;
 
       HMM_Mat4 model;
       HMM_Mat4 rotation;
       float normal_rows[12];
+
       build_model(object->position, object->rotation, object->scale, &model, &rotation, normal_rows);
+
       HMM_Mat4 shadow_mvp = HMM_MulM4(shadow_vp, model);
+
       VULKAN_RendererDrawShadowPolygon3D(renderer, object->polygon, &shadow_mvp.Elements[0][0]);
     }
 
@@ -391,8 +459,10 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
   if (scene->enabled && scene->visible) {
     if (scene->object3d_count > 1)
       qsort(scene->objects3d, scene->object3d_count, sizeof(BLB_Object3D *), compare_object3d);
+
     if (scene->object2d_count > 1)
       qsort(scene->objects2d, scene->object2d_count, sizeof(BLB_Object2D *), compare_object2d);
+
     if (scene->text2d_count > 1)
       qsort(scene->text2d, scene->text2d_count, sizeof(BLB_Text2D *), compare_text2d);
 
