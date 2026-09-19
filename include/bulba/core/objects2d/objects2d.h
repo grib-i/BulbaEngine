@@ -36,6 +36,7 @@ typedef struct {
   unsigned short layer;
 
   bool visible;
+  bool screen_space;
 } BLB_Object2D;
 
 void BLB_Object2D_Move(BLB_Object2D *object, HMM_Vec2 velocity);

@@ -46,6 +46,7 @@ target_include_directories(
 include(${CMAKE_SOURCE_DIR}/cmake/platform.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/compiler.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/shaders.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/textures.cmake)
 
 target_link_libraries(bulba_engine
     PUBLIC

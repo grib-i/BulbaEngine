@@ -20,6 +20,7 @@
 #include "bulba/core/render/shader.h"
 #include "bulba/core/render/texture.h"
 #include "bulba/core/scene.h"
+#include "bulba/core/utils/debug.h"
 #include "bulba/core/utils/font.h"
 #include "bulba/core/utils/fps.h"
 #include "bulba/core/window.h"

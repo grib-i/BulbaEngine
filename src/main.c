@@ -1,13 +1,13 @@
-#include "bulba/core/camera.h"
-#include "bulba/core/objects3d/objects3d.h"
-#include "bulba/core/render/texture.h"
+#include "bulba/core/objects2d/objects2d.h"
 #include <bulba/bulba.h>
 #include <debug.h>
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
 
 int main(void) {
+  BLB_DEBUG = true;
   BLB_Window *window = BLB_CreateWindow(1200, 900, "BulbaEngine");
   if (!window) {
     fprintf(stderr, "window failed\n");
@@ -51,19 +51,19 @@ int main(void) {
   // BLB_Texture *sprite = BLB_Texture_Load2D("assets/textures/zta-stones.png");
 
   // light for 3d
-  BLB_Light3D *point_light = BLB_CreateLight3D(BLB_LIGHT_POINT, HMM_V3(1.0f, 1.0f, -1.0f), HMM_V3(0.0f, -1.0f, 0.0f));
+  BLB_Light3D *point_light = BLB_CreateLight3D(BLB_LIGHT_POINT, HMM_V3(1.0f, 1.0f, -8.0f), HMM_V3(0.0f, -1.0f, 0.0f));
   if (point_light) {
     point_light->intensity = 4.0f;
     point_light->ambient = 0.08f;
     point_light->range = 20.0f;
     point_light->specular = 0.0f;
     point_light->enabled = true;
-    point_light->object.visible = false;
+    point_light->object->layer = 100;
     BLB_AddLight3D(scene, point_light);
   }
 
   // 2d objests
-  BLB_Object2D *square2d = BLB_CreateSquare2D(HMM_V2(100, 100), HMM_V2(200.0f, 100.0f), NULL);
+  BLB_Object2D *square2d = BLB_CreateSquare2D(HMM_V2(100, 100), HMM_V2(200.0f, 100.0f), NULL, false);
   if (square2d) {
     BLB_Material_SetName(square2d->material, "GlowGreen2D");
     BLB_Material_SetEmission(square2d->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
@@ -76,7 +76,7 @@ int main(void) {
     BLB_AddObject2D(scene, square2d);
   }
 
-  BLB_Object2D *circle = BLB_CreateCircle2D(HMM_V2(100, 100), HMM_V2(200.0f, 250.0f), 4, NULL);
+  BLB_Object2D *circle = BLB_CreateCircle2D(HMM_V2(100, 100), HMM_V2(200.0f, 250.0f), 4, NULL, false);
   if (circle) {
     BLB_Material_SetName(circle->material, "GlowGreen2D");
     BLB_Material_SetEmission(circle->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
@@ -133,7 +133,7 @@ int main(void) {
   }
 
   // fps text
-  BLB_Text2D *fps_text = BLB_CreateText2D("FPS: 0.0", NULL, HMM_V2(24.0f, 20.0f), 26.0f);
+  BLB_Text2D *fps_text = BLB_CreateText2D("FPS: 0.0", NULL, HMM_V2(24.0f, 20.0f), 26.0f, false);
   if (fps_text) {
     fps_text->color[0] = 255;
     fps_text->color[1] = 255;
@@ -151,8 +151,9 @@ int main(void) {
   BLB_InitFPS(&fps, &vk, 0, false);
   char fps_buffer[64];
 
-  int a = 100;
-  int x = 2;
+  float a = 100;
+  float x = 2;
+  BLB_Object3D_SetPosition(point_light->object, HMM_V3(-10, 0, -8));
   while (!BLB_WindowShouldClose(window)) {
     BLB_WindowPollEvents(window);
     BLB_UpdateFPS(&fps);
@@ -176,7 +177,9 @@ int main(void) {
     BLB_Object3D_Rotate(cube, HMM_V3(a, a, a));
 
     BLB_Object3D_Rotate(torus, HMM_V3(a, a, 0));
-    BLB_Object3D_Move(&point_light->object, HMM_V3(x, 0, 0));
+
+    BLB_Object3D_Rotate(point_light->object, HMM_V3(a, a, 0));
+    BLB_Object3D_Move(point_light->object, HMM_V3(x, 0, 0));
 
     if (result == -2) {
       if (VULKAN_RendererRecreateSwapchain(&vk) != 0)

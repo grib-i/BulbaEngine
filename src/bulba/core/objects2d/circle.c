@@ -24,7 +24,7 @@ static size_t circle_get_segments(int level_of_detail) {
   return lod_segments[index];
 }
 
-BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of_detail, BLB_Texture *texture) {
+BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of_detail, BLB_Texture *texture, bool screen_space) {
 
   BLB_Object2D *object = calloc(1, sizeof(*object));
   if (object == NULL)
@@ -116,6 +116,7 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
   object->color[3] = 255;
 
   object->visible = true;
+  object->screen_space = screen_space;
   object->entity_id = BLB_INVALID_ENTITY_ID;
 
   object->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;

@@ -2,4 +2,5 @@ CompileFlags:
   Add:
     - -I/home/grib/projects/BulbaEngine/engine/include
     - -I/home/grib/projects/BulbaEngine/engine/build/debug/generated/shaders
+    - -I/home/grib/projects/BulbaEngine/engine/build/debug/generated/textures
     - -I/home/grib/projects/BulbaEngine/engine/src

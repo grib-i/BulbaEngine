@@ -80,7 +80,7 @@ static int load_text_font(BLB_Text2D *text, const char *path) {
   return 0;
 }
 
-BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, float size) {
+BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, float size, bool screen_space) {
   BLB_Text2D *t = calloc(1, sizeof(*t));
 
   if (!t)
@@ -106,6 +106,7 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, floa
   t->layer = 0;
   t->render_mode = BLB_RENDER_OPAQUE;
   t->visible = true;
+  t->screen_space = screen_space;
   t->entity_id = BLB_INVALID_ENTITY_ID;
   t->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;
   t->material = BLB_Material_Create2D();
@@ -120,10 +121,6 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, floa
     BLB_DestroyText2D(t);
     return NULL;
   }
-
-  
-
-
 
   if (load_text_font(t, font) != 0) {
     BLB_DestroyText2D(t);

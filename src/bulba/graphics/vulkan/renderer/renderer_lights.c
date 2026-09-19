@@ -15,18 +15,18 @@ static void write_light_3d(VulkanGPULight *destination, BLB_Light3D *source) {
   destination->direction[2] = direction.z;
   destination->direction[3] = 0.0f;
 
-  destination->position[0] = source->object.position.x;
-  destination->position[1] = source->object.position.y;
-  destination->position[2] = source->object.position.z;
+  destination->position[0] = source->object->position.x;
+  destination->position[1] = source->object->position.y;
+  destination->position[2] = source->object->position.z;
   destination->position[3] = 0.0f;
 
-  destination->color[0] = source->object.color[0] / 255.0f;
+  destination->color[0] = source->object->color[0] / 255.0f;
 
-  destination->color[1] = source->object.color[1] / 255.0f;
+  destination->color[1] = source->object->color[1] / 255.0f;
 
-  destination->color[2] = source->object.color[2] / 255.0f;
+  destination->color[2] = source->object->color[2] / 255.0f;
 
-  destination->color[3] = source->object.color[3] / 255.0f;
+  destination->color[3] = source->object->color[3] / 255.0f;
 
   destination->parameters[0] = source->intensity;
   destination->parameters[1] = source->ambient;
@@ -50,18 +50,18 @@ static void write_light_2d(VulkanGPULight *destination, BLB_Light2D *source) {
   destination->direction[2] = 0.0f;
   destination->direction[3] = 0.0f;
 
-  destination->position[0] = source->object.position.x;
-  destination->position[1] = source->object.position.y;
+  destination->position[0] = source->object->position.x;
+  destination->position[1] = source->object->position.y;
   destination->position[2] = 0.0f;
   destination->position[3] = 0.0f;
 
-  destination->color[0] = source->object.color[0] / 255.0f;
+  destination->color[0] = source->object->color[0] / 255.0f;
 
-  destination->color[1] = source->object.color[1] / 255.0f;
+  destination->color[1] = source->object->color[1] / 255.0f;
 
-  destination->color[2] = source->object.color[2] / 255.0f;
+  destination->color[2] = source->object->color[2] / 255.0f;
 
-  destination->color[3] = source->object.color[3] / 255.0f;
+  destination->color[3] = source->object->color[3] / 255.0f;
 
   destination->parameters[0] = source->intensity;
   destination->parameters[1] = source->ambient;

@@ -171,8 +171,8 @@ int BLB_AddLight3D(BLB_Scene *scene, BLB_Light3D *light) {
   if (!scene || !light)
     return -1;
 
-  if (light->object.entity_id == BLB_INVALID_ENTITY_ID)
-    light->object.entity_id = scene->next_entity_id++;
+  if (light->object->entity_id == BLB_INVALID_ENTITY_ID)
+    light->object->entity_id = scene->next_entity_id++;
 
   ADD_ITEM(scene->lights3d, scene->light3d_count, BLB_Light3D, light);
 }
@@ -181,8 +181,8 @@ int BLB_AddLight2D(BLB_Scene *scene, BLB_Light2D *light) {
   if (!scene || !light)
     return -1;
 
-  if (light->object.entity_id == BLB_INVALID_ENTITY_ID)
-    light->object.entity_id = scene->next_entity_id++;
+  if (light->object->entity_id == BLB_INVALID_ENTITY_ID)
+    light->object->entity_id = scene->next_entity_id++;
 
   ADD_ITEM(scene->lights2d, scene->light2d_count, BLB_Light2D, light);
 }

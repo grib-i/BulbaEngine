@@ -1,10 +1,10 @@
 #ifndef TEXT2D_H
 #define TEXT2D_H
 
-#include "bulba/core/math3v/math3v.h"
-#include "bulba/core/render_mode.h"
-#include "bulba/core/render/material.h"
 #include "bulba/core/entity.h"
+#include "bulba/core/math3v/math3v.h"
+#include "bulba/core/render/material.h"
+#include "bulba/core/render_mode.h"
 #include "bulba/core/utils/font.h"
 
 #include <stdbool.h>
@@ -35,9 +35,10 @@ typedef struct BLB_Text2D {
 
   Font font;
   bool font_loaded;
+  bool screen_space;
 } BLB_Text2D;
 
-BLB_Text2D *BLB_CreateText2D(const char *text, const char *font_path, HMM_Vec2 position, float size);
+BLB_Text2D *BLB_CreateText2D(const char *text, const char *font_path, HMM_Vec2 position, float size, bool screen_space);
 
 void BLB_DestroyText2D(BLB_Text2D *text);
 

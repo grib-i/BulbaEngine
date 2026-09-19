@@ -4,15 +4,19 @@
 #include "bulba/core/math3v/math3v.h"
 #include "bulba/core/objects2d/objects2d.h"
 #include "bulba/core/objects3d/objects3d.h"
+#include "bulba/core/render/texture.h"
 
 #include <stdbool.h>
 
 typedef enum { BLB_LIGHT_POINT = 0, BLB_LIGHT_DIRECTIONAL = 1, BLB_LIGHT_SPOT = 2 } BLB_LightType;
 
 typedef struct BLB_Light3D {
-  BLB_Object3D object;
+  BLB_Object3D *object;
 
   BLB_LightType type;
+
+  BLB_Texture *light_debug_texture;
+  BLB_Texture *light_off_debug_texture;
 
   float intensity;
   float ambient;
@@ -28,9 +32,12 @@ typedef struct BLB_Light3D {
 } BLB_Light3D;
 
 typedef struct BLB_Light2D {
-  BLB_Object2D object;
+  BLB_Object2D *object;
 
   BLB_LightType type;
+
+  BLB_Texture *light_debug_texture;
+  BLB_Texture *light_off_debug_texture;
 
   float intensity;
   float ambient;
