@@ -136,6 +136,7 @@ void BLB_SetSceneClear(BLB_Scene *scene, bool enabled, unsigned char r, unsigned
     return 0;                                                                                                                                        \
   } while (0)
 
+// ads
 int BLB_AddObject3D(BLB_Scene *scene, BLB_Object3D *object) {
   if (!scene || !object)
     return -1;

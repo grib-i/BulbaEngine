@@ -3,4 +3,6 @@
 
 #include "HandmadeMath.h"
 
+int max(const int *numbers, ...);
+
 #endif
