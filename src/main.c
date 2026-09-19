@@ -1,6 +1,8 @@
-#include "bulba/core/render/material.h"
-#include "debug.h"
+#include "bulba/core/camera.h"
+#include "bulba/core/objects3d/objects3d.h"
+#include "bulba/core/render/texture.h"
 #include <bulba/bulba.h>
+#include <debug.h>
 
 #include <stdio.h>
 #include <time.h>
@@ -49,18 +51,15 @@ int main(void) {
   // BLB_Texture *sprite = BLB_Texture_Load2D("assets/textures/zta-stones.png");
 
   // light for 3d
-  BLB_SuperObject3D *point_light =
-      BLB_CreateSuperLightObject3D(BLB_LIGHT_POINT, HMM_V3(1.0f, 1.0f, 1.0f), HMM_V3(0.0f, 3.5f, -5.0f), HMM_V3(0.0f, -1.0f, 0.0f));
-
+  BLB_Light3D *point_light = BLB_CreateLight3D(BLB_LIGHT_POINT, HMM_V3(1.0f, 1.0f, -1.0f), HMM_V3(0.0f, -1.0f, 0.0f));
   if (point_light) {
-    point_light->light.color = HMM_V3(1.0f, 0.86f, 0.72f);
-    point_light->light.intensity = 4.0f;
-    point_light->light.ambient = 0.08f;
-    point_light->light.range = 20.0f;
-    point_light->light.specular = 0.0f;
-    point_light->light.enabled = true;
+    point_light->intensity = 4.0f;
+    point_light->ambient = 0.08f;
+    point_light->range = 20.0f;
+    point_light->specular = 0.0f;
+    point_light->enabled = true;
     point_light->object.visible = false;
-    BLB_AddSuperLightObject3D(scene, point_light);
+    BLB_AddLight3D(scene, point_light);
   }
 
   // 2d objests
@@ -124,7 +123,7 @@ int main(void) {
   if (cube) {
     BLB_Material_SetName(cube->material, "GlowGreen2D");
     BLB_Material_SetEmission(cube->material, 0.03f, 1.0f, 0.12f, 1.0f, 0.14f);
-    BLB_Material_SetGlow(cube->material, 0.8f, 0.1f, 2.2f);
+    BLB_Material_SetGlow(cube->material, 12.8f, 1.1f, 2.2f);
     BLB_Material_SetBaseColor(cube->material, 0.127f, 0.181f, 0.181f, 1.0f);
     BLB_Material_SetRenderMode(cube->material, BLB_RENDER_OPAQUE);
     cube->layer = 1;
@@ -149,10 +148,11 @@ int main(void) {
   }
 
   BLB_FPS fps;
-  BLB_InitFPS(&fps, &vk, 60, false);
+  BLB_InitFPS(&fps, &vk, 0, false);
   char fps_buffer[64];
 
   int a = 100;
+  int x = 2;
   while (!BLB_WindowShouldClose(window)) {
     BLB_WindowPollEvents(window);
     BLB_UpdateFPS(&fps);
@@ -171,11 +171,12 @@ int main(void) {
     }
 
     int result = BLB_DrawScene(scene, &vk);
-    BLB_Rotate3D(sphere, HMM_V3(a, a, 0));
+    BLB_Object3D_Rotate(sphere, HMM_V3(a, a, 0));
 
-    BLB_Rotate3D(cube, HMM_V3(a, a, a));
+    BLB_Object3D_Rotate(cube, HMM_V3(a, a, a));
 
-    BLB_Rotate3D(torus, HMM_V3(a, a, 0));
+    BLB_Object3D_Rotate(torus, HMM_V3(a, a, 0));
+    BLB_Object3D_Move(&point_light->object, HMM_V3(x, 0, 0));
 
     if (result == -2) {
       if (VULKAN_RendererRecreateSwapchain(&vk) != 0)
@@ -193,6 +194,8 @@ int main(void) {
 
   BLB_DestroySquare2D(square2d);
   BLB_DestroyCircle2D(circle);
+
+  BLB_DestroyLight3D(point_light);
 
   BLB_DestroyText2D(fps_text);
   BLB_DestroyScene(scene);

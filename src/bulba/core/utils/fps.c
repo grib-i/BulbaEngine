@@ -1,12 +1,8 @@
 #include "bulba/core/utils/fps.h"
 #include "bulba/core/platform.h"
-#include "debug.h"
 
-#include <math.h>
 #include <time.h>
 #include <unistd.h>
-
-#define max(a, b) ((a) > (b) ? (a) : (b))
 
 int BLB_InitFPS(BLB_FPS *f, VULKAN *v, int limit, bool vsync) {
   if (!f)

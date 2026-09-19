@@ -46,19 +46,19 @@ typedef struct {
   bool visible;
 } BLB_Object3D;
 
-void BLB_Move3D(BLB_Object3D *object, HMM_Vec3 velocity);
+void BLB_Object3D_Move(BLB_Object3D *object, HMM_Vec3 velocity);
 
-void BLB_SetPosition3D(BLB_Object3D *object, HMM_Vec3 position);
+void BLB_Object3D_SetPosition(BLB_Object3D *object, HMM_Vec3 position);
 
-void BLB_Rotate3D(BLB_Object3D *object, HMM_Vec3 angular_velocity);
+void BLB_Object3D_Rotate(BLB_Object3D *object, HMM_Vec3 angular_velocity);
 
-void BLB_SetRotation3D(BLB_Object3D *object, HMM_Vec3 rotation);
+void BLB_Object3D_SetRotation(BLB_Object3D *object, HMM_Vec3 rotation);
 
-void BLB_Scale3D(BLB_Object3D *object, HMM_Vec3 scale_velocity);
+void BLB_Object3D_Scale(BLB_Object3D *object, HMM_Vec3 scale_velocity);
 
-void BLB_SetScale3D(BLB_Object3D *object, HMM_Vec3 scale);
+void BLB_Object3D_SetScale(BLB_Object3D *object, HMM_Vec3 scale);
 
-void BLB_Transform3D(BLB_Object3D *object, HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale);
+void BLB_Object3D_Transform(BLB_Object3D *object, HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale);
 
 void BLB_Object3D_SetTexture(BLB_Object3D *object, BLB_Texture *texture);
 

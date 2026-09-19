@@ -38,19 +38,19 @@ typedef struct {
   bool visible;
 } BLB_Object2D;
 
-void BLB_Move2D(BLB_Object2D *object, HMM_Vec2 velocity);
+void BLB_Object2D_Move(BLB_Object2D *object, HMM_Vec2 velocity);
 
-void BLB_SetPosition2D(BLB_Object2D *object, HMM_Vec2 position);
+void BLB_Object2D_SetPosition(BLB_Object2D *object, HMM_Vec2 position);
 
-void BLB_Rotate2D(BLB_Object2D *object, float angular_velocity);
+void BLB_Object2D_Rotate(BLB_Object2D *object, float angular_velocity);
 
-void BLB_SetRotation2D(BLB_Object2D *object, float rotation);
+void BLB_Object2D_SetRotation(BLB_Object2D *object, float rotation);
 
-void BLB_Scale2D(BLB_Object2D *object, HMM_Vec2 scale_velocity);
+void BLB_Object2D_Scale(BLB_Object2D *object, HMM_Vec2 scale_velocity);
 
-void BLB_SetScale2D(BLB_Object2D *object, HMM_Vec2 scale);
+void BLB_Object2D_SetScale(BLB_Object2D *object, HMM_Vec2 scale);
 
-void BLB_Transform2D(BLB_Object2D *object, HMM_Vec2 position, float rotation, HMM_Vec2 scale);
+void BLB_Object2D_Transform(BLB_Object2D *object, HMM_Vec2 position, float rotation, HMM_Vec2 scale);
 
 void BLB_Object2D_SetTexture(BLB_Object2D *object, BLB_Texture *texture);
 

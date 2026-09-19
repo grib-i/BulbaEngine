@@ -81,7 +81,7 @@ BLB_Object2D *BLB_CreateSquare2D(HMM_Vec2 scale, HMM_Vec2 position, BLB_Texture 
     return NULL;
   }
 
-  BLB_Transform2D(object, position, object->rotation, scale);
+  BLB_Object2D_Transform(object, position, object->rotation, scale);
 
   if (texture != NULL)
     BLB_Object2D_SetTexture(object, texture);

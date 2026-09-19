@@ -1,6 +1,6 @@
 #include "bulba/core/objects2d/objects2d.h"
 
-void BLB_Move2D(BLB_Object2D *object, HMM_Vec2 velocity) {
+void BLB_Object2D_Move(BLB_Object2D *object, HMM_Vec2 velocity) {
   if (!object)
     return;
 
@@ -10,14 +10,14 @@ void BLB_Move2D(BLB_Object2D *object, HMM_Vec2 velocity) {
   object->position = HMM_AddV2(object->position, velocity);
 }
 
-void BLB_SetPosition2D(BLB_Object2D *object, HMM_Vec2 position) {
+void BLB_Object2D_SetPosition(BLB_Object2D *object, HMM_Vec2 position) {
   if (!object)
     return;
 
   object->position = position;
 }
 
-void BLB_Rotate2D(BLB_Object2D *object, float velocity) {
+void BLB_Object2D_Rotate(BLB_Object2D *object, float velocity) {
   if (!object)
     return;
 
@@ -27,14 +27,14 @@ void BLB_Rotate2D(BLB_Object2D *object, float velocity) {
   object->rotation += velocity;
 }
 
-void BLB_SetRotation2D(BLB_Object2D *object, float rotation) {
+void BLB_Object2D_SetRotation(BLB_Object2D *object, float rotation) {
   if (!object)
     return;
 
   object->rotation = rotation;
 }
 
-void BLB_Scale2D(BLB_Object2D *object, HMM_Vec2 velocity) {
+void BLB_Object2D_Scale(BLB_Object2D *object, HMM_Vec2 velocity) {
   if (!object)
     return;
 
@@ -44,14 +44,14 @@ void BLB_Scale2D(BLB_Object2D *object, HMM_Vec2 velocity) {
   object->scale = HMM_AddV2(object->scale, velocity);
 }
 
-void BLB_SetScale2D(BLB_Object2D *object, HMM_Vec2 scale) {
+void BLB_Object2D_SetScale(BLB_Object2D *object, HMM_Vec2 scale) {
   if (!object)
     return;
 
   object->scale = scale;
 }
 
-void BLB_Transform2D(BLB_Object2D *object, HMM_Vec2 position, float rotation, HMM_Vec2 scale) {
+void BLB_Object2D_Transform(BLB_Object2D *object, HMM_Vec2 position, float rotation, HMM_Vec2 scale) {
   if (!object)
     return;
 

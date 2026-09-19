@@ -197,7 +197,7 @@ BLB_Object3D *BLB_CreateTorus3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of_
   }
 
   scale = HMM_MulV3F(scale, (outer_radius / minor_radius) - (hole_radius / major_radius));
-  BLB_Transform3D(object, position, object->rotation, scale);
+  BLB_Object3D_Transform(object, position, object->rotation, scale);
 
   if (texture != NULL)
     BLB_Object3D_SetTexture(object, texture);

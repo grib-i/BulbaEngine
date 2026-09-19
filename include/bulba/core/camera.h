@@ -8,6 +8,8 @@ typedef struct BLB_Camera {
   HMM_Vec3 rotation;
   float fov, near_plane, far_plane;
   float aspect;
+
+  float *delta_time;
 } BLB_Camera;
 
 BLB_Camera *BLB_CreateCamera(HMM_Vec3 position);
@@ -15,5 +17,13 @@ void BLB_DestroyCamera(BLB_Camera *camera);
 
 HMM_Mat4 BLB_CameraView(const BLB_Camera *camera);
 HMM_Mat4 BLB_CameraProjection(const BLB_Camera *camera, float aspect);
+
+void BLB_Camera_Move(BLB_Camera *camera, HMM_Vec3 velocity);
+
+void BLB_Camera_SetPosition(BLB_Camera *camera, HMM_Vec3 position);
+
+void BLB_Camera_Rotate(BLB_Camera *camera, HMM_Vec3 angular_velocity);
+
+void BLB_Camera_SetRotation(BLB_Camera *camera, HMM_Vec3 rotation);
 
 #endif

@@ -220,7 +220,7 @@ BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of
     return NULL;
   }
 
-  BLB_Transform3D(object, position, object->rotation, scale);
+  BLB_Object3D_Transform(object, position, object->rotation, scale);
 
   if (texture != NULL)
     BLB_Object3D_SetTexture(object, texture);

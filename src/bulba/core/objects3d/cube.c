@@ -113,7 +113,7 @@ BLB_Object3D *BLB_CreateCube3D(HMM_Vec3 scale, HMM_Vec3 position, BLB_Texture *t
     return NULL;
   }
 
-  BLB_Transform3D(object, position, object->rotation, scale);
+  BLB_Object3D_Transform(object, position, object->rotation, scale);
 
   if (texture != NULL)
     BLB_Object3D_SetTexture(object, texture);

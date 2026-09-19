@@ -1,4 +1,0 @@
-#ifndef BULBA_HANDLERS_CLS_HANDLER_H
-#define BULBA_HANDLERS_CLS_HANDLER_H
-void BLB_CLS(void);
-#endif

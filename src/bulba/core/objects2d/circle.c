@@ -127,7 +127,7 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
     return NULL;
   }
 
-  BLB_Transform2D(object, position, object->rotation, scale);
+  BLB_Object2D_Transform(object, position, object->rotation, scale);
 
   if (texture != NULL)
     BLB_Object2D_SetTexture(object, texture);

@@ -1,13 +1,12 @@
 #include "bulba/core/math3v/lights.h"
 
 #include "bulba/core/math3v/HandmadeMath.h"
-#include "bulba/core/objects3d/cube.h"
-#include "bulba/core/render/material.h"
 
+#include <math.h>
 #include <stdlib.h>
 
 static void BLB_ReleaseObject3DContents(BLB_Object3D *object) {
-  if (object == NULL)
+  if (!object)
     return;
 
   if (object->material)
@@ -16,7 +15,7 @@ static void BLB_ReleaseObject3DContents(BLB_Object3D *object) {
   if (object->texture)
     BLB_Texture_Release(object->texture);
 
-  if (object->polygon != NULL) {
+  if (object->polygon) {
     free(object->polygon->vertices);
     free(object->polygon->base_vertices);
     free(object->polygon->uvs);
@@ -27,18 +26,53 @@ static void BLB_ReleaseObject3DContents(BLB_Object3D *object) {
   free(object->delta_time);
 }
 
-BLB_Light3D *BLB_CreateLight3D(BLB_LightType type, HMM_Vec3 position, HMM_Vec3 direction) {
+static void BLB_ReleaseObject2DContents(BLB_Object2D *object) {
+  if (!object)
+    return;
 
+  if (object->material)
+    BLB_Material_Release(object->material);
+
+  if (object->texture)
+    BLB_Texture_Release(object->texture);
+
+  if (object->polygon) {
+    free(object->polygon->vertices);
+    free(object->polygon->base_vertices);
+    free(object->polygon->uvs);
+    free(object->polygon->indices);
+    free(object->polygon);
+  }
+
+  free(object->delta_time);
+}
+
+BLB_Light3D *BLB_CreateLight3D(BLB_LightType type, HMM_Vec3 position, HMM_Vec3 rotation) {
   BLB_Light3D *light = calloc(1, sizeof(*light));
 
   if (!light)
     return NULL;
 
-  light->type = type;
-  light->position = position;
-  light->direction = HMM_NormV3(direction);
+  light->object.position = position;
+  light->object.rotation = rotation;
+  light->object.scale = HMM_V3(1.0f, 1.0f, 1.0f);
 
-  light->color = HMM_V3(1.0f, 1.0f, 1.0f);
+  light->object.delta_time = malloc(sizeof(float));
+  if (!light->object.delta_time) {
+    free(light);
+    return NULL;
+  }
+
+  *light->object.delta_time = 0.0f;
+
+  light->object.color[0] = 255;
+  light->object.color[1] = 255;
+  light->object.color[2] = 255;
+  light->object.color[3] = 255;
+
+  light->object.visible = true;
+
+  light->type = type;
 
   light->intensity = 1.0f;
   light->ambient = 0.03f;
@@ -53,27 +87,35 @@ BLB_Light3D *BLB_CreateLight3D(BLB_LightType type, HMM_Vec3 position, HMM_Vec3 d
 
   light->enabled = true;
 
-  light->owner = NULL;
-
-  light->owner_local_position = HMM_V3(0.0f, 0.0f, 0.0f);
-
-  light->owner_local_direction = light->direction;
-
   return light;
 }
 
-BLB_Light2D *BLB_CreateLight2D(BLB_LightType type, HMM_Vec2 position, HMM_Vec2 direction) {
-
+BLB_Light2D *BLB_CreateLight2D(BLB_LightType type, HMM_Vec2 position, float rotation) {
   BLB_Light2D *light = calloc(1, sizeof(*light));
 
   if (!light)
     return NULL;
 
-  light->type = type;
-  light->position = position;
-  light->direction = direction;
+  light->object.position = position;
+  light->object.rotation = rotation;
+  light->object.scale = HMM_V2(1.0f, 1.0f);
 
-  light->color = HMM_V3(1.0f, 1.0f, 1.0f);
+  light->object.delta_time = malloc(sizeof(float));
+  if (!light->object.delta_time) {
+    free(light);
+    return NULL;
+  }
+
+  *light->object.delta_time = 0.0f;
+
+  light->object.color[0] = 255;
+  light->object.color[1] = 255;
+  light->object.color[2] = 255;
+  light->object.color[3] = 255;
+
+  light->object.visible = true;
+
+  light->type = type;
 
   light->intensity = 1.0f;
   light->ambient = 0.03f;
@@ -91,96 +133,48 @@ BLB_Light2D *BLB_CreateLight2D(BLB_LightType type, HMM_Vec2 position, HMM_Vec2 d
   return light;
 }
 
-void BLB_DestroyLight3D(BLB_Light3D *light) { free(light); }
-
-void BLB_DestroyLight2D(BLB_Light2D *light) { free(light); }
-
-void BLB_AttachLight3D(BLB_Light3D *light, BLB_Object3D *owner, HMM_Vec3 local_position, HMM_Vec3 local_direction) {
-
+void BLB_DestroyLight3D(BLB_Light3D *light) {
   if (!light)
     return;
 
-  light->owner = owner;
+  BLB_ReleaseObject3DContents(&light->object);
 
-  light->owner_local_position = local_position;
-  light->owner_local_direction = HMM_NormV3(local_direction);
-
-  BLB_UpdateLight3D(light);
-}
-
-void BLB_DetachLight3D(BLB_Light3D *light) {
-  if (!light)
-    return;
-
-  light->owner = NULL;
-}
-
-void BLB_UpdateLight3D(BLB_Light3D *light) {
-  if (!light || !light->owner)
-    return;
-
-  BLB_Object3D *owner = light->owner;
-  HMM_Mat4 rx = HMM_Rotate_RH(HMM_AngleDeg(owner->rotation.x), HMM_V3(1.0f, 0.0f, 0.0f));
-  HMM_Mat4 ry = HMM_Rotate_RH(HMM_AngleDeg(owner->rotation.y), HMM_V3(0.0f, 1.0f, 0.0f));
-  HMM_Mat4 rz = HMM_Rotate_RH(HMM_AngleDeg(owner->rotation.z), HMM_V3(0.0f, 0.0f, 1.0f));
-  HMM_Mat4 rotation = HMM_MulM4(rz, HMM_MulM4(ry, rx));
-  HMM_Vec4 local_position = HMM_V4(light->owner_local_position.x, light->owner_local_position.y, light->owner_local_position.z, 1.0f);
-  HMM_Vec4 local_direction = HMM_V4(light->owner_local_direction.x, light->owner_local_direction.y, light->owner_local_direction.z, 0.0f);
-  HMM_Vec4 world_position = HMM_MulM4V4(rotation, local_position);
-  HMM_Vec4 world_direction = HMM_MulM4V4(rotation, local_direction);
-
-  light->position =
-      HMM_AddV3(owner->position, HMM_V3(world_position.x * owner->scale.x, world_position.y * owner->scale.y, world_position.z * owner->scale.z));
-
-  if (light->type == BLB_LIGHT_DIRECTIONAL || light->type == BLB_LIGHT_SPOT) {
-
-    light->direction = HMM_NormV3(HMM_V3(world_direction.x, world_direction.y, world_direction.z));
-  }
-}
-
-BLB_SuperObject3D *BLB_CreateSuperLightObject3D(BLB_LightType type, HMM_Vec3 scale, HMM_Vec3 position, HMM_Vec3 direction) {
-
-  BLB_Object3D *base = BLB_CreateCube3D(scale, position, NULL);
-
-  if (!base)
-    return NULL;
-
-  BLB_SuperObject3D *super = calloc(1, sizeof(*super));
-
-  if (!super) {
-    BLB_DestroyCube3D(base);
-    return NULL;
-  }
-
-  super->object = *base;
-  free(base);
-
-  BLB_Light3D *light = BLB_CreateLight3D(type, position, direction);
-
-  if (!light) {
-    BLB_ReleaseObject3DContents(&super->object);
-
-    free(super);
-
-    return NULL;
-  }
-  super->light = *light;
   free(light);
-
-  BLB_AttachLight3D(&super->light, &super->object, HMM_V3(0.0f, 0.0f, 0.0f), direction);
-  super->object.visible = false;
-
-  return super;
 }
 
-void BLB_DestroySuperLightObject3D(BLB_SuperObject3D *object) {
-
-  if (!object)
+void BLB_DestroyLight2D(BLB_Light2D *light) {
+  if (!light)
     return;
 
-  object->light.owner = NULL;
+  BLB_ReleaseObject2DContents(&light->object);
 
-  BLB_ReleaseObject3DContents(&object->object);
+  free(light);
+}
 
-  free(object);
+HMM_Vec3 BLB_GetLightDirection3D(const BLB_Light3D *light) {
+  if (!light)
+    return HMM_V3(0.0f, 0.0f, -1.0f);
+
+  HMM_Mat4 rx = HMM_Rotate_RH(HMM_AngleDeg(light->object.rotation.x), HMM_V3(1.0f, 0.0f, 0.0f));
+
+  HMM_Mat4 ry = HMM_Rotate_RH(HMM_AngleDeg(light->object.rotation.y), HMM_V3(0.0f, 1.0f, 0.0f));
+
+  HMM_Mat4 rz = HMM_Rotate_RH(HMM_AngleDeg(light->object.rotation.z), HMM_V3(0.0f, 0.0f, 1.0f));
+
+  HMM_Mat4 rotation = HMM_MulM4(rz, HMM_MulM4(ry, rx));
+
+  HMM_Vec4 forward = HMM_V4(0.0f, 0.0f, -1.0f, 0.0f);
+
+  HMM_Vec4 direction = HMM_MulM4V4(rotation, forward);
+
+  return HMM_NormV3(HMM_V3(direction.x, direction.y, direction.z));
+}
+
+HMM_Vec2 BLB_GetLightDirection2D(const BLB_Light2D *light) {
+  if (!light)
+    return HMM_V2(1.0f, 0.0f);
+
+  float angle = HMM_AngleDeg(light->object.rotation);
+
+  return HMM_NormV2(HMM_V2(cosf(angle), sinf(angle)));
 }
