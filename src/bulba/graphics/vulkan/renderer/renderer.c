@@ -197,7 +197,7 @@ static void destroy_sync_internal(VULKAN *vulkan) {
 }
 
 int VULKAN_CreateRenderer(VULKAN *vulkan) {
-  if (!vulkan || !vulkan->device || !vulkan->swapchain)
+  if (!vulkan || vulkan->device == VK_NULL_HANDLE || vulkan->swapchain == VK_NULL_HANDLE)
     return -1;
 
   vulkan->vertex_cursor = 0;
@@ -245,6 +245,9 @@ int VULKAN_CreateRenderer(VULKAN *vulkan) {
   if (create_light_buffers(vulkan, vulkan->light_buffers_2d) != 0)
     goto fail;
 
+  if (create_shadow_resources(vulkan) != 0)
+    goto fail;
+
   if (create_light_descriptors(vulkan, vulkan->light_descriptor_set_layout_3d, &vulkan->light_descriptor_pool_3d, vulkan->light_descriptor_sets_3d,
                                vulkan->light_buffers_3d) != 0)
     goto fail;
@@ -262,9 +265,6 @@ int VULKAN_CreateRenderer(VULKAN *vulkan) {
   if (create_text_buffers(vulkan) != 0)
     goto fail;
 
-  if (create_shadow_resources(vulkan) != 0)
-    goto fail;
-
   if (create_pipelines(vulkan) != 0)
     goto fail;
 
@@ -272,7 +272,6 @@ int VULKAN_CreateRenderer(VULKAN *vulkan) {
   update_light_buffer_2d(vulkan);
 
   return 0;
-
 fail:
   VULKAN_DestroyRenderer(vulkan);
   return -1;
@@ -293,17 +292,10 @@ void VULKAN_DestroyRenderer(VULKAN *vulkan) {
   for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++)
     destroy_buffer(vulkan, &vulkan->text_vertex_buffers[i]);
 
-  if (vulkan->text_descriptor_pool) {
-    vkDestroyDescriptorPool(vulkan->device, vulkan->text_descriptor_pool, NULL);
-    vulkan->text_descriptor_pool = VK_NULL_HANDLE;
-  }
-
   if (vulkan->text_descriptor_set_layout) {
     vkDestroyDescriptorSetLayout(vulkan->device, vulkan->text_descriptor_set_layout, NULL);
     vulkan->text_descriptor_set_layout = VK_NULL_HANDLE;
   }
-
-  destroy_font_resources(vulkan);
 
   if (vulkan->default_texture) {
     BLB_Texture_Release(vulkan->default_texture);
@@ -366,9 +358,7 @@ void VULKAN_RendererDrawTriangle(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec
   HMM_Vec3 normal = calculate_normal(a, b, c);
 
   upload_vertex(vertices, start, a, normal, r, g, b_color, a_color, HMM_V2(0.0f, 0.0f));
-
   upload_vertex(vertices, start + 1, b, normal, r, g, b_color, a_color, HMM_V2(1.0f, 0.0f));
-
   upload_vertex(vertices, start + 2, c, normal, r, g, b_color, a_color, HMM_V2(0.5f, 1.0f));
 
   float rows[12];
@@ -386,23 +376,18 @@ void VULKAN_RendererDrawTriangle(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec
                              .render_mode = BLB_RENDER_TRANSPARENT};
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
-
   VkBuffer buffer = vulkan->vertex_buffers[vulkan->current_frame].buffer;
-
   VkDeviceSize offset = start * sizeof(VulkanVertex);
 
   vulkan->camera_position = camera_position;
 
   VkPipeline pipeline = select_3d_pipeline(vulkan, BLB_RENDER_OPAQUE);
-
   VkPipelineLayout layout = select_3d_layout(vulkan, BLB_RENDER_OPAQUE);
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
   vkCmdBindVertexBuffers(command, 0, 1, &buffer, &offset);
 
   VULKAN_RendererBindTexture(vulkan, layout, NULL);
-
   push_lighting(vulkan, layout, mvp, rows, normal_rows, &material, 0);
 
   vkCmdDraw(command, 3, 1, 0, 0);
@@ -487,25 +472,20 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
                              .render_mode = BLB_RENDER_TRANSPARENT};
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
-
   VkBuffer vertex_buffer = vulkan->vertex_buffers[vulkan->current_frame].buffer;
-
   VkDeviceSize offset = vertex_start * sizeof(VulkanVertex);
 
   vulkan->camera_position = camera_position;
 
   VkPipeline pipeline = select_3d_pipeline(vulkan, BLB_RENDER_OPAQUE);
-
   VkPipelineLayout layout = select_3d_layout(vulkan, BLB_RENDER_OPAQUE);
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
   vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &offset);
 
   vkCmdBindIndexBuffer(command, vulkan->index_buffers[vulkan->current_frame].buffer, 0, VK_INDEX_TYPE_UINT32);
 
   VULKAN_RendererBindTexture(vulkan, layout, NULL);
-
   push_lighting(vulkan, layout, mvp, rows, normal_rows, &material, 0);
 
   vkCmdDrawIndexed(command, mesh->index_count, 1, (uint32_t)index_start, 0, 0);
@@ -541,7 +521,6 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
 
   for (size_t i = 0; i < vertex_count; i++) {
     HMM_Vec3 normal = polygon->normals[i];
-
     HMM_Vec2 uv = polygon->uvs ? polygon->uvs[i] : HMM_V2(0.0f, 0.0f);
 
     upload_vertex(vertices, vertex_start + i, polygon->vertices[i], normal, r, g, b, a, uv);
@@ -555,23 +534,18 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
   }
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
-
   VkBuffer vertex_buffer = vulkan->vertex_buffers[vulkan->current_frame].buffer;
-
   VkDeviceSize offset = vertex_start * sizeof(VulkanVertex);
 
   VkPipeline pipeline = select_3d_pipeline(vulkan, material->render_mode);
-
   VkPipelineLayout layout = select_3d_layout(vulkan, material->render_mode);
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
   vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &offset);
 
   vkCmdBindIndexBuffer(command, vulkan->index_buffers[vulkan->current_frame].buffer, 0, VK_INDEX_TYPE_UINT32);
 
   VULKAN_RendererBindTexture(vulkan, layout, texture);
-
   push_lighting(vulkan, layout, mvp, model_rows, normal_rows, material, 0);
 
   vkCmdDrawIndexed(command, polygon->index_count, 1, (uint32_t)index_start, 0, 0);
@@ -617,17 +591,13 @@ void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, 
   }
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
-
   VkBuffer vertex_buffer = vulkan->vertex_buffers[vulkan->current_frame].buffer;
-
   VkDeviceSize offset = vertex_start * sizeof(VulkanVertex);
 
   VkPipeline pipeline = select_2d_pipeline(vulkan, material->render_mode);
-
   VkPipelineLayout layout = select_2d_layout(vulkan, material->render_mode);
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
   vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &offset);
 
   vkCmdBindIndexBuffer(command, vulkan->index_buffers[vulkan->current_frame].buffer, 0, VK_INDEX_TYPE_UINT32);
@@ -700,12 +670,14 @@ void push_lighting(VULKAN *vulkan, VkPipelineLayout layout, const float *mvp, co
   memcpy(data.normal_rows, normal_rows, sizeof(data.normal_rows));
 
   data.material[0] = material->lighting_enabled ? 1.0f : 0.0f;
-
   data.material[1] = fmaxf(material->emission, 0.0f);
-
   data.material[2] = fmaxf(material->glow, 0.0f);
-
   data.material[3] = fmaxf(material->roundness, 0.0f);
+
+  if (is_2d)
+    update_light_buffer_2d(vulkan);
+  else
+    update_light_buffer_3d(vulkan);
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
 

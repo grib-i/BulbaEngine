@@ -1,8 +1,45 @@
 #!/bin/bash
 
+set -o pipefail
+export LC_ALL=C.UTF-8
+
 PROJECT_NAME="bulba"
 BUILD_TYPE="Debug"
 CLEAN=0
+LTRACE=0
+
+LOG_ROOT="logs"
+RUN_ID="$(date '+%Y-%m-%d_%H-%M-%S')"
+RUN_DIR=""
+LOG_FILE=""
+
+MONITOR_INTERVAL="0.5"
+
+HIGH_CPU_THRESHOLD=90
+HIGH_CPU_SAMPLES=6
+
+MEM_GROWTH_THRESHOLD_KB=$((64 * 1024))
+MEM_GROWTH_CHECK_INTERVAL=20
+
+RESET=$'\033[0m'
+BOLD=$'\033[1m'
+DIM=$'\033[2m'
+
+RED=$'\033[31m'
+GREEN=$'\033[32m'
+YELLOW=$'\033[33m'
+BLUE=$'\033[34m'
+MAGENTA=$'\033[35m'
+CYAN=$'\033[36m'
+WHITE=$'\033[37m'
+
+BRIGHT_RED=$'\033[91m'
+BRIGHT_GREEN=$'\033[92m'
+BRIGHT_YELLOW=$'\033[93m'
+BRIGHT_BLUE=$'\033[94m'
+BRIGHT_MAGENTA=$'\033[95m'
+BRIGHT_CYAN=$'\033[96m'
+BRIGHT_WHITE=$'\033[97m'
 
 for ARG in "$@"; do
   case "$ARG" in
@@ -15,9 +52,12 @@ for ARG in "$@"; do
     clean)
       CLEAN=1
       ;;
+    ltrack|ltraces)
+      LTRACE=1
+      ;;
     *)
       echo "[ERROR] Unknown argument: $ARG"
-      echo "Usage: ./install [debug|release] [clean]"
+      echo "Usage: ./install [debug|release] [clean] [ltrack|ltraces]"
       exit 1
       ;;
   esac
@@ -25,108 +65,998 @@ done
 
 fail() {
   echo
-  echo "[ERROR] $1"
+  echo -e "${BRIGHT_RED}${BOLD}✗ ERROR${RESET} $1"
   exit 1
+}
+
+ok() {
+  echo -e "${BRIGHT_GREEN}${BOLD}✓${RESET} $1"
+}
+
+info() {
+  echo -e "${BRIGHT_CYAN}${BOLD}●${RESET} $1"
+}
+
+warn() {
+  echo -e "${BRIGHT_YELLOW}${BOLD}▲${RESET} $1"
+}
+
+section() {
+  echo
+  echo -e "${BRIGHT_BLUE}${BOLD}┌──────────────────────────────────────────────────────────────────────────────┐${RESET}"
+  printf "${BRIGHT_BLUE}${BOLD}│${RESET} %-76s ${BRIGHT_BLUE}${BOLD}│${RESET}\n" "$1"
+  echo -e "${BRIGHT_BLUE}${BOLD}└──────────────────────────────────────────────────────────────────────────────┘${RESET}"
 }
 
 check_command() {
   command -v "$1" >/dev/null 2>&1 || fail "Command not found: $1"
 }
 
-echo "================================"
-echo "BulbaEngine"
-echo "Build type: $BUILD_TYPE"
-echo "================================"
+format_kb() {
+  awk -v v="$1" 'BEGIN {
+    if (v >= 1048576)
+      printf "%.2f GB", v / 1048576
+    else
+      printf "%.2f MB", v / 1024
+  }'
+}
+
+format_bytes() {
+  awk -v v="$1" 'BEGIN {
+    if (v >= 1073741824)
+      printf "%.2f GB", v / 1073741824
+    else if (v >= 1048576)
+      printf "%.2f MB", v / 1048576
+    else if (v >= 1024)
+      printf "%.2f KB", v / 1024
+    else
+      printf "%d B", v
+  }'
+}
+
+memory_color() {
+  local mb="$1"
+
+  awk -v mb="$mb" 'BEGIN {
+    if (mb >= 4096)
+      print "RED"
+    else if (mb >= 2048)
+      print "YELLOW"
+    else if (mb >= 1024)
+      print "MAGENTA"
+    else if (mb >= 512)
+      print "CYAN"
+    else
+      print "GREEN"
+  }'
+}
+
+memory_colored() {
+  local kb="$1"
+  local mb
+  local color
+
+  mb="$(awk -v v="$kb" 'BEGIN {printf "%.2f", v / 1024}')"
+
+  case "$(memory_color "$mb")" in
+    RED)
+      color="$BRIGHT_RED"
+      ;;
+    YELLOW)
+      color="$BRIGHT_YELLOW"
+      ;;
+    MAGENTA)
+      color="$BRIGHT_MAGENTA"
+      ;;
+    CYAN)
+      color="$BRIGHT_CYAN"
+      ;;
+    *)
+      color="$BRIGHT_GREEN"
+      ;;
+  esac
+
+  printf "%s%s%s" "$color" "$(format_kb "$kb")" "$RESET"
+}
+
+setup_logs() {
+  if [ "$CLEAN" -eq 1 ]; then
+    rm -rf "$LOG_ROOT" || fail "Failed to remove logs directory"
+  fi
+
+  mkdir -p "$LOG_ROOT" || fail "Failed to create logs directory"
+
+  RUN_ID="$(date '+%Y-%m-%d_%H-%M-%S')"
+  RUN_DIR="$LOG_ROOT/$RUN_ID"
+  LOG_FILE="$RUN_DIR/run.log"
+
+  mkdir -p "$RUN_DIR/events" || fail "Failed to create log directory"
+
+  touch "$LOG_FILE" || fail "Failed to create log file"
+
+  {
+    echo "============================================================"
+    echo "BulbaEngine diagnostic session"
+    echo "Date: $(date)"
+    echo "Project: $PROJECT_NAME"
+    echo "Build type: $BUILD_TYPE"
+    echo "Live monitor: $LTRACE"
+    echo "============================================================"
+  } >> "$LOG_FILE"
+}
+
+log_line() {
+  printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >> "$LOG_FILE"
+}
+
+log_command() {
+  local title="$1"
+  shift
+
+  {
+    echo
+    echo "============================================================"
+    echo "$title"
+    echo "============================================================"
+  } >> "$LOG_FILE"
+
+  "$@" >> "$LOG_FILE" 2>&1
+  return $?
+}
+
+get_status() {
+  local pid="$1"
+
+  VMPEAK=0
+  VMSIZE=0
+  VMHWM=0
+  VMRSS=0
+  VMDATA=0
+  VMSTK=0
+  VMEXE=0
+  VMLIB=0
+  VMPTE=0
+
+  RSSANON=0
+  RSSFILE=0
+  RSSSHMEM=0
+
+  THREADS=0
+  VOL_CTX=0
+  INVOL_CTX=0
+  FD_LIMIT=0
+
+  STATE="?"
+  UID_VALUE="?"
+
+  [ -r "/proc/$pid/status" ] || return 1
+
+  while read -r key value rest; do
+    case "$key" in
+      VmPeak:) VMPEAK="$value" ;;
+      VmSize:) VMSIZE="$value" ;;
+      VmHWM:) VMHWM="$value" ;;
+      VmRSS:) VMRSS="$value" ;;
+      VmData:) VMDATA="$value" ;;
+      VmStk:) VMSTK="$value" ;;
+      VmExe:) VMEXE="$value" ;;
+      VmLib:) VMLIB="$value" ;;
+      VmPTE:) VMPTE="$value" ;;
+
+      RssAnon:) RSSANON="$value" ;;
+      RssFile:) RSSFILE="$value" ;;
+      RssShmem:) RSSSHMEM="$value" ;;
+
+      Threads:) THREADS="$value" ;;
+      voluntary_ctxt_switches:) VOL_CTX="$value" ;;
+      nonvoluntary_ctxt_switches:) INVOL_CTX="$value" ;;
+      FDSize:) FD_LIMIT="$value" ;;
+
+      State:) STATE="$value $rest" ;;
+      Uid:) UID_VALUE="$value" ;;
+    esac
+  done < "/proc/$pid/status"
+}
+
+get_smaps_rollup() {
+  local pid="$1"
+
+  SMAPS_RSS=0
+  SMAPS_PSS=0
+  SMAPS_ANON=0
+  SMAPS_FILE=0
+  SMAPS_SHMEM=0
+  SMAPS_PRIVATE_CLEAN=0
+  SMAPS_PRIVATE_DIRTY=0
+  SMAPS_SHARED_CLEAN=0
+  SMAPS_SHARED_DIRTY=0
+  SMAPS_SWAP_PSS=0
+
+  [ -r "/proc/$pid/smaps_rollup" ] || return
+
+  while read -r key value rest; do
+    case "$key" in
+      Rss:) SMAPS_RSS="$value" ;;
+      Pss:) SMAPS_PSS="$value" ;;
+      Pss_Anon:) SMAPS_ANON="$value" ;;
+      Pss_File:) SMAPS_FILE="$value" ;;
+      Pss_Shmem:) SMAPS_SHMEM="$value" ;;
+      Private_Clean:) SMAPS_PRIVATE_CLEAN="$value" ;;
+      Private_Dirty:) SMAPS_PRIVATE_DIRTY="$value" ;;
+      Shared_Clean:) SMAPS_SHARED_CLEAN="$value" ;;
+      Shared_Dirty:) SMAPS_SHARED_DIRTY="$value" ;;
+      SwapPss:) SMAPS_SWAP_PSS="$value" ;;
+    esac
+  done < "/proc/$pid/smaps_rollup"
+}
+
+get_io() {
+  local pid="$1"
+
+  IO_READ=0
+  IO_WRITE=0
+  IO_READ_SYSCALL=0
+  IO_WRITE_SYSCALL=0
+
+  [ -r "/proc/$pid/io" ] || return
+
+  while read -r key value; do
+    case "$key" in
+      read_bytes:) IO_READ="$value" ;;
+      write_bytes:) IO_WRITE="$value" ;;
+      syscr:) IO_READ_SYSCALL="$value" ;;
+      syscw:) IO_WRITE_SYSCALL="$value" ;;
+    esac
+  done < "/proc/$pid/io"
+}
+
+get_fd_count() {
+  local pid="$1"
+
+  FD_TOTAL=0
+  FD_SOCKET=0
+  FD_PIPE=0
+  FD_ANON=0
+  FD_DEV=0
+  FD_FILE=0
+  FD_OTHER=0
+
+  for fd in /proc/"$pid"/fd/*; do
+    [ -e "$fd" ] || continue
+
+    FD_TOTAL=$((FD_TOTAL + 1))
+
+    local target
+    target="$(readlink "$fd" 2>/dev/null || true)"
+
+    case "$target" in
+      socket:*)
+        FD_SOCKET=$((FD_SOCKET + 1))
+        ;;
+      pipe:*)
+        FD_PIPE=$((FD_PIPE + 1))
+        ;;
+      anon_inode:*)
+        FD_ANON=$((FD_ANON + 1))
+        ;;
+      /dev/*)
+        FD_DEV=$((FD_DEV + 1))
+        ;;
+      /*)
+        FD_FILE=$((FD_FILE + 1))
+        ;;
+      *)
+        FD_OTHER=$((FD_OTHER + 1))
+        ;;
+    esac
+  done
+}
+
+get_process_info() {
+  local pid="$1"
+
+  CPU="0"
+  ETIME="?"
+  PSSTAT="?"
+  THREADS_PS="0"
+  PSRSS="0"
+  PVSZ="0"
+  WCHAN="-"
+
+  read -r CPU ETIME PSSTAT THREADS_PS PSRSS PVSZ < <(
+    ps -p "$pid" \
+      -o '%cpu=' \
+      -o 'etime=' \
+      -o 'stat=' \
+      -o 'nlwp=' \
+      -o 'rss=' \
+      -o 'vsz='
+  )
+
+  WCHAN="$(ps -p "$pid" -o wchan= 2>/dev/null | xargs)"
+  [ -z "$WCHAN" ] && WCHAN="-"
+
+  PROC_NAME="$(cat "/proc/$pid/comm" 2>/dev/null || echo "$PROJECT_NAME")"
+  PROC_CMD="$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null | sed 's/ $//')"
+  PROC_EXE="$(readlink -f "/proc/$pid/exe" 2>/dev/null || echo "?")"
+  PROC_CWD="$(readlink -f "/proc/$pid/cwd" 2>/dev/null || echo "?")"
+
+  NICE_VALUE="$(ps -p "$pid" -o ni= 2>/dev/null | xargs)"
+  PRIORITY_VALUE="$(ps -p "$pid" -o pri= 2>/dev/null | xargs)"
+}
+
+get_system_memory() {
+  MEM_TOTAL=0
+  MEM_AVAILABLE=0
+  MEM_FREE=0
+  MEM_BUFFERS=0
+  MEM_CACHED=0
+  SWAP_TOTAL=0
+  SWAP_FREE=0
+
+  while read -r key value rest; do
+    case "$key" in
+      MemTotal:)
+        MEM_TOTAL="$value"
+        ;;
+      MemAvailable:)
+        MEM_AVAILABLE="$value"
+        ;;
+      MemFree:)
+        MEM_FREE="$value"
+        ;;
+      Buffers:)
+        MEM_BUFFERS="$value"
+        ;;
+      Cached:)
+        MEM_CACHED="$value"
+        ;;
+      SwapTotal:)
+        SWAP_TOTAL="$value"
+        ;;
+      SwapFree:)
+        SWAP_FREE="$value"
+        ;;
+    esac
+  done < /proc/meminfo
+
+  MEM_USED=$((MEM_TOTAL - MEM_AVAILABLE))
+  SWAP_USED=$((SWAP_TOTAL - SWAP_FREE))
+}
+
+get_load() {
+  read -r LOAD1 LOAD5 LOAD15 _ < /proc/loadavg
+}
+
+update_top_mappings() {
+  local pid="$1"
+
+  TOP_MAPPINGS="$(
+    awk '
+      /^[0-9a-f]+-[0-9a-f]+/ {
+        if (name != "" && rss > 0)
+          printf "%12d %s\n", rss, name
+
+        name = $0
+        rss = 0
+        next
+      }
+
+      $1 == "Rss:" {
+        rss = $2
+      }
+
+      END {
+        if (name != "" && rss > 0)
+          printf "%12d %s\n", rss, name
+      }
+    ' "/proc/$pid/smaps" 2>/dev/null |
+      sort -nr |
+      head -15 |
+      awk '{
+        printf "%.2f MB  ", $1 / 1024
+        $1 = ""
+        sub(/^ /, "", $0)
+        print
+      }'
+  )"
+}
+
+update_threads() {
+  local pid="$1"
+
+  THREAD_LIST="$(
+    ps -L -p "$pid" \
+      -o tid=,%cpu=,rss=,stat=,wchan=,comm= \
+      --sort=-%cpu 2>/dev/null |
+      head -8 |
+      awk '{
+        printf "TID %-7s CPU %6s%% RSS %7.2f MB %-5s %-20s %s\n",
+          $1, $2, $3 / 1024, $4, $5, $6
+      }'
+  )"
+}
+
+capture_diagnostics() {
+  local pid="$1"
+  local reason="$2"
+
+  local stamp
+  stamp="$(date '+%Y-%m-%d_%H-%M-%S')"
+
+  local event_dir="$RUN_DIR/events/${stamp}_${reason}"
+
+  mkdir -p "$event_dir"
+
+  log_line "============================================================"
+  log_line "DIAGNOSTIC EVENT: $reason"
+  log_line "PID: $pid"
+  log_line "EVENT DIR: $event_dir"
+  log_line "============================================================"
+
+  cp "/proc/$pid/status" "$event_dir/status.txt" 2>/dev/null || true
+  cp "/proc/$pid/smaps_rollup" "$event_dir/smaps_rollup.txt" 2>/dev/null || true
+  cp "/proc/$pid/smaps" "$event_dir/smaps.txt" 2>/dev/null || true
+  cp "/proc/$pid/maps" "$event_dir/maps.txt" 2>/dev/null || true
+  cp "/proc/$pid/io" "$event_dir/io.txt" 2>/dev/null || true
+  cp "/proc/$pid/limits" "$event_dir/limits.txt" 2>/dev/null || true
+  cp "/proc/$pid/sched" "$event_dir/sched.txt" 2>/dev/null || true
+  cp "/proc/$pid/stat" "$event_dir/stat.txt" 2>/dev/null || true
+
+  cat "/proc/$pid/syscall" > "$event_dir/syscall.txt" 2>&1 || true
+  cat "/proc/$pid/wchan" > "$event_dir/wchan.txt" 2>&1 || true
+
+  tr '\0' ' ' < "/proc/$pid/cmdline" > "$event_dir/cmdline.txt" 2>/dev/null || true
+  echo >> "$event_dir/cmdline.txt" 2>/dev/null || true
+
+  ps -p "$pid" \
+    -o pid,ppid,user,%cpu,%mem,rss,vsz,stat,wchan,etime,nlwp,ni,pri,comm \
+    > "$event_dir/process.txt" 2>&1
+
+  ps -L -p "$pid" \
+    -o pid,tid,psr,%cpu,%mem,rss,vsz,stat,wchan,comm \
+    --sort=-%cpu \
+    > "$event_dir/threads.txt" 2>&1
+
+  ps -eo pid,ppid,%cpu,%mem,rss,vsz,stat,wchan,comm \
+    --sort=-%cpu |
+    head -40 \
+    > "$event_dir/system_processes.txt" 2>&1
+
+  free -h > "$event_dir/system_memory.txt" 2>&1
+  cat /proc/meminfo > "$event_dir/system_meminfo.txt" 2>&1
+  cat /proc/loadavg > "$event_dir/loadavg.txt" 2>&1
+
+  awk '
+    /^[0-9a-f]+-[0-9a-f]+/ {
+      if (name != "" && rss > 0)
+        printf "%12d %s\n", rss, name
+
+      name = $0
+      rss = 0
+      next
+    }
+
+    $1 == "Rss:" {
+      rss = $2
+    }
+
+    END {
+      if (name != "" && rss > 0)
+        printf "%12d %s\n", rss, name
+    }
+  ' "/proc/$pid/smaps" 2>/dev/null |
+    sort -nr |
+    awk '{
+      printf "%.2f MB  ", $1 / 1024
+      $1 = ""
+      sub(/^ /, "", $0)
+      print
+    }' > "$event_dir/top_mappings.txt"
+
+  if command -v pmap >/dev/null 2>&1; then
+    pmap -x "$pid" > "$event_dir/pmap.txt" 2>&1 || true
+  fi
+
+  if command -v pstree >/dev/null 2>&1; then
+    pstree -alp "$pid" > "$event_dir/pstree.txt" 2>&1 || true
+  fi
+
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -p "$pid" > "$event_dir/lsof.txt" 2>&1 || true
+  else
+    ls -l "/proc/$pid/fd" > "$event_dir/fd.txt" 2>&1 || true
+  fi
+
+  if command -v gdb >/dev/null 2>&1; then
+    timeout 10s \
+      gdb -q -batch \
+      -ex "set pagination off" \
+      -ex "thread apply all bt" \
+      -ex "detach" \
+      -ex "quit" \
+      -p "$pid" \
+      > "$event_dir/gdb_backtrace.txt" 2>&1 || true
+  fi
+
+  if [ -r "/proc/$pid/task" ]; then
+    for task in /proc/"$pid"/task/*; do
+      tid="${task##*/}"
+
+      {
+        echo "===== TID $tid ====="
+
+        if [ -r "$task/comm" ]; then
+          printf "comm: "
+          cat "$task/comm"
+        fi
+
+        if [ -r "$task/stat" ]; then
+          printf "stat: "
+          cat "$task/stat"
+        fi
+
+        if [ -r "$task/syscall" ]; then
+          printf "syscall: "
+          cat "$task/syscall"
+        fi
+
+        if [ -r "$task/wchan" ]; then
+          printf "wchan: "
+          cat "$task/wchan"
+        fi
+
+        echo
+      } >> "$event_dir/all_threads_proc.txt"
+    done
+  fi
+
+  {
+    echo "===== CURRENT STATUS ====="
+    date
+    echo
+    echo "CPU: $CPU%"
+    echo "RSS: $(format_kb "$VMRSS")"
+    echo "HWM: $(format_kb "$VMHWM")"
+    echo "VSZ: $(format_kb "$VMSIZE")"
+    echo "DATA: $(format_kb "$VMDATA")"
+    echo "ANON: $(format_kb "$RSSANON")"
+    echo "FILE: $(format_kb "$RSSFILE")"
+    echo "PSS: $(format_kb "$SMAPS_PSS")"
+    echo "PSS ANON: $(format_kb "$SMAPS_ANON")"
+    echo "THREADS: $THREADS"
+    echo "FD: $FD_TOTAL"
+    echo "STATE: $STATE"
+    echo "WCHAN: $WCHAN"
+    echo "LOAD: $LOAD1 $LOAD5 $LOAD15"
+    echo
+    echo "EXE: $PROC_EXE"
+    echo "CWD: $PROC_CWD"
+    echo "CMD: $PROC_CMD"
+  } > "$event_dir/summary.txt"
+
+  log_line "Diagnostic snapshot saved: $event_dir"
+}
+
+FRAME=""
+FRAME_LINES=0
+
+frame_line() {
+  FRAME+="$1"
+  FRAME+=$'\n'
+  FRAME_LINES=$((FRAME_LINES + 1))
+}
+
+render_monitor() {
+  local pid="$1"
+  local elapsed="$2"
+  local high_cpu="$3"
+
+  FRAME=""
+  FRAME_LINES=0
+
+  frame_line "${BRIGHT_CYAN}${BOLD}╔════════════════════════════════════════════════════════════════════════════════╗${RESET}"
+  frame_line "${BRIGHT_CYAN}${BOLD}║                           BULBA ENGINE MONITOR                                ║${RESET}"
+  frame_line "${BRIGHT_CYAN}${BOLD}╚════════════════════════════════════════════════════════════════════════════════╝${RESET}"
+
+  frame_line "PID: ${BRIGHT_CYAN}${pid}${RESET}   CPU: ${BRIGHT_YELLOW}${CPU}%${RESET}   RAM: ${BRIGHT_GREEN}$(format_kb "$VMRSS")${RESET}   Peak: ${BRIGHT_YELLOW}$(format_kb "$VMHWM")${RESET}"
+  frame_line "State: ${BRIGHT_GREEN}${STATE}${RESET}   WCHAN: ${BRIGHT_WHITE}${WCHAN}${RESET}   Threads: ${THREADS}   FDs: ${FD_TOTAL}   Uptime: ${ETIME}"
+
+  if [ "$high_cpu" -eq 1 ]; then
+    frame_line "${BRIGHT_RED}${BOLD}!!! HIGH CPU / POSSIBLE HANG DETECTED !!!${RESET}"
+  fi
+
+  frame_line ""
+  frame_line "${BRIGHT_BLUE}${BOLD}┌────────────────────────────── MEMORY ──────────────────────────────────────────┐${RESET}"
+  frame_line "${BRIGHT_BLUE}│${RESET} RSS:              $(memory_colored "$VMRSS")    RAM peak:         $(memory_colored "$VMHWM")"
+  frame_line "${BRIGHT_BLUE}│${RESET} Virtual size:     $(format_kb "$VMSIZE")    Virtual peak:     $(format_kb "$VMPEAK")"
+  frame_line "${BRIGHT_BLUE}│${RESET} Data / heap:      $(format_kb "$VMDATA")    Stack:            $(format_kb "$VMSTK")"
+  frame_line "${BRIGHT_BLUE}│${RESET} Anonymous:        $(format_kb "$RSSANON")    File-backed:      $(format_kb "$RSSFILE")"
+  frame_line "${BRIGHT_BLUE}│${RESET} Shared:           $(format_kb "$RSSSHMEM")    Page tables:      $(format_kb "$VMPTE")"
+  frame_line "${BRIGHT_BLUE}└───────────────────────────────────────────────────────────────────────────────┘${RESET}"
+
+  frame_line ""
+  frame_line "${BRIGHT_MAGENTA}${BOLD}┌──────────────────────── PHYSICAL MEMORY / PSS ────────────────────────────────┐${RESET}"
+  frame_line "${BRIGHT_MAGENTA}│${RESET} PSS:              $(format_kb "$SMAPS_PSS")    PSS anonymous:    $(format_kb "$SMAPS_ANON")"
+  frame_line "${BRIGHT_MAGENTA}│${RESET} PSS file:         $(format_kb "$SMAPS_FILE")    PSS shared:       $(format_kb "$SMAPS_SHMEM")"
+  frame_line "${BRIGHT_MAGENTA}│${RESET} Private clean:    $(format_kb "$SMAPS_PRIVATE_CLEAN")    Private dirty:    $(format_kb "$SMAPS_PRIVATE_DIRTY")"
+  frame_line "${BRIGHT_MAGENTA}│${RESET} Shared clean:     $(format_kb "$SMAPS_SHARED_CLEAN")    Shared dirty:     $(format_kb "$SMAPS_SHARED_DIRTY")"
+  frame_line "${BRIGHT_MAGENTA}│${RESET} Swap PSS:         $(format_kb "$SMAPS_SWAP_PSS")"
+  frame_line "${BRIGHT_MAGENTA}└───────────────────────────────────────────────────────────────────────────────┘${RESET}"
+
+  frame_line ""
+  frame_line "${BRIGHT_GREEN}${BOLD}┌──────────────────────────────── SYSTEM ───────────────────────────────────────┐${RESET}"
+  frame_line "${BRIGHT_GREEN}│${RESET} RAM used:         $(format_kb "$MEM_USED")    RAM total:        $(format_kb "$MEM_TOTAL")"
+  frame_line "${BRIGHT_GREEN}│${RESET} RAM available:    $(format_kb "$MEM_AVAILABLE")    RAM free:         $(format_kb "$MEM_FREE")"
+  frame_line "${BRIGHT_GREEN}│${RESET} Cache:            $(format_kb "$MEM_CACHED")    Swap used:        $(format_kb "$SWAP_USED")"
+  frame_line "${BRIGHT_GREEN}│${RESET} Load:             $LOAD1 / $LOAD5 / $LOAD15"
+  frame_line "${BRIGHT_GREEN}└───────────────────────────────────────────────────────────────────────────────┘${RESET}"
+
+  frame_line ""
+  frame_line "${BRIGHT_YELLOW}${BOLD}┌──────────────────────────────── I/O / FD ─────────────────────────────────────┐${RESET}"
+  frame_line "${BRIGHT_YELLOW}│${RESET} Disk read:        $(format_bytes "$IO_READ")    Disk written:     $(format_bytes "$IO_WRITE")"
+  frame_line "${BRIGHT_YELLOW}│${RESET} Read syscalls:    $IO_READ_SYSCALL    Write syscalls:   $IO_WRITE_SYSCALL"
+  frame_line "${BRIGHT_YELLOW}│${RESET} Sockets:          $FD_SOCKET    Pipes:            $FD_PIPE"
+  frame_line "${BRIGHT_YELLOW}│${RESET} Anon inodes:      $FD_ANON    Files:            $FD_FILE"
+  frame_line "${BRIGHT_YELLOW}│${RESET} Devices:          $FD_DEV    Other:            $FD_OTHER"
+  frame_line "${BRIGHT_YELLOW}│${RESET} Context:          $VOL_CTX voluntary / $INVOL_CTX involuntary"
+  frame_line "${BRIGHT_YELLOW}└───────────────────────────────────────────────────────────────────────────────┘${RESET}"
+
+  frame_line ""
+  frame_line "${BRIGHT_CYAN}${BOLD}┌──────────────────────────── TOP MEMORY MAPPINGS ──────────────────────────────┐${RESET}"
+
+  if [ -n "$TOP_MAPPINGS" ]; then
+    while IFS= read -r line; do
+      frame_line "${BRIGHT_CYAN}│${RESET} $line"
+    done <<< "$TOP_MAPPINGS"
+  else
+    frame_line "${BRIGHT_CYAN}│${RESET} No mapping data"
+  fi
+
+  frame_line "${BRIGHT_CYAN}└───────────────────────────────────────────────────────────────────────────────┘${RESET}"
+
+  frame_line ""
+  frame_line "${BRIGHT_BLUE}${BOLD}┌──────────────────────────────── THREADS ──────────────────────────────────────┐${RESET}"
+
+  if [ -n "$THREAD_LIST" ]; then
+    while IFS= read -r line; do
+      frame_line "${BRIGHT_BLUE}│${RESET} $line"
+    done <<< "$THREAD_LIST"
+  else
+    frame_line "${BRIGHT_BLUE}│${RESET} No thread data"
+  fi
+
+  frame_line "${BRIGHT_BLUE}└───────────────────────────────────────────────────────────────────────────────┘${RESET}"
+
+  frame_line ""
+  frame_line "${BRIGHT_WHITE}${BOLD}PROCESS${RESET}"
+  frame_line "EXE: $PROC_EXE"
+  frame_line "CWD: $PROC_CWD"
+  frame_line "CMD: $PROC_CMD"
+
+  frame_line ""
+  frame_line "${DIM}${BRIGHT_BLACK}Refresh: ${MONITOR_INTERVAL}s | PID $pid | Elapsed ${elapsed}s | Log: $RUN_DIR | Ctrl+C${RESET}"
+}
+
+update_live_output() {
+  local old_lines="$1"
+
+  if [ "$old_lines" -gt 0 ]; then
+    printf '\033[%dA' "$old_lines"
+  fi
+
+  local line
+
+  while IFS= read -r line; do
+    printf '\r\033[2K%s\n' "$line"
+  done <<< "$FRAME"
+
+  if [ "$FRAME_LINES" -lt "$old_lines" ]; then
+    local missing=$((old_lines - FRAME_LINES))
+
+    while [ "$missing" -gt 0 ]; do
+      printf '\r\033[2K\n'
+      missing=$((missing - 1))
+    done
+
+    printf '\033[%dA' "$old_lines"
+    printf '\033[%dB' "$FRAME_LINES"
+  fi
+}
+
+monitor_process() {
+  local pid="$1"
+
+  local start_time
+  start_time="$(date +%s)"
+
+  local last_log_time=0
+  local last_mem_check_time=0
+  local last_mem_value=0
+
+  local high_cpu_count=0
+  local hang_active=0
+  local growth_event_active=0
+
+  local old_lines=0
+  local result=0
+
+  printf '\033[?25l'
+
+  trap '
+    printf "\033[?25h"
+    kill "$pid" 2>/dev/null
+    wait "$pid" 2>/dev/null
+    log_line "Monitor interrupted by user"
+    echo
+    exit 130
+  ' INT TERM
+
+  log_line "MONITOR START"
+  log_line "PID: $pid"
+  log_line "EXE: $(readlink -f "/proc/$pid/exe" 2>/dev/null || echo "?")"
+
+  while kill -0 "$pid" 2>/dev/null; do
+    local now
+    now="$(date +%s)"
+
+    get_status "$pid"
+    get_smaps_rollup "$pid"
+    get_io "$pid"
+    get_fd_count "$pid"
+    get_process_info "$pid"
+    get_system_memory
+    get_load
+
+    if [ "$CPU" = "" ]; then
+      CPU="0"
+    fi
+
+    local elapsed=$((now - start_time))
+
+    if awk -v cpu="$CPU" -v threshold="$HIGH_CPU_THRESHOLD" \
+      'BEGIN { exit !(cpu >= threshold) }'; then
+      high_cpu_count=$((high_cpu_count + 1))
+    else
+      high_cpu_count=0
+      hang_active=0
+    fi
+
+    local high_cpu=0
+
+    if [ "$high_cpu_count" -ge "$HIGH_CPU_SAMPLES" ]; then
+      high_cpu=1
+
+      if [ "$hang_active" -eq 0 ]; then
+        hang_active=1
+
+        warn "Possible hang: CPU=$CPU%, WCHAN=$WCHAN"
+
+        log_line "EVENT: HIGH CPU / POSSIBLE HANG"
+        log_line "CPU=$CPU STATE=$STATE WCHAN=$WCHAN THREADS=$THREADS"
+
+        capture_diagnostics "$pid" "high_cpu"
+      fi
+    fi
+
+    if [ "$last_mem_check_time" -eq 0 ]; then
+      last_mem_check_time="$now"
+      last_mem_value="$VMRSS"
+    elif [ $((now - last_mem_check_time)) -ge "$MEM_GROWTH_CHECK_INTERVAL" ]; then
+      local mem_delta=$((VMRSS - last_mem_value))
+
+      if [ "$mem_delta" -ge "$MEM_GROWTH_THRESHOLD_KB" ]; then
+        if [ "$growth_event_active" -eq 0 ]; then
+          growth_event_active=1
+
+          warn "Rapid memory growth: +$(format_kb "$mem_delta")"
+
+          log_line "EVENT: RAPID MEMORY GROWTH"
+          log_line "RSS BEFORE: $(format_kb "$last_mem_value")"
+          log_line "RSS NOW: $(format_kb "$VMRSS")"
+          log_line "DELTA: $(format_kb "$mem_delta")"
+
+          capture_diagnostics "$pid" "memory_growth"
+        fi
+      else
+        growth_event_active=0
+      fi
+
+      last_mem_check_time="$now"
+      last_mem_value="$VMRSS"
+    fi
+
+    update_top_mappings "$pid"
+    update_threads "$pid"
+
+    render_monitor "$pid" "$elapsed" "$high_cpu"
+
+    update_live_output "$old_lines"
+    old_lines="$FRAME_LINES"
+
+    if [ $((now - last_log_time)) -ge 1 ]; then
+      printf '[%s] CPU=%s%% RSS=%s HWM=%s VSZ=%s DATA=%s ANON=%s PSS=%s THREADS=%s FD=%s STATE=%s WCHAN=%s\n' \
+        "$(date '+%Y-%m-%d %H:%M:%S')" \
+        "$CPU" \
+        "$(format_kb "$VMRSS")" \
+        "$(format_kb "$VMHWM")" \
+        "$(format_kb "$VMSIZE")" \
+        "$(format_kb "$VMDATA")" \
+        "$(format_kb "$RSSANON")" \
+        "$(format_kb "$SMAPS_PSS")" \
+        "$THREADS" \
+        "$FD_TOTAL" \
+        "$STATE" \
+        "$WCHAN" \
+        >> "$LOG_FILE"
+
+      last_log_time="$now"
+    fi
+
+    sleep "$MONITOR_INTERVAL"
+  done
+
+  wait "$pid"
+  result=$?
+
+  log_line "MONITOR END"
+  log_line "PROCESS EXIT CODE: $result"
+
+  printf '\033[?25h'
+  trap - INT TERM
+
+  echo
+  echo -e "${BRIGHT_GREEN}${BOLD}✓ Monitor finished${RESET}"
+  echo -e "${DIM}Log: ${LOG_FILE}${RESET}"
+
+  return "$result"
+}
+
 echo
+echo -e "${BRIGHT_CYAN}${BOLD}"
+echo "╔════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                               BULBA ENGINE                                    ║"
+echo "║                              BUILD SYSTEM                                     ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════╝"
+echo -e "${RESET}"
+
+echo -e "${WHITE}Project:${RESET}     ${BRIGHT_CYAN}$PROJECT_NAME${RESET}"
+echo -e "${WHITE}Build type:${RESET}  ${BRIGHT_YELLOW}$BUILD_TYPE${RESET}"
+
+if [ "$LTRACE" -eq 1 ]; then
+  echo -e "${WHITE}Live trace:${RESET}  ${BRIGHT_GREEN}ON${RESET}"
+else
+  echo -e "${WHITE}Live trace:${RESET}  ${BRIGHT_RED}OFF${RESET}"
+fi
 
 check_command cmake
 check_command ninja
+check_command awk
+check_command ps
+check_command readlink
+check_command sed
+check_command tput
+check_command stty
+check_command tr
+check_command sort
+check_command head
+check_command wc
+check_command tail
+check_command date
+check_command timeout
 
-echo "[OK] Required tools found"
+setup_logs
+
+echo -e "${WHITE}Logs:${RESET}        ${BRIGHT_CYAN}$RUN_DIR${RESET}"
+echo
+ok "Required tools found"
 
 if [ "$CLEAN" -eq 1 ]; then
-  echo
-  echo "[CLEAN] Removing build directory..."
+  section "CLEAN"
 
-  if ! rm -rf build; then
-    fail "Failed to remove build directory"
-  fi
+  rm -rf build || fail "Failed to remove build directory"
 
-  echo "[OK] Build directory removed"
+  ok "Build directory removed"
+  ok "Logs directory recreated"
 fi
 
-echo
-
-if [ "$BUILD_TYPE" == "Debug" ]; then
+if [ "$BUILD_TYPE" = "Debug" ]; then
   BUILD_DIR="build/debug"
 
-  echo "[1/3] Configuring Debug..."
+  section "1/3  CONFIGURING DEBUG"
 
-  if ! cmake -S . -B "$BUILD_DIR" \
-    -G Ninja \
-    -DCMAKE_BUILD_TYPE=Debug \
-    -DPROJECT_NAME="$PROJECT_NAME" \
-    -DBLB_BUILD_APP=ON \
-    -DBLB_BUILD_SHADERS=ON; then
+  if log_command \
+    "CMAKE DEBUG CONFIGURE" \
+    cmake -S . -B "$BUILD_DIR" \
+      -G Ninja \
+      -DCMAKE_BUILD_TYPE=Debug \
+      -DPROJECT_NAME="$PROJECT_NAME" \
+      -DBLB_BUILD_APP=ON \
+      -DBLB_BUILD_SHADERS=ON; then
+    ok "CMake configuration"
+  else
     fail "CMake configuration failed"
   fi
 
-  echo "[OK] CMake configuration"
+  section "2/3  BUILDING DEBUG"
 
-  echo
-  echo "[2/3] Building Debug..."
-
-  if ! cmake --build "$BUILD_DIR" -j"$(nproc)"; then
+  if log_command \
+    "CMAKE DEBUG BUILD" \
+    cmake --build "$BUILD_DIR" -j"$(nproc)"; then
+    ok "Debug build"
+  else
     fail "Debug build failed"
   fi
-
-  echo "[OK] Debug build"
 
   if [ ! -f "$BUILD_DIR/$PROJECT_NAME" ]; then
     fail "Debug binary was not created"
   fi
 
-  echo "[OK] Debug binary found"
+  ok "Debug binary found"
 
-  echo
-  echo "[3/3] Running test binary..."
+  section "3/3  RUNNING DEBUG"
 
-  if ! "./$BUILD_DIR/$PROJECT_NAME"; then
-    fail "Debug application exited with an error"
+  if [ "$LTRACE" -eq 0 ]; then
+    log_line "Running without live monitor"
+
+    "./$BUILD_DIR/$PROJECT_NAME" 2>&1 |
+      tee -a "$RUN_DIR/application.log"
+
+    RESULT="${PIPESTATUS[0]}"
+  else
+    "./$BUILD_DIR/$PROJECT_NAME" \
+      >> "$RUN_DIR/application.log" \
+      2>&1 &
+
+    PID=$!
+
+    log_line "Application started"
+    log_line "PID: $PID"
+
+    monitor_process "$PID"
+    RESULT=$?
   fi
 
   echo
-  echo "================================"
-  echo "[SUCCESS] Debug completed"
-  echo "================================"
 
-  exit 0
+  if [ "$RESULT" -eq 0 ]; then
+    echo -e "${BRIGHT_GREEN}${BOLD}✓ DEBUG COMPLETED${RESET}"
+  else
+    echo -e "${BRIGHT_RED}${BOLD}✗ DEBUG FAILED${RESET}"
+  fi
+
+  echo -e "${DIM}Run logs: ${RUN_DIR}${RESET}"
+
+  exit "$RESULT"
 fi
 
 BUILD_DIR="build/release"
 
-echo "[1/4] Configuring Release..."
+section "1/4  CONFIGURING RELEASE"
 
-if ! cmake -S . -B "$BUILD_DIR" \
-  -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DPROJECT_NAME="$PROJECT_NAME" \
-  -DBLB_BUILD_APP=OFF \
-  -DBLB_BUILD_SHADERS=ON \
-  -DCMAKE_INSTALL_PREFIX=/usr/local; then
+if log_command \
+  "CMAKE RELEASE CONFIGURE" \
+  cmake -S . -B "$BUILD_DIR" \
+    -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DPROJECT_NAME="$PROJECT_NAME" \
+    -DBLB_BUILD_APP=OFF \
+    -DBLB_BUILD_SHADERS=ON \
+    -DCMAKE_INSTALL_PREFIX=/usr/local; then
+  ok "CMake configuration"
+else
   fail "CMake configuration failed"
 fi
 
-echo "[OK] CMake configuration"
+section "2/4  BUILDING RELEASE"
 
-echo
-echo "[2/4] Building Release..."
-
-if ! cmake --build "$BUILD_DIR" -j"$(nproc)"; then
+if log_command \
+  "CMAKE RELEASE BUILD" \
+  cmake --build "$BUILD_DIR" -j"$(nproc)"; then
+  ok "Release build"
+else
   fail "Release build failed"
 fi
-
-echo "[OK] Release build"
 
 LIBRARY="$BUILD_DIR/libbulba_engine.so"
 
@@ -134,33 +1064,34 @@ if [ ! -f "$LIBRARY" ]; then
   fail "Release library was not created: $LIBRARY"
 fi
 
-echo "[OK] Release library found"
+ok "Release library found"
 
-echo
-echo "[3/4] Installing..."
+section "3/4  INSTALLING"
 
-if ! sudo cmake --install "$BUILD_DIR"; then
+if log_command \
+  "CMAKE INSTALL" \
+  sudo cmake --install "$BUILD_DIR"; then
+  ok "Installation completed"
+else
   fail "Installation failed"
 fi
-
-echo "[OK] Installation completed"
 
 if [ ! -f "/usr/local/lib/libbulba_engine.so" ]; then
   fail "Installed library was not found"
 fi
 
-echo "[OK] Installed library verified"
+ok "Installed library verified"
 
-echo
-echo "[4/4] Updating linker cache..."
+section "4/4  LINKER CACHE"
 
-if ! sudo ldconfig; then
+if log_command \
+  "LDCONFIG" \
+  sudo ldconfig; then
+  ok "Linker cache updated"
+else
   fail "ldconfig failed"
 fi
 
-echo "[OK] Linker cache updated"
-
 echo
-echo "================================"
-echo "[SUCCESS] Release installed"
-echo "================================"
+echo -e "${BRIGHT_GREEN}${BOLD}✓ RELEASE INSTALLED${RESET}"
+echo -e "${DIM}Run logs: ${RUN_DIR}${RESET}"

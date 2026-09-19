@@ -182,7 +182,7 @@ int main(void) {
     BLB_Object3D_Move(point_light->object, HMM_V3(x, 0, 0));
 
     if (result == -2) {
-      if (VULKAN_RendererRecreateSwapchain(&vk) != 0)
+      if (VULKAN_RendererRecreateSwapchain(&vk, false) != 0)
         break;
       window->resized = false;
     } else if (result < 0) {

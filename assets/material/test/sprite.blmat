@@ -1,0 +1,376 @@
+material "Sprite"
+{
+    domain = 2d
+
+    render
+    {
+        mode = opaque
+
+        alpha_mode = blend
+        alpha_cutoff = 0.5
+
+        lighting = false
+        depth_test = false
+        depth_write = false
+
+        double_sided = true
+        unlit = true
+    }
+
+    base
+    {
+        color = [1.0, 1.0, 1.0, 1.0]
+
+        metallic = 0.0
+        roughness = 0.65
+
+        normal_scale = 1.0
+        occlusion_strength = 1.0
+    }
+
+    emission
+    {
+        color = [1.0, 1.0, 1.0, 1.0]
+        strength = 0.0
+    }
+
+    specular
+    {
+        factor = 1.0
+        color = [1.0, 1.0, 1.0]
+    }
+
+    ior = 1.5
+
+    transmission
+    {
+        factor = 0.0
+    }
+
+    volume
+    {
+        thickness = 0.0
+
+        attenuation_distance = inf
+        attenuation_color = [1.0, 1.0, 1.0]
+    }
+
+    clearcoat
+    {
+        factor = 0.0
+        roughness = 0.0
+        normal_scale = 1.0
+    }
+
+    sheen
+    {
+        color = [0.0, 0.0, 0.0]
+        roughness = 0.0
+    }
+
+    iridescence
+    {
+        factor = 0.0
+        ior = 1.3
+
+        thickness_min = 100.0
+        thickness_max = 400.0
+    }
+
+    anisotropy
+    {
+        strength = 0.0
+        rotation = 0.0
+    }
+
+    dispersion = 0.0
+
+    glow
+    {
+        strength = 0.0
+        radius = 0.0
+        falloff = 2.0
+    }
+
+    textures
+    {
+        base_color
+        {
+            path = "textures/player.png"
+
+            uv_set = 0
+
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        metallic_roughness
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        normal
+        {
+            path = "textures/player_normal.png"
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        occlusion
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        emission
+        {
+            path = "textures/player_emission.png"
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        specular
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        specular_color
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        clearcoat
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        clearcoat_roughness
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        clearcoat_normal
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        transmission
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        thickness
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        sheen_color
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        sheen_roughness
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        iridescence
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        iridescence_thickness
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+
+        anisotropy
+        {
+            path = ""
+
+            uv_set = 0
+            offset = [0.0, 0.0]
+            scale = [1.0, 1.0]
+            rotation = 0.0
+
+            wrap_u = repeat
+            wrap_v = repeat
+
+            min_filter = linear
+            mag_filter = linear
+        }
+    }
+
+    shader
+    {
+        vertex = "shaders/sprite.vert.spv"
+        fragment = "shaders/sprite.frag.spv"
+    }
+}

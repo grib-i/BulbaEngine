@@ -8,11 +8,13 @@
 #include "bulba/core/utils/font.h"
 
 #include <stdbool.h>
+#include <stddef.h>
 
 typedef struct BLB_Text2D {
   BLB_EntityId entity_id;
   BLB_ComponentMask component_mask;
   BLB_Material *material;
+
   HMM_Vec2 position;
   HMM_Vec2 scale;
   float rotation;
@@ -27,15 +29,18 @@ typedef struct BLB_Text2D {
 
   unsigned short layer;
   BLB_RenderMode render_mode;
+
   bool visible;
+  bool screen_space;
 
   char *text;
+  size_t text_capacity;
+
   char *font_path;
   float size;
 
   Font font;
   bool font_loaded;
-  bool screen_space;
 } BLB_Text2D;
 
 BLB_Text2D *BLB_CreateText2D(const char *text, const char *font_path, HMM_Vec2 position, float size, bool screen_space);

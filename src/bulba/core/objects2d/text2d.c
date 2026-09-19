@@ -23,7 +23,6 @@ static char *dupstr(const char *s) {
     return NULL;
 
   size_t n = strlen(s) + 1;
-
   char *d = malloc(n);
 
   if (d)
@@ -71,7 +70,6 @@ static int load_text_font(BLB_Text2D *text, const char *path) {
   if (BLB_FontLoad(&text->font, text->font_path, (unsigned int)text->size) != 0) {
     free(text->font_path);
     text->font_path = NULL;
-
     return -1;
   }
 
@@ -86,7 +84,18 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, floa
   if (!t)
     return NULL;
 
-  t->text = dupstr(s ? s : "");
+  const char *initial_text = s ? s : "";
+  size_t text_length = strlen(initial_text) + 1;
+
+  t->text = malloc(text_length);
+
+  if (!t->text) {
+    free(t);
+    return NULL;
+  }
+
+  memcpy(t->text, initial_text, text_length);
+  t->text_capacity = text_length;
 
   t->position = pos;
   t->scale = HMM_V2(1.0f, 1.0f);
@@ -109,7 +118,9 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, floa
   t->screen_space = screen_space;
   t->entity_id = BLB_INVALID_ENTITY_ID;
   t->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;
+
   t->material = BLB_Material_Create2D();
+
   if (!t->material) {
     BLB_DestroyText2D(t);
     return NULL;
@@ -117,7 +128,7 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, floa
 
   t->delta_time = calloc(1, sizeof(float));
 
-  if (!t->text || !t->delta_time) {
+  if (!t->delta_time) {
     BLB_DestroyText2D(t);
     return NULL;
   }
@@ -151,11 +162,50 @@ void BLB_SetText2D(BLB_Text2D *t, const char *s) {
   if (!t)
     return;
 
-  char *d = dupstr(s ? s : "");
+  if (!s)
+    s = "";
 
-  if (!d)
+  if (!t->text) {
+    size_t length = strlen(s) + 1;
+
+    char *text = malloc(length);
+
+    if (!text)
+      return;
+
+    memcpy(text, s, length);
+
+    t->text = text;
+    t->text_capacity = length;
+
     return;
+  }
 
-  free(t->text);
-  t->text = d;
+  size_t length = strlen(s) + 1;
+
+  if (length > t->text_capacity) {
+    size_t new_capacity = t->text_capacity;
+
+    if (new_capacity == 0)
+      new_capacity = 1;
+
+    while (new_capacity < length) {
+      if (new_capacity > SIZE_MAX / 2) {
+        new_capacity = length;
+        break;
+      }
+
+      new_capacity *= 2;
+    }
+
+    char *new_text = realloc(t->text, new_capacity);
+
+    if (!new_text)
+      return;
+
+    t->text = new_text;
+    t->text_capacity = new_capacity;
+  }
+
+  memcpy(t->text, s, length);
 }

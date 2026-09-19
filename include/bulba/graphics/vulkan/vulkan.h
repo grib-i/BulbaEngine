@@ -25,12 +25,23 @@
 #define VULKAN_MAX_LIGHTS 64
 #define VULKAN_MAX_TEXTURES 1024
 #define VULKAN_SHADOW_MAP_SIZE 2048
+#define VULKAN_MAX_FONTS 64
 
 typedef struct VULKAN_Buffer {
   VkBuffer buffer;
   VkDeviceMemory memory;
   void *mapped;
 } VULKAN_Buffer;
+
+typedef struct {
+  const Font *font;
+  VkImage image;
+  VkDeviceMemory memory;
+  VkImageView view;
+  VkSampler sampler;
+  VkDescriptorPool descriptor_pool;
+  VkDescriptorSet descriptor_set;
+} VULKAN_FontResource;
 
 typedef struct VULKAN {
   GLFWwindow *window;
@@ -67,9 +78,7 @@ typedef struct VULKAN {
   VkCommandBuffer command_buffers[VULKAN_MAX_FRAMES_IN_FLIGHT];
 
   VkSemaphore image_available[VULKAN_MAX_FRAMES_IN_FLIGHT];
-
   VkSemaphore render_finished[VULKAN_MAX_FRAMES_IN_FLIGHT];
-
   VkFence in_flight[VULKAN_MAX_FRAMES_IN_FLIGHT];
 
   VkFence *images_in_flight;
@@ -78,19 +87,15 @@ typedef struct VULKAN {
   uint32_t current_image;
 
   VkPipelineLayout pipeline_layout_3d[BLB_RENDER_MODE_COUNT];
-
   VkPipeline pipeline_3d[BLB_RENDER_MODE_COUNT];
 
   VkPipelineLayout pipeline_layout_2d[BLB_RENDER_MODE_COUNT];
-
   VkPipeline pipeline_2d[BLB_RENDER_MODE_COUNT];
 
   VkPipelineLayout text_pipeline_layout_3d[BLB_RENDER_MODE_COUNT];
-
   VkPipeline text_pipeline_3d[BLB_RENDER_MODE_COUNT];
 
   VkPipelineLayout text_pipeline_layout_2d[BLB_RENDER_MODE_COUNT];
-
   VkPipeline text_pipeline_2d[BLB_RENDER_MODE_COUNT];
 
   VkDescriptorSetLayout light_descriptor_set_layout_3d;
@@ -100,15 +105,12 @@ typedef struct VULKAN {
   VkDescriptorPool light_descriptor_pool_2d;
 
   VkDescriptorSet light_descriptor_sets_3d[VULKAN_MAX_FRAMES_IN_FLIGHT];
-
   VkDescriptorSet light_descriptor_sets_2d[VULKAN_MAX_FRAMES_IN_FLIGHT];
 
   VULKAN_Buffer light_buffers_3d[VULKAN_MAX_FRAMES_IN_FLIGHT];
-
   VULKAN_Buffer light_buffers_2d[VULKAN_MAX_FRAMES_IN_FLIGHT];
 
   BLB_Light3D *lights3d[VULKAN_MAX_LIGHTS];
-
   BLB_Light2D *lights2d[VULKAN_MAX_LIGHTS];
 
   size_t light3d_count;
@@ -124,11 +126,8 @@ typedef struct VULKAN {
   BLB_Texture *default_texture;
 
   VULKAN_Buffer vertex_buffers[VULKAN_MAX_FRAMES_IN_FLIGHT];
-
   VULKAN_Buffer index_buffers[VULKAN_MAX_FRAMES_IN_FLIGHT];
-
   VULKAN_Buffer text_vertex_buffers[VULKAN_MAX_FRAMES_IN_FLIGHT];
-
   VULKAN_Buffer shadow_vertex_buffers[VULKAN_MAX_FRAMES_IN_FLIGHT];
 
   size_t vertex_cursor;
@@ -136,26 +135,16 @@ typedef struct VULKAN {
   size_t text_vertex_cursor;
 
   VkDescriptorSetLayout text_descriptor_set_layout;
-  VkDescriptorPool text_descriptor_pool;
-  VkDescriptorSet text_descriptor_set;
 
-  VkImage font_image;
-  VkDeviceMemory font_image_memory;
-  VkImageView font_image_view;
-  VkSampler font_sampler;
-
-  const Font *loaded_font;
+  VULKAN_FontResource fonts[VULKAN_MAX_FONTS];
+  size_t font_count;
 
   VkRenderPass shadow_render_pass;
 
   VkFramebuffer shadow_framebuffers[VULKAN_MAX_FRAMES_IN_FLIGHT];
-
   VkImage shadow_images[VULKAN_MAX_FRAMES_IN_FLIGHT];
-
   VkDeviceMemory shadow_memories[VULKAN_MAX_FRAMES_IN_FLIGHT];
-
   VkImageView shadow_image_views[VULKAN_MAX_FRAMES_IN_FLIGHT];
-
   VkSampler shadow_sampler;
 
   VkPipeline shadow_pipeline;
@@ -172,7 +161,6 @@ typedef struct VULKAN {
 } VULKAN;
 
 int VULKAN_Init(VULKAN *vulkan, GLFWwindow *window);
-
 void VULKAN_Shutdown(VULKAN *vulkan);
 
 const char *VULKAN_GetLastError(const VULKAN *vulkan);

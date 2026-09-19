@@ -209,61 +209,108 @@ static int create_basic_pipeline(VULKAN *vulkan, const void *vertex_code, size_t
 }
 
 static int create_text_pipeline(VULKAN *vulkan, const void *vertex_code, size_t vertex_size, const void *fragment_code, size_t fragment_size,
-                                VkPipelineLayout *pipeline_layout, VkPipeline *pipeline, BLB_RenderMode mode) {
+                                VkPipelineLayout *pipeline_layout, VkPipeline *pipeline, BLB_RenderMode mode, bool is_3d) {
+
   VkShaderModule vert = BLB_LoadShaderFromMemory(vulkan, vertex_code, vertex_size);
 
   VkShaderModule frag = BLB_LoadShaderFromMemory(vulkan, fragment_code, fragment_size);
 
-  if (!vert || !frag) {
-    if (vert)
+  if (vert == VK_NULL_HANDLE || frag == VK_NULL_HANDLE) {
+    if (vert != VK_NULL_HANDLE)
       vkDestroyShaderModule(vulkan->device, vert, NULL);
 
-    if (frag)
+    if (frag != VK_NULL_HANDLE)
       vkDestroyShaderModule(vulkan->device, frag, NULL);
 
     return -1;
   }
 
   VkPipelineShaderStageCreateInfo stages[] = {
-      {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, .stage = VK_SHADER_STAGE_VERTEX_BIT, .module = vert, .pName = "main"},
-      {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, .stage = VK_SHADER_STAGE_FRAGMENT_BIT, .module = frag, .pName = "main"}};
+      {
+          .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+          .stage = VK_SHADER_STAGE_VERTEX_BIT,
+          .module = vert,
+          .pName = "main",
+      },
+      {
+          .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+          .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .module = frag,
+          .pName = "main",
+      },
+  };
 
-  VkVertexInputBindingDescription binding = {.binding = 0, .stride = sizeof(VulkanTextVertex), .inputRate = VK_VERTEX_INPUT_RATE_VERTEX};
+  VkVertexInputBindingDescription binding = {
+      .binding = 0,
+      .stride = sizeof(VulkanTextVertex),
+      .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+  };
 
   VkVertexInputAttributeDescription attributes[] = {
-      {.location = 0, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = 0},
-      {.location = 1, .binding = 0, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = sizeof(float) * 3},
-      {.location = 2, .binding = 0, .format = VK_FORMAT_R32G32_SFLOAT, .offset = sizeof(float) * 7}};
+      {
+          .location = 0,
+          .binding = 0,
+          .format = VK_FORMAT_R32G32B32_SFLOAT,
+          .offset = 0,
+      },
+      {
+          .location = 1,
+          .binding = 0,
+          .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+          .offset = sizeof(float) * 3,
+      },
+      {
+          .location = 2,
+          .binding = 0,
+          .format = VK_FORMAT_R32G32_SFLOAT,
+          .offset = sizeof(float) * 7,
+      },
+  };
 
-  VkPipelineVertexInputStateCreateInfo vertex_input = {.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-                                                       .vertexBindingDescriptionCount = 1,
-                                                       .pVertexBindingDescriptions = &binding,
-                                                       .vertexAttributeDescriptionCount = 3,
-                                                       .pVertexAttributeDescriptions = attributes};
+  VkPipelineVertexInputStateCreateInfo vertex_input = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+      .vertexBindingDescriptionCount = 1,
+      .pVertexBindingDescriptions = &binding,
+      .vertexAttributeDescriptionCount = 3,
+      .pVertexAttributeDescriptions = attributes,
+  };
 
-  VkPipelineInputAssemblyStateCreateInfo assembly = {.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-                                                     .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-                                                     .primitiveRestartEnable = VK_FALSE};
+  VkPipelineInputAssemblyStateCreateInfo assembly = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+      .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+      .primitiveRestartEnable = VK_FALSE,
+  };
 
   VkPipelineViewportStateCreateInfo viewport = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO, .viewportCount = 1, .scissorCount = 1};
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+      .viewportCount = 1,
+      .scissorCount = 1,
+  };
 
-  VkPipelineRasterizationStateCreateInfo raster = {.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-                                                   .depthClampEnable = VK_FALSE,
-                                                   .rasterizerDiscardEnable = VK_FALSE,
-                                                   .polygonMode = VK_POLYGON_MODE_FILL,
-                                                   .cullMode = VK_CULL_MODE_NONE,
-                                                   .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
-                                                   .depthBiasEnable = VK_FALSE,
-                                                   .lineWidth = 1.0f};
+  VkPipelineRasterizationStateCreateInfo raster = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+      .depthClampEnable = VK_FALSE,
+      .rasterizerDiscardEnable = VK_FALSE,
+      .polygonMode = VK_POLYGON_MODE_FILL,
+      .cullMode = VK_CULL_MODE_NONE,
+      .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+      .depthBiasEnable = VK_FALSE,
+      .lineWidth = 1.0f,
+  };
 
-  VkPipelineMultisampleStateCreateInfo multisample = {.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-                                                      .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT};
+  VkPipelineMultisampleStateCreateInfo multisample = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+      .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+  };
 
-  VkPipelineDepthStencilStateCreateInfo depth = {.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-                                                 .depthTestEnable = VK_FALSE,
-                                                 .depthWriteEnable = VK_FALSE,
-                                                 .depthCompareOp = VK_COMPARE_OP_ALWAYS};
+  VkPipelineDepthStencilStateCreateInfo depth = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+      .depthTestEnable = VK_FALSE,
+      .depthWriteEnable = VK_FALSE,
+      .depthCompareOp = VK_COMPARE_OP_ALWAYS,
+      .depthBoundsTestEnable = VK_FALSE,
+      .stencilTestEnable = VK_FALSE,
+  };
 
   VkPipelineColorBlendAttachmentState blend_attachment = {
       .blendEnable = mode == BLB_RENDER_OPAQUE ? VK_FALSE : VK_TRUE,
@@ -273,58 +320,75 @@ static int create_text_pipeline(VULKAN *vulkan, const void *vertex_code, size_t 
       .srcAlphaBlendFactor = mode == BLB_RENDER_ADDITIVE ? VK_BLEND_FACTOR_ONE : VK_BLEND_FACTOR_ONE,
       .dstAlphaBlendFactor = mode == BLB_RENDER_ADDITIVE ? VK_BLEND_FACTOR_ONE : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
       .alphaBlendOp = VK_BLEND_OP_ADD,
-      .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
+      .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+  };
 
   VkPipelineColorBlendStateCreateInfo blend = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO, .attachmentCount = 1, .pAttachments = &blend_attachment};
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+      .attachmentCount = 1,
+      .pAttachments = &blend_attachment,
+  };
 
-  VkDynamicState dynamic_states[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+  VkDynamicState dynamic_states[] = {
+      VK_DYNAMIC_STATE_VIEWPORT,
+      VK_DYNAMIC_STATE_SCISSOR,
+  };
 
   VkPipelineDynamicStateCreateInfo dynamic = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, .dynamicStateCount = 2, .pDynamicStates = dynamic_states};
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+      .dynamicStateCount = 2,
+      .pDynamicStates = dynamic_states,
+  };
+
+  uint32_t push_constant_size = is_3d ? sizeof(VulkanText3DPushConstants) : sizeof(VulkanTextPushConstants);
 
   VkPushConstantRange push_constant = {
-      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, .offset = 0, .size = sizeof(VulkanTextPushConstants)};
+      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      .offset = 0,
+      .size = push_constant_size,
+  };
 
-  VkPipelineLayoutCreateInfo layout = {.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-                                       .setLayoutCount = 1,
-                                       .pSetLayouts = &vulkan->text_descriptor_set_layout,
-                                       .pushConstantRangeCount = 1,
-                                       .pPushConstantRanges = &push_constant};
+  VkPipelineLayoutCreateInfo layout = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+      .setLayoutCount = 1,
+      .pSetLayouts = &vulkan->text_descriptor_set_layout,
+      .pushConstantRangeCount = 1,
+      .pPushConstantRanges = &push_constant,
+  };
 
   if (vkCreatePipelineLayout(vulkan->device, &layout, NULL, pipeline_layout) != VK_SUCCESS) {
     vkDestroyShaderModule(vulkan->device, vert, NULL);
-
     vkDestroyShaderModule(vulkan->device, frag, NULL);
-
     return -1;
   }
 
-  VkGraphicsPipelineCreateInfo pipeline_info = {.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-                                                .stageCount = 2,
-                                                .pStages = stages,
-                                                .pVertexInputState = &vertex_input,
-                                                .pInputAssemblyState = &assembly,
-                                                .pViewportState = &viewport,
-                                                .pRasterizationState = &raster,
-                                                .pMultisampleState = &multisample,
-                                                .pDepthStencilState = &depth,
-                                                .pColorBlendState = &blend,
-                                                .pDynamicState = &dynamic,
-                                                .layout = *pipeline_layout,
-                                                .renderPass = vulkan->render_pass,
-                                                .subpass = 0};
+  VkGraphicsPipelineCreateInfo pipeline_info = {
+      .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+      .stageCount = 2,
+      .pStages = stages,
+      .pVertexInputState = &vertex_input,
+      .pInputAssemblyState = &assembly,
+      .pViewportState = &viewport,
+      .pRasterizationState = &raster,
+      .pMultisampleState = &multisample,
+      .pDepthStencilState = &depth,
+      .pColorBlendState = &blend,
+      .pDynamicState = &dynamic,
+      .layout = *pipeline_layout,
+      .renderPass = vulkan->render_pass,
+      .subpass = 0,
+  };
 
   VkResult result = vkCreateGraphicsPipelines(vulkan->device, VK_NULL_HANDLE, 1, &pipeline_info, NULL, pipeline);
 
   vkDestroyShaderModule(vulkan->device, vert, NULL);
-
   vkDestroyShaderModule(vulkan->device, frag, NULL);
 
   if (result != VK_SUCCESS) {
     vkDestroyPipelineLayout(vulkan->device, *pipeline_layout, NULL);
 
     *pipeline_layout = VK_NULL_HANDLE;
+
     return -1;
   }
 
@@ -332,72 +396,126 @@ static int create_text_pipeline(VULKAN *vulkan, const void *vertex_code, size_t 
 }
 
 int create_shadow_pipeline(VULKAN *vulkan) {
+  if (!vulkan || vulkan->device == VK_NULL_HANDLE)
+    return -1;
+
   VkShaderModule vert = BLB_LoadShaderFromMemory(vulkan, blb_shader_shadow_vert, blb_shader_shadow_vert_size);
 
   if (vert == VK_NULL_HANDLE)
     return -1;
 
   VkPipelineShaderStageCreateInfo stage = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, .stage = VK_SHADER_STAGE_VERTEX_BIT, .module = vert, .pName = "main"};
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+      .stage = VK_SHADER_STAGE_VERTEX_BIT,
+      .module = vert,
+      .pName = "main",
+  };
 
-  VkVertexInputBindingDescription binding = {.binding = 0, .stride = sizeof(VulkanShadowVertex), .inputRate = VK_VERTEX_INPUT_RATE_VERTEX};
+  VkVertexInputBindingDescription binding = {
+      .binding = 0,
+      .stride = sizeof(VulkanShadowVertex),
+      .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+  };
 
-  VkVertexInputAttributeDescription attribute = {.location = 0, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = 0};
+  VkVertexInputAttributeDescription attribute = {
+      .location = 0,
+      .binding = 0,
+      .format = VK_FORMAT_R32G32B32_SFLOAT,
+      .offset = 0,
+  };
 
-  VkPipelineVertexInputStateCreateInfo vertex_input = {.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-                                                       .vertexBindingDescriptionCount = 1,
-                                                       .pVertexBindingDescriptions = &binding,
-                                                       .vertexAttributeDescriptionCount = 1,
-                                                       .pVertexAttributeDescriptions = &attribute};
+  VkPipelineVertexInputStateCreateInfo vertex_input = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+      .vertexBindingDescriptionCount = 1,
+      .pVertexBindingDescriptions = &binding,
+      .vertexAttributeDescriptionCount = 1,
+      .pVertexAttributeDescriptions = &attribute,
+  };
 
-  VkPipelineInputAssemblyStateCreateInfo assembly = {.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-                                                     .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
+  VkPipelineInputAssemblyStateCreateInfo assembly = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+      .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+      .primitiveRestartEnable = VK_FALSE,
+  };
 
   VkPipelineViewportStateCreateInfo viewport = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO, .viewportCount = 1, .scissorCount = 1};
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+      .viewportCount = 1,
+      .pViewports = NULL,
+      .scissorCount = 1,
+      .pScissors = NULL,
+  };
 
-  VkPipelineRasterizationStateCreateInfo raster = {.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-                                                   .polygonMode = VK_POLYGON_MODE_FILL,
-                                                   .cullMode = VK_CULL_MODE_BACK_BIT,
-                                                   .frontFace = VK_FRONT_FACE_CLOCKWISE,
-                                                   .lineWidth = 1.0f};
+  VkPipelineRasterizationStateCreateInfo raster = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+      .depthClampEnable = VK_FALSE,
+      .rasterizerDiscardEnable = VK_FALSE,
+      .polygonMode = VK_POLYGON_MODE_FILL,
+      .cullMode = VK_CULL_MODE_BACK_BIT,
+      .frontFace = VK_FRONT_FACE_CLOCKWISE,
+      .depthBiasEnable = VK_FALSE,
+      .lineWidth = 1.0f,
+  };
 
-  VkPipelineMultisampleStateCreateInfo multisample = {.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-                                                      .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT};
+  VkPipelineMultisampleStateCreateInfo multisample = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+      .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+  };
 
-  VkPipelineDepthStencilStateCreateInfo depth = {.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-                                                 .depthTestEnable = VK_TRUE,
-                                                 .depthWriteEnable = VK_TRUE,
-                                                 .depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL};
+  VkPipelineDepthStencilStateCreateInfo depth = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+      .depthTestEnable = VK_TRUE,
+      .depthWriteEnable = VK_TRUE,
+      .depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+      .depthBoundsTestEnable = VK_FALSE,
+      .stencilTestEnable = VK_FALSE,
+  };
 
-  VkDynamicState dynamic_states[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+  VkDynamicState dynamic_states[] = {
+      VK_DYNAMIC_STATE_VIEWPORT,
+      VK_DYNAMIC_STATE_SCISSOR,
+  };
 
   VkPipelineDynamicStateCreateInfo dynamic = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, .dynamicStateCount = 2, .pDynamicStates = dynamic_states};
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+      .dynamicStateCount = 2,
+      .pDynamicStates = dynamic_states,
+  };
 
-  VkPushConstantRange push_constant = {.stageFlags = VK_SHADER_STAGE_VERTEX_BIT, .size = sizeof(VulkanShadowPushConstants)};
+  VkPushConstantRange push_constant = {
+      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+      .offset = 0,
+      .size = sizeof(VulkanShadowPushConstants),
+  };
 
   VkPipelineLayoutCreateInfo layout = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, .pushConstantRangeCount = 1, .pPushConstantRanges = &push_constant};
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+      .setLayoutCount = 0,
+      .pSetLayouts = NULL,
+      .pushConstantRangeCount = 1,
+      .pPushConstantRanges = &push_constant,
+  };
 
   if (vkCreatePipelineLayout(vulkan->device, &layout, NULL, &vulkan->shadow_pipeline_layout) != VK_SUCCESS) {
     vkDestroyShaderModule(vulkan->device, vert, NULL);
-
     return -1;
   }
 
-  VkGraphicsPipelineCreateInfo info = {.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-                                       .stageCount = 1,
-                                       .pStages = &stage,
-                                       .pVertexInputState = &vertex_input,
-                                       .pInputAssemblyState = &assembly,
-                                       .pViewportState = &viewport,
-                                       .pRasterizationState = &raster,
-                                       .pMultisampleState = &multisample,
-                                       .pDepthStencilState = &depth,
-                                       .layout = vulkan->shadow_pipeline_layout,
-                                       .renderPass = vulkan->shadow_render_pass,
-                                       .subpass = 0};
+  VkGraphicsPipelineCreateInfo info = {
+      .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+      .stageCount = 1,
+      .pStages = &stage,
+      .pVertexInputState = &vertex_input,
+      .pInputAssemblyState = &assembly,
+      .pViewportState = &viewport,
+      .pRasterizationState = &raster,
+      .pMultisampleState = &multisample,
+      .pDepthStencilState = &depth,
+      .pDynamicState = &dynamic,
+      .layout = vulkan->shadow_pipeline_layout,
+      .renderPass = vulkan->shadow_render_pass,
+      .subpass = 0,
+  };
 
   VkResult result = vkCreateGraphicsPipelines(vulkan->device, VK_NULL_HANDLE, 1, &info, NULL, &vulkan->shadow_pipeline);
 
@@ -415,6 +533,9 @@ int create_shadow_pipeline(VULKAN *vulkan) {
 }
 
 int create_pipelines(VULKAN *vulkan) {
+  if (!vulkan)
+    return -1;
+
   if (create_shadow_pipeline(vulkan) != 0)
     return -1;
 
@@ -430,11 +551,11 @@ int create_pipelines(VULKAN *vulkan) {
       return -1;
 
     if (create_text_pipeline(vulkan, blb_shader_text3d_vert, blb_shader_text3d_vert_size, blb_shader_text3d_frag, blb_shader_text3d_frag_size,
-                             &vulkan->text_pipeline_layout_3d[mode], &vulkan->text_pipeline_3d[mode], (BLB_RenderMode)mode) != 0)
+                             &vulkan->text_pipeline_layout_3d[mode], &vulkan->text_pipeline_3d[mode], (BLB_RenderMode)mode, true) != 0)
       return -1;
 
     if (create_text_pipeline(vulkan, blb_shader_text2d_vert, blb_shader_text2d_vert_size, blb_shader_text2d_frag, blb_shader_text2d_frag_size,
-                             &vulkan->text_pipeline_layout_2d[mode], &vulkan->text_pipeline_2d[mode], (BLB_RenderMode)mode) != 0)
+                             &vulkan->text_pipeline_layout_2d[mode], &vulkan->text_pipeline_2d[mode], (BLB_RenderMode)mode, false) != 0)
       return -1;
   }
 

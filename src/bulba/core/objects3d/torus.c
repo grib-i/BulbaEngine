@@ -33,7 +33,7 @@ BLB_Object3D *BLB_CreateTorus3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of_
   if (level_of_detail == 0.0f)
     level_of_detail = 1;
 
-  if (outer_radius == 0.0f && hole_radius == 0.0f) {
+  if (outer_radius == 0.0f || hole_radius == 0.0f) {
     outer_radius = 0.3f;
     hole_radius = 0.1f;
   }

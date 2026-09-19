@@ -121,7 +121,7 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
 
   object->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;
 
-  object->material = BLB_Material_Create3D();
+  object->material = BLB_Material_Create2D();
 
   if (object->material == NULL) {
     BLB_DestroyCircle2D(object);

@@ -14,95 +14,134 @@
 #include <stdlib.h>
 
 static void BLB_ReleaseObject3DContents(BLB_Object3D *object) {
-  if (!object)
-    return;
 
-  BLB_DestroyCube3D(object);
+  if (object)
+    BLB_DestroyCube3D(object);
 }
 
 static void BLB_ReleaseObject2DContents(BLB_Object2D *object) {
-  if (!object)
-    return;
 
-  BLB_DestroySquare2D(object);
+  if (object)
+    BLB_DestroySquare2D(object);
 }
 
 BLB_Light3D *BLB_CreateLight3D(BLB_LightType type, HMM_Vec3 position, HMM_Vec3 rotation) {
+
   BLB_Light3D *light = calloc(1, sizeof(*light));
 
   if (!light)
     return NULL;
 
-  BLB_Texture *light_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_light_256dp_width, BLB_TEXTURE_light_256dp_height,
-                                                          BLB_TEXTURE_light_256dp_pixels, BLB_TEXTURE_light_256dp_pixel_size);
-  BLB_Texture *light_off_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_light_off_256dp_width, BLB_TEXTURE_light_off_256dp_height,
-                                                              BLB_TEXTURE_light_off_256dp_pixels, BLB_TEXTURE_light_off_256dp_pixel_size);
-  light->light_debug_texture = light_debug_texture;
-  light->light_off_debug_texture = light_off_debug_texture;
+  light->type = type;
+  light->enabled = true;
 
-  BLB_Object3D *light_debug_object = BLB_CreateCube3D(HMM_V3(1, 1, 0.001), position, light_debug_texture);
-  light->object = light_debug_object;
+  light->light_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_light_256dp_width, BLB_TEXTURE_light_256dp_height, BLB_TEXTURE_light_256dp_pixels,
+                                                    BLB_TEXTURE_light_256dp_pixel_size);
 
-  if (BLB_DEBUG)
-    light->object->visible = true;
-  else
-    light->object->visible = false;
+  if (!light->light_debug_texture) {
+    free(light);
+    return NULL;
+  }
+
+  light->light_off_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_light_off_256dp_width, BLB_TEXTURE_light_off_256dp_height,
+                                                        BLB_TEXTURE_light_off_256dp_pixels, BLB_TEXTURE_light_off_256dp_pixel_size);
+
+  if (!light->light_off_debug_texture) {
+    BLB_Texture_Release(light->light_debug_texture);
+    free(light);
+    return NULL;
+  }
+
+  light->object = BLB_CreateCube3D(HMM_V3(1.0f, 1.0f, 0.001f), position, light->light_debug_texture);
+
+  if (!light->object) {
+    BLB_Texture_Release(light->light_debug_texture);
+    BLB_Texture_Release(light->light_off_debug_texture);
+    free(light);
+    return NULL;
+  }
+
+  light->object->visible = BLB_DEBUG;
 
   light->object->rotation = rotation;
+
   return light;
 }
 
 BLB_Light2D *BLB_CreateLight2D(BLB_LightType type, HMM_Vec2 position, float rotation) {
+
   BLB_Light2D *light = calloc(1, sizeof(*light));
 
   if (!light)
     return NULL;
 
-  BLB_Texture *light_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_light_256dp_width, BLB_TEXTURE_light_256dp_height,
-                                                          BLB_TEXTURE_light_256dp_pixels, BLB_TEXTURE_light_256dp_pixel_size);
-  BLB_Texture *light_off_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_light_off_256dp_width, BLB_TEXTURE_light_off_256dp_height,
-                                                              BLB_TEXTURE_light_off_256dp_pixels, BLB_TEXTURE_light_off_256dp_pixel_size);
-  light->light_debug_texture = light_debug_texture;
-  light->light_off_debug_texture = light_off_debug_texture;
+  light->type = type;
+  light->enabled = true;
 
-  BLB_Object2D *light_debug_object = BLB_CreateSquare2D(HMM_V2(1, 1), position, light_debug_texture, false);
-  light->object = light_debug_object;
+  light->light_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_light_256dp_width, BLB_TEXTURE_light_256dp_height, BLB_TEXTURE_light_256dp_pixels,
+                                                    BLB_TEXTURE_light_256dp_pixel_size);
 
-  if (BLB_DEBUG)
-    light->object->visible = true;
-  else
-    light->object->visible = false;
+  if (!light->light_debug_texture) {
+    free(light);
+    return NULL;
+  }
+
+  light->light_off_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_light_off_256dp_width, BLB_TEXTURE_light_off_256dp_height,
+                                                        BLB_TEXTURE_light_off_256dp_pixels, BLB_TEXTURE_light_off_256dp_pixel_size);
+
+  if (!light->light_off_debug_texture) {
+    BLB_Texture_Release(light->light_debug_texture);
+    free(light);
+    return NULL;
+  }
+
+  light->object = BLB_CreateSquare2D(HMM_V2(1.0f, 1.0f), position, light->light_debug_texture, false);
+
+  if (!light->object) {
+    BLB_Texture_Release(light->light_debug_texture);
+    BLB_Texture_Release(light->light_off_debug_texture);
+    free(light);
+    return NULL;
+  }
+
+  light->object->visible = BLB_DEBUG;
 
   light->object->rotation = rotation;
+
   return light;
 }
 
 void BLB_DestroyLight3D(BLB_Light3D *light) {
+
   if (!light)
     return;
 
   BLB_ReleaseObject3DContents(light->object);
 
-  BLB_Texture_Destroy(light->light_debug_texture);
-  BLB_Texture_Destroy(light->light_off_debug_texture);
+  BLB_Texture_Release(light->light_debug_texture);
+
+  BLB_Texture_Release(light->light_off_debug_texture);
 
   free(light);
 }
 
 void BLB_DestroyLight2D(BLB_Light2D *light) {
+
   if (!light)
     return;
 
   BLB_ReleaseObject2DContents(light->object);
 
-  BLB_Texture_Destroy(light->light_off_debug_texture);
-  BLB_Texture_Destroy(light->light_debug_texture);
+  BLB_Texture_Release(light->light_debug_texture);
+
+  BLB_Texture_Release(light->light_off_debug_texture);
 
   free(light);
 }
 
 HMM_Vec3 BLB_GetLightDirection3D(const BLB_Light3D *light) {
-  if (!light)
+
+  if (!light || !light->object)
     return HMM_V3(0.0f, 0.0f, -1.0f);
 
   HMM_Mat4 rx = HMM_Rotate_RH(HMM_AngleDeg(light->object->rotation.x), HMM_V3(1.0f, 0.0f, 0.0f));
@@ -121,7 +160,8 @@ HMM_Vec3 BLB_GetLightDirection3D(const BLB_Light3D *light) {
 }
 
 HMM_Vec2 BLB_GetLightDirection2D(const BLB_Light2D *light) {
-  if (!light)
+
+  if (!light || !light->object)
     return HMM_V2(1.0f, 0.0f);
 
   float angle = HMM_AngleDeg(light->object->rotation);

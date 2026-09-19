@@ -68,6 +68,11 @@ typedef struct {
 } VulkanTextPushConstants;
 
 typedef struct {
+  float mvp[16];
+  float material[4];
+} VulkanText3DPushConstants;
+
+typedef struct {
   bool lighting_enabled;
   float emission;
   float glow;
@@ -78,35 +83,26 @@ typedef struct {
 } VulkanMaterial;
 
 int VULKAN_CreateRenderer(VULKAN *vulkan);
-
 void VULKAN_DestroyRenderer(VULKAN *vulkan);
 
 int VULKAN_RendererBeginFrame(VULKAN *vulkan);
-
 int VULKAN_RendererEndFrame(VULKAN *vulkan);
 
 void VULKAN_RendererClear(VULKAN *vulkan, float r, float g, float b, float a);
-
 void VULKAN_RendererBeginMainPass(VULKAN *vulkan);
-
 void VULKAN_RendererSetClearColor(VULKAN *vulkan, float r, float g, float b, float a);
 
 void VULKAN_RendererSetShadow(VULKAN *vulkan, const float *shadow_mvp, bool enabled, float bias);
-
 void VULKAN_RendererBeginShadowPass(VULKAN *vulkan);
-
 void VULKAN_RendererEndShadowPass(VULKAN *vulkan);
-
 void VULKAN_RendererDrawShadowPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float *model_mvp);
 
 void VULKAN_RendererSetCameraPosition(VULKAN *vulkan, HMM_Vec3 position);
 
 void VULKAN_RendererSetLights3D(VULKAN *vulkan, BLB_Light3D **lights, size_t light_count);
-
 void VULKAN_RendererClearLights3D(VULKAN *vulkan);
 
 void VULKAN_RendererSetLights2D(VULKAN *vulkan, BLB_Light2D **lights, size_t light_count);
-
 void VULKAN_RendererClearLights2D(VULKAN *vulkan);
 
 void VULKAN_RendererDrawTriangle(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec3 c, const float *mvp, float r, float g, float b_color, float a_color,
@@ -124,14 +120,13 @@ void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, 
                                   float b, float a, const VulkanMaterial *material, BLB_Texture *texture);
 
 int VULKAN_RendererLoadFont(VULKAN *vulkan, const Font *font);
-
 void VULKAN_RendererUnloadFont(VULKAN *vulkan);
 
 void VULKAN_RendererDrawText(VULKAN *vulkan, const Font *font, const char *text, float x, float y, float glyph_scale, HMM_Vec2 transform_scale,
                              float rotation, float r, float g, float b, float a, float emission, float glow, float roundness,
                              BLB_RenderMode render_mode);
 
-int VULKAN_RendererRecreateSwapchain(VULKAN *vulkan);
+int VULKAN_RendererRecreateSwapchain(VULKAN *vulkan, bool vsync);
 
 uint32_t find_memory_type(VULKAN *vulkan, uint32_t type_filter, VkMemoryPropertyFlags properties);
 
@@ -142,15 +137,11 @@ void destroy_buffer(VULKAN *vulkan, VULKAN_Buffer *buffer);
 int create_image(VULKAN *vulkan, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkImage *image, VkDeviceMemory *memory);
 
 int create_render_pass(VULKAN *vulkan);
-
 int create_depth_resources(VULKAN *vulkan);
-
 void destroy_depth_resources(VULKAN *vulkan);
 
 int create_framebuffers(VULKAN *vulkan);
-
 int create_command_resources(VULKAN *vulkan);
-
 int create_sync(VULKAN *vulkan);
 
 int create_light_descriptor_layout(VULKAN *vulkan, VkDescriptorSetLayout *layout);
@@ -164,7 +155,6 @@ int create_light_descriptors(VULKAN *vulkan, VkDescriptorSetLayout layout, VkDes
 void destroy_light_descriptors(VULKAN *vulkan, VkDescriptorPool *pool, VkDescriptorSetLayout *layout);
 
 int create_texture_descriptor_resources(VULKAN *vulkan);
-
 void destroy_texture_descriptor_resources(VULKAN *vulkan);
 
 int create_pipelines(VULKAN *vulkan);
@@ -172,7 +162,6 @@ int create_pipelines(VULKAN *vulkan);
 int create_shadow_pipeline(VULKAN *vulkan);
 
 int create_text_descriptor_layout(VULKAN *vulkan);
-
 int create_text_buffers(VULKAN *vulkan);
 
 void destroy_font_resources(VULKAN *vulkan);
@@ -183,7 +172,6 @@ void push_lighting(VULKAN *vulkan, VkPipelineLayout layout, const float *mvp, co
                    const VulkanMaterial *material, int is_2d);
 
 void update_light_buffer_3d(VULKAN *vulkan);
-
 void update_light_buffer_2d(VULKAN *vulkan);
 
 int VULKAN_TextureEnsureUploaded(VULKAN *vulkan, BLB_Texture *texture);

@@ -9,8 +9,6 @@ project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-include(${CMAKE_SOURCE_DIR}/cmake/options.cmake)
-
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
@@ -48,14 +46,15 @@ include(${CMAKE_SOURCE_DIR}/cmake/compiler.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/shaders.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/textures.cmake)
 
-target_link_libraries(bulba_engine
-    PUBLIC
-    Vulkan::Vulkan
-    glfw
-    Freetype::Freetype
-    PNG::PNG
-    m
-    dl
+target_link_libraries(
+  bulba_engine
+  PUBLIC
+  Vulkan::Vulkan
+  glfw
+  Freetype::Freetype
+  PNG::PNG
+  m
+  dl
 )
 
 if(UNIX AND NOT APPLE)
@@ -87,6 +86,8 @@ if(BLB_BUILD_APP)
     )
   endif()
 endif()
+
+include(${CMAKE_SOURCE_DIR}/cmake/options.cmake)
 
 install(
   TARGETS bulba_engine
