@@ -12,6 +12,7 @@ LOG_ROOT="logs"
 RUN_ID="$(date '+%Y-%m-%d_%H-%M-%S')"
 RUN_DIR=""
 LOG_FILE=""
+APP_LOG=""
 
 MONITOR_INTERVAL="0.5"
 
@@ -40,6 +41,7 @@ BRIGHT_BLUE=$'\033[94m'
 BRIGHT_MAGENTA=$'\033[95m'
 BRIGHT_CYAN=$'\033[96m'
 BRIGHT_WHITE=$'\033[97m'
+BRIGHT_BLACK=$'\033[90m'
 
 for ARG in "$@"; do
   case "$ARG" in
@@ -168,11 +170,14 @@ setup_logs() {
 
   RUN_ID="$(date '+%Y-%m-%d_%H-%M-%S')"
   RUN_DIR="$LOG_ROOT/$RUN_ID"
+
   LOG_FILE="$RUN_DIR/run.log"
+  APP_LOG="$RUN_DIR/application.log"
 
   mkdir -p "$RUN_DIR/events" || fail "Failed to create log directory"
 
   touch "$LOG_FILE" || fail "Failed to create log file"
+  touch "$APP_LOG" || fail "Failed to create application log file"
 
   {
     echo "============================================================"
@@ -183,6 +188,14 @@ setup_logs() {
     echo "Live monitor: $LTRACE"
     echo "============================================================"
   } >> "$LOG_FILE"
+
+  {
+    echo "============================================================"
+    echo "BulbaEngine application output"
+    echo "Date: $(date)"
+    echo "Project: $PROJECT_NAME"
+    echo "============================================================"
+  } >> "$APP_LOG"
 }
 
 log_line() {
@@ -202,6 +215,101 @@ log_command() {
 
   "$@" >> "$LOG_FILE" 2>&1
   return $?
+}
+
+#
+# Формируем ASAN_OPTIONS для запуска приложения.
+#
+# Сохраняем все существующие пользовательские опции,
+# но принудительно выставляем:
+#
+#     verify_asan_link_order=0
+#
+# Это нужно потому, что stdbuf использует LD_PRELOAD.
+#
+build_application_asan_options() {
+  local options="${ASAN_OPTIONS:-}"
+  local result=""
+  local part
+  local parts=()
+
+  if [ -n "$options" ]; then
+    IFS=':' read -r -a parts <<< "$options"
+
+    for part in "${parts[@]}"; do
+      [ -z "$part" ] && continue
+
+      case "$part" in
+        verify_asan_link_order=*)
+          continue
+          ;;
+      esac
+
+      if [ -n "$result" ]; then
+        result="${result}:"
+      fi
+
+      result="${result}${part}"
+    done
+  fi
+
+  if [ -n "$result" ]; then
+    result="${result}:"
+  fi
+
+  result="${result}verify_asan_link_order=0"
+
+  printf '%s' "$result"
+}
+
+#
+# Запуск приложения.
+#
+# ВАЖНО:
+#
+#     stdout -> application.log
+#     stderr -> application.log
+#
+# В терминал stdout/stderr приложения НЕ идут.
+#
+# stdbuf отключает буферизацию stdout/stderr.
+#
+run_application() {
+  local log_file="$1"
+  local asan_options
+
+  asan_options="$(build_application_asan_options)"
+
+  (
+    export ASAN_OPTIONS="$asan_options"
+
+    exec stdbuf -o0 -e0 \
+      "./$BUILD_DIR/$PROJECT_NAME"
+  ) >> "$log_file" 2>&1
+
+  return $?
+}
+
+#
+# То же самое, но приложение остаётся в фоне.
+#
+# За счёт exec PID фонового процесса после запуска
+# становится PID самого bulba.
+#
+start_application() {
+  local log_file="$1"
+  local asan_options
+
+  asan_options="$(build_application_asan_options)"
+
+  (
+    export ASAN_OPTIONS="$asan_options"
+
+    exec stdbuf -o0 -e0 \
+      "./$BUILD_DIR/$PROJECT_NAME"
+  ) >> "$log_file" 2>&1 &
+
+  echo $!
 }
 
 get_status() {
@@ -795,6 +903,7 @@ monitor_process() {
   log_line "MONITOR START"
   log_line "PID: $pid"
   log_line "EXE: $(readlink -f "/proc/$pid/exe" 2>/dev/null || echo "?")"
+  log_line "APPLICATION LOG: $APP_LOG"
 
   while kill -0 "$pid" 2>/dev/null; do
     local now
@@ -907,7 +1016,8 @@ monitor_process() {
 
   echo
   echo -e "${BRIGHT_GREEN}${BOLD}✓ Monitor finished${RESET}"
-  echo -e "${DIM}Log: ${LOG_FILE}${RESET}"
+  echo -e "${DIM}Run log: ${LOG_FILE}${RESET}"
+  echo -e "${DIM}Application log: ${APP_LOG}${RESET}"
 
   return "$result"
 }
@@ -944,10 +1054,13 @@ check_command wc
 check_command tail
 check_command date
 check_command timeout
+check_command stdbuf
 
 setup_logs
 
-echo -e "${WHITE}Logs:${RESET}        ${BRIGHT_CYAN}$RUN_DIR${RESET}"
+echo -e "${WHITE}Logs:${RESET}             ${BRIGHT_CYAN}$RUN_DIR${RESET}"
+echo -e "${WHITE}Run log:${RESET}          ${BRIGHT_CYAN}$LOG_FILE${RESET}"
+echo -e "${WHITE}Application log:${RESET}  ${BRIGHT_CYAN}$APP_LOG${RESET}"
 echo
 ok "Required tools found"
 
@@ -996,22 +1109,24 @@ if [ "$BUILD_TYPE" = "Debug" ]; then
 
   section "3/3  RUNNING DEBUG"
 
+  log_line "APPLICATION LOG: $APP_LOG"
+
   if [ "$LTRACE" -eq 0 ]; then
     log_line "Running without live monitor"
+    log_line "Application output redirected to: $APP_LOG"
 
-    "./$BUILD_DIR/$PROJECT_NAME" 2>&1 |
-      tee -a "$RUN_DIR/application.log"
-
-    RESULT="${PIPESTATUS[0]}"
+    run_application "$APP_LOG"
+    RESULT=$?
   else
-    "./$BUILD_DIR/$PROJECT_NAME" \
-      >> "$RUN_DIR/application.log" \
-      2>&1 &
+    PID="$(start_application "$APP_LOG")"
 
-    PID=$!
+    if [ -z "$PID" ]; then
+      fail "Failed to start application"
+    fi
 
     log_line "Application started"
     log_line "PID: $PID"
+    log_line "Application output redirected to: $APP_LOG"
 
     monitor_process "$PID"
     RESULT=$?
@@ -1026,6 +1141,7 @@ if [ "$BUILD_TYPE" = "Debug" ]; then
   fi
 
   echo -e "${DIM}Run logs: ${RUN_DIR}${RESET}"
+  echo -e "${DIM}Application log: ${APP_LOG}${RESET}"
 
   exit "$RESULT"
 fi
