@@ -66,7 +66,7 @@ int create_buffer(VULKAN *vulkan, VkDeviceSize size, VkBufferUsageFlags usage, V
 
 
 void destroy_buffer(VULKAN *vulkan, VULKAN_Buffer *buffer) {
-  if (buffer == NULL)
+  if (vulkan == NULL || vulkan->device == VK_NULL_HANDLE || buffer == NULL)
     return;
 
   if (buffer->mapped != NULL) {
@@ -132,5 +132,6 @@ int create_image(VULKAN *vulkan, uint32_t width, uint32_t height, VkFormat forma
 
   return 0;
 }
+
 
 

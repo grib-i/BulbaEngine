@@ -79,7 +79,7 @@ VkShaderModule BLB_LoadShaderFromMemory(VULKAN *vulkan, const void *code, size_t
 
 static int create_basic_pipeline(VULKAN *vulkan, const void *vertex_code, size_t vertex_size, const void *fragment_code, size_t fragment_size,
                                  VkDescriptorSetLayout light_layout, VkPipelineLayout *pipeline_layout, VkPipeline *pipeline, bool is_2d,
-                                 BLB_RenderMode mode) {
+                                 BLB_RenderMode mode, uint32_t depth_variant) {
   VkShaderModule vert = BLB_LoadShaderFromMemory(vulkan, vertex_code, vertex_size);
 
   VkShaderModule frag = BLB_LoadShaderFromMemory(vulkan, fragment_code, fragment_size);
@@ -131,10 +131,16 @@ static int create_basic_pipeline(VULKAN *vulkan, const void *vertex_code, size_t
   VkPipelineMultisampleStateCreateInfo multisample = {.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
                                                       .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT};
 
+  bool depth_test = depth_variant == 1u || depth_variant == 3u;
+  bool depth_write = depth_variant == 2u || depth_variant == 3u;
+
+  if (!is_2d && mode != BLB_RENDER_OPAQUE && depth_variant == 2u)
+    depth_write = true;
+
   VkPipelineDepthStencilStateCreateInfo depth = {.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-                                                 .depthTestEnable = is_2d ? VK_FALSE : VK_TRUE,
-                                                 .depthWriteEnable = is_2d || mode != BLB_RENDER_OPAQUE ? VK_FALSE : VK_TRUE,
-                                                 .depthCompareOp = is_2d ? VK_COMPARE_OP_ALWAYS : VK_COMPARE_OP_LESS,
+                                                 .depthTestEnable = depth_test ? VK_TRUE : VK_FALSE,
+                                                 .depthWriteEnable = depth_write ? VK_TRUE : VK_FALSE,
+                                                 .depthCompareOp = depth_test ? VK_COMPARE_OP_LESS : VK_COMPARE_OP_ALWAYS,
                                                  .depthBoundsTestEnable = VK_FALSE,
                                                  .stencilTestEnable = VK_FALSE};
 
@@ -160,7 +166,7 @@ static int create_basic_pipeline(VULKAN *vulkan, const void *vertex_code, size_t
                                        .offset = 0,
                                        .size = is_2d ? sizeof(Vulkan2DPushConstants) : sizeof(VulkanLightingPushConstants)};
 
-  VkDescriptorSetLayout set_layouts[] = {light_layout, vulkan->texture_descriptor_set_layout};
+  VkDescriptorSetLayout set_layouts[] = {light_layout, vulkan->material_descriptor_set_layout};
 
   VkPipelineLayoutCreateInfo layout = {.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                                        .setLayoutCount = 2,
@@ -540,15 +546,17 @@ int create_pipelines(VULKAN *vulkan) {
     return -1;
 
   for (int mode = 0; mode < BLB_RENDER_MODE_COUNT; mode++) {
-    if (create_basic_pipeline(vulkan, blb_shader_basic3d_vert, blb_shader_basic3d_vert_size, blb_shader_basic3d_frag, blb_shader_basic3d_frag_size,
-                              vulkan->light_descriptor_set_layout_3d, &vulkan->pipeline_layout_3d[mode], &vulkan->pipeline_3d[mode], false,
-                              (BLB_RenderMode)mode) != 0)
-      return -1;
+    for (uint32_t variant = 0; variant < VULKAN_DEPTH_VARIANTS; ++variant) {
+      if (create_basic_pipeline(vulkan, blb_shader_basic3d_vert, blb_shader_basic3d_vert_size, blb_shader_basic3d_frag, blb_shader_basic3d_frag_size,
+                                vulkan->light_descriptor_set_layout_3d, &vulkan->pipeline_layout_3d[mode][variant], &vulkan->pipeline_3d[mode][variant], false,
+                                (BLB_RenderMode)mode, variant) != 0)
+        return -1;
 
-    if (create_basic_pipeline(vulkan, blb_shader_basic2d_vert, blb_shader_basic2d_vert_size, blb_shader_basic2d_frag, blb_shader_basic2d_frag_size,
-                              vulkan->light_descriptor_set_layout_2d, &vulkan->pipeline_layout_2d[mode], &vulkan->pipeline_2d[mode], true,
-                              (BLB_RenderMode)mode) != 0)
-      return -1;
+      if (create_basic_pipeline(vulkan, blb_shader_basic2d_vert, blb_shader_basic2d_vert_size, blb_shader_basic2d_frag, blb_shader_basic2d_frag_size,
+                                vulkan->light_descriptor_set_layout_2d, &vulkan->pipeline_layout_2d[mode][variant], &vulkan->pipeline_2d[mode][variant], true,
+                                (BLB_RenderMode)mode, variant) != 0)
+        return -1;
+    }
 
     if (create_text_pipeline(vulkan, blb_shader_text3d_vert, blb_shader_text3d_vert_size, blb_shader_text3d_frag, blb_shader_text3d_frag_size,
                              &vulkan->text_pipeline_layout_3d[mode], &vulkan->text_pipeline_3d[mode], (BLB_RenderMode)mode, true) != 0)
@@ -573,3 +581,4 @@ int create_text_descriptor_layout(VULKAN *vulkan) {
 
   return 0;
 }
+

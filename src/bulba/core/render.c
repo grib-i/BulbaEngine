@@ -14,12 +14,41 @@ typedef struct {
   float glow_radius;
   float glow_falloff;
   float roughness;
+  float metallic;
+  float normal_scale;
+  float specular;
+  float occlusion;
+  float specular_color[3];
+  float emission_color[4];
+  float temperature;
+
+  float ior;
+  float transmission;
+  float volume_thickness;
+  float attenuation_color[3];
+  float attenuation_distance;
+  float clearcoat_factor;
+  float clearcoat_roughness;
+  float clearcoat_normal_scale;
+  float sheen_color[3];
+  float sheen_roughness;
+  float iridescence_factor;
+  float iridescence_ior;
+  float iridescence_thickness_min;
+  float iridescence_thickness_max;
+  float anisotropy_strength;
+  float anisotropy_rotation;
+  float dispersion;
+
+  float entity_id;
   float alpha_cutoff;
+  BLB_AlphaMode alpha_mode;
   bool lighting_enabled;
   bool depth_enabled;
   bool depth_write;
   bool double_sided;
   bool unlit;
+  const BLB_Material *source_material;
   BLB_RenderMode render_mode;
 } BLB_RenderMaterialState;
 
@@ -306,8 +335,43 @@ static BLB_RenderMaterialState material_state_from_3d(const BLB_Object3D *object
     state.glow_falloff = material->glow_falloff;
 
     state.roughness = material->roughness;
+    state.metallic = material->metallic;
+    state.specular = material->specular_factor;
+    state.occlusion = material->occlusion_strength;
+    state.specular_color[0] = material->specular_color[0];
+    state.specular_color[1] = material->specular_color[1];
+    state.specular_color[2] = material->specular_color[2];
+    state.emission_color[0] = material->emission_color[0];
+    state.emission_color[1] = material->emission_color[1];
+    state.emission_color[2] = material->emission_color[2];
+    state.emission_color[3] = material->emission_color[3];
+    state.temperature = material->temperature;
+    state.normal_scale = material->normal_scale;
+    state.ior = material->ior;
+    state.transmission = material->transmission;
+    state.volume_thickness = material->volume_thickness;
+    state.attenuation_color[0] = material->attenuation_color[0];
+    state.attenuation_color[1] = material->attenuation_color[1];
+    state.attenuation_color[2] = material->attenuation_color[2];
+    state.attenuation_distance = material->attenuation_distance;
+    state.clearcoat_factor = material->clearcoat_factor;
+    state.clearcoat_roughness = material->clearcoat_roughness;
+    state.clearcoat_normal_scale = material->clearcoat_normal_scale;
+    state.sheen_color[0] = material->sheen_color[0];
+    state.sheen_color[1] = material->sheen_color[1];
+    state.sheen_color[2] = material->sheen_color[2];
+    state.sheen_roughness = material->sheen_roughness;
+    state.iridescence_factor = material->iridescence_factor;
+    state.iridescence_ior = material->iridescence_ior;
+    state.iridescence_thickness_min = material->iridescence_thickness_min;
+    state.iridescence_thickness_max = material->iridescence_thickness_max;
+    state.anisotropy_strength = material->anisotropy_strength;
+    state.anisotropy_rotation = material->anisotropy_rotation;
+    state.dispersion = material->dispersion;
+    state.entity_id = (float)object->entity_id;
 
     state.alpha_cutoff = material->alpha_cutoff;
+    state.alpha_mode = material->alpha_mode;
 
     state.lighting_enabled = material->lighting_enabled;
 
@@ -320,6 +384,7 @@ static BLB_RenderMaterialState material_state_from_3d(const BLB_Object3D *object
     state.unlit = material->unlit;
 
     state.render_mode = normalize_render_mode(material->render_mode);
+    state.source_material = material;
 
     return state;
   }
@@ -342,8 +407,33 @@ static BLB_RenderMaterialState material_state_from_3d(const BLB_Object3D *object
 
   state.glow_falloff = 2.0f;
   state.roughness = object->roundness;
+  state.metallic = 0.0f;
+  state.specular = 1.0f;
+  state.occlusion = 1.0f;
+  state.specular_color[0] = 1.0f;
+  state.specular_color[1] = 1.0f;
+  state.specular_color[2] = 1.0f;
+  state.emission_color[0] = 1.0f;
+  state.emission_color[1] = 1.0f;
+  state.emission_color[2] = 1.0f;
+  state.emission_color[3] = 1.0f;
+  state.temperature = 6500.0f;
+  state.entity_id = (float)object->entity_id;
 
   state.alpha_cutoff = 0.5f;
+  state.alpha_mode = BLB_ALPHA_OPAQUE;
+  state.normal_scale = 1.0f;
+  state.ior = 1.5f;
+  state.transmission = 0.0f;
+  state.volume_thickness = 0.0f;
+  state.attenuation_color[0] = 1.0f;
+  state.attenuation_color[1] = 1.0f;
+  state.attenuation_color[2] = 1.0f;
+  state.attenuation_distance = INFINITY;
+  state.clearcoat_normal_scale = 1.0f;
+  state.iridescence_ior = 1.3f;
+  state.iridescence_thickness_min = 100.0f;
+  state.iridescence_thickness_max = 400.0f;
 
   return state;
 }
@@ -375,8 +465,43 @@ static BLB_RenderMaterialState material_state_from_2d(const BLB_Object2D *object
     state.glow_falloff = material->glow_falloff;
 
     state.roughness = material->roughness;
+    state.metallic = material->metallic;
+    state.specular = material->specular_factor;
+    state.occlusion = material->occlusion_strength;
+    state.specular_color[0] = material->specular_color[0];
+    state.specular_color[1] = material->specular_color[1];
+    state.specular_color[2] = material->specular_color[2];
+    state.emission_color[0] = material->emission_color[0];
+    state.emission_color[1] = material->emission_color[1];
+    state.emission_color[2] = material->emission_color[2];
+    state.emission_color[3] = material->emission_color[3];
+    state.temperature = material->temperature;
+    state.normal_scale = material->normal_scale;
+    state.ior = material->ior;
+    state.transmission = material->transmission;
+    state.volume_thickness = material->volume_thickness;
+    state.attenuation_color[0] = material->attenuation_color[0];
+    state.attenuation_color[1] = material->attenuation_color[1];
+    state.attenuation_color[2] = material->attenuation_color[2];
+    state.attenuation_distance = material->attenuation_distance;
+    state.clearcoat_factor = material->clearcoat_factor;
+    state.clearcoat_roughness = material->clearcoat_roughness;
+    state.clearcoat_normal_scale = material->clearcoat_normal_scale;
+    state.sheen_color[0] = material->sheen_color[0];
+    state.sheen_color[1] = material->sheen_color[1];
+    state.sheen_color[2] = material->sheen_color[2];
+    state.sheen_roughness = material->sheen_roughness;
+    state.iridescence_factor = material->iridescence_factor;
+    state.iridescence_ior = material->iridescence_ior;
+    state.iridescence_thickness_min = material->iridescence_thickness_min;
+    state.iridescence_thickness_max = material->iridescence_thickness_max;
+    state.anisotropy_strength = material->anisotropy_strength;
+    state.anisotropy_rotation = material->anisotropy_rotation;
+    state.dispersion = material->dispersion;
+    state.entity_id = (float)object->entity_id;
 
     state.alpha_cutoff = material->alpha_cutoff;
+    state.alpha_mode = material->alpha_mode;
 
     state.lighting_enabled = material->lighting_enabled;
 
@@ -389,6 +514,7 @@ static BLB_RenderMaterialState material_state_from_2d(const BLB_Object2D *object
     state.unlit = material->unlit;
 
     state.render_mode = normalize_render_mode(material->render_mode);
+    state.source_material = material;
 
     return state;
   }
@@ -411,8 +537,33 @@ static BLB_RenderMaterialState material_state_from_2d(const BLB_Object2D *object
 
   state.glow_falloff = 2.0f;
   state.roughness = object->roundness;
+  state.metallic = 0.0f;
+  state.specular = 1.0f;
+  state.occlusion = 1.0f;
+  state.specular_color[0] = 1.0f;
+  state.specular_color[1] = 1.0f;
+  state.specular_color[2] = 1.0f;
+  state.emission_color[0] = 1.0f;
+  state.emission_color[1] = 1.0f;
+  state.emission_color[2] = 1.0f;
+  state.emission_color[3] = 1.0f;
+  state.temperature = 6500.0f;
+  state.entity_id = (float)object->entity_id;
 
   state.alpha_cutoff = 0.5f;
+  state.alpha_mode = BLB_ALPHA_OPAQUE;
+  state.normal_scale = 1.0f;
+  state.ior = 1.5f;
+  state.transmission = 0.0f;
+  state.volume_thickness = 0.0f;
+  state.attenuation_color[0] = 1.0f;
+  state.attenuation_color[1] = 1.0f;
+  state.attenuation_color[2] = 1.0f;
+  state.attenuation_distance = INFINITY;
+  state.clearcoat_normal_scale = 1.0f;
+  state.iridescence_ior = 1.3f;
+  state.iridescence_thickness_min = 100.0f;
+  state.iridescence_thickness_max = 400.0f;
 
   return state;
 }
@@ -444,8 +595,43 @@ static BLB_RenderMaterialState material_state_from_text(const BLB_Text2D *text) 
     state.glow_falloff = material->glow_falloff;
 
     state.roughness = material->roughness;
+    state.metallic = material->metallic;
+    state.specular = material->specular_factor;
+    state.occlusion = material->occlusion_strength;
+    state.specular_color[0] = material->specular_color[0];
+    state.specular_color[1] = material->specular_color[1];
+    state.specular_color[2] = material->specular_color[2];
+    state.emission_color[0] = material->emission_color[0];
+    state.emission_color[1] = material->emission_color[1];
+    state.emission_color[2] = material->emission_color[2];
+    state.emission_color[3] = material->emission_color[3];
+    state.temperature = material->temperature;
+    state.normal_scale = material->normal_scale;
+    state.ior = material->ior;
+    state.transmission = material->transmission;
+    state.volume_thickness = material->volume_thickness;
+    state.attenuation_color[0] = material->attenuation_color[0];
+    state.attenuation_color[1] = material->attenuation_color[1];
+    state.attenuation_color[2] = material->attenuation_color[2];
+    state.attenuation_distance = material->attenuation_distance;
+    state.clearcoat_factor = material->clearcoat_factor;
+    state.clearcoat_roughness = material->clearcoat_roughness;
+    state.clearcoat_normal_scale = material->clearcoat_normal_scale;
+    state.sheen_color[0] = material->sheen_color[0];
+    state.sheen_color[1] = material->sheen_color[1];
+    state.sheen_color[2] = material->sheen_color[2];
+    state.sheen_roughness = material->sheen_roughness;
+    state.iridescence_factor = material->iridescence_factor;
+    state.iridescence_ior = material->iridescence_ior;
+    state.iridescence_thickness_min = material->iridescence_thickness_min;
+    state.iridescence_thickness_max = material->iridescence_thickness_max;
+    state.anisotropy_strength = material->anisotropy_strength;
+    state.anisotropy_rotation = material->anisotropy_rotation;
+    state.dispersion = material->dispersion;
+    state.entity_id = (float)text->entity_id;
 
     state.alpha_cutoff = material->alpha_cutoff;
+    state.alpha_mode = material->alpha_mode;
 
     state.lighting_enabled = false;
     state.depth_enabled = material->depth_enabled;
@@ -457,6 +643,7 @@ static BLB_RenderMaterialState material_state_from_text(const BLB_Text2D *text) 
     state.unlit = true;
 
     state.render_mode = normalize_render_mode(material->render_mode);
+    state.source_material = material;
 
     return state;
   }
@@ -486,47 +673,12 @@ static BLB_RenderMaterialState material_state_from_text(const BLB_Text2D *text) 
   return state;
 }
 
-static void build_model(HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale, HMM_Mat4 *model, HMM_Mat4 *rotation_matrix, float normal_rows[12]) {
-
+static void build_model(HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale, HMM_Mat4 *model) {
   HMM_Mat4 rx = HMM_Rotate_RH(HMM_AngleDeg(rotation.x), HMM_V3(1.0f, 0.0f, 0.0f));
-
   HMM_Mat4 ry = HMM_Rotate_RH(HMM_AngleDeg(rotation.y), HMM_V3(0.0f, 1.0f, 0.0f));
-
   HMM_Mat4 rz = HMM_Rotate_RH(HMM_AngleDeg(rotation.z), HMM_V3(0.0f, 0.0f, 1.0f));
-
-  *rotation_matrix = HMM_MulM4(rz, HMM_MulM4(ry, rx));
-
-  *model = HMM_MulM4(HMM_Translate(position), HMM_MulM4(*rotation_matrix, HMM_Scale(scale)));
-
-  float sx = fabsf(scale.x) > 0.000001f ? scale.x : 1.0f;
-
-  float sy = fabsf(scale.y) > 0.000001f ? scale.y : 1.0f;
-
-  float sz = fabsf(scale.z) > 0.000001f ? scale.z : 1.0f;
-
-  normal_rows[0] = rotation_matrix->Elements[0][0] / sx;
-
-  normal_rows[1] = rotation_matrix->Elements[1][0] / sy;
-
-  normal_rows[2] = rotation_matrix->Elements[2][0] / sz;
-
-  normal_rows[3] = 0.0f;
-
-  normal_rows[4] = rotation_matrix->Elements[0][1] / sx;
-
-  normal_rows[5] = rotation_matrix->Elements[1][1] / sy;
-
-  normal_rows[6] = rotation_matrix->Elements[2][1] / sz;
-
-  normal_rows[7] = 0.0f;
-
-  normal_rows[8] = rotation_matrix->Elements[0][2] / sx;
-
-  normal_rows[9] = rotation_matrix->Elements[1][2] / sy;
-
-  normal_rows[10] = rotation_matrix->Elements[2][2] / sz;
-
-  normal_rows[11] = 0.0f;
+  HMM_Mat4 rotation_matrix = HMM_MulM4(rz, HMM_MulM4(ry, rx));
+  *model = HMM_MulM4(HMM_Translate(position), HMM_MulM4(rotation_matrix, HMM_Scale(scale)));
 }
 
 static void extract_matrix_rows(const HMM_Mat4 *matrix, float rows[12]) {
@@ -617,6 +769,57 @@ static bool build_shadow_matrix(BLB_Scene *scene, HMM_Mat4 *shadow_vp) {
   return true;
 }
 
+static bool build_point_shadow_matrices(BLB_Scene *scene, HMM_Mat4 shadow_mvp[VULKAN_POINT_SHADOW_FACES], BLB_Light3D **shadow_light) {
+  if (!scene || !shadow_mvp || !shadow_light)
+    return false;
+
+  BLB_Light3D *light = NULL;
+
+  for (int i = 0; i < scene->light3d_count; i++) {
+    BLB_Light3D *candidate = scene->lights3d[i];
+
+    if (!candidate || !candidate->enabled || !candidate->object)
+      continue;
+
+    if (candidate->type != BLB_LIGHT_POINT && candidate->type != BLB_LIGHT_SPOT)
+      continue;
+
+    light = candidate;
+    break;
+  }
+
+  if (!light)
+    return false;
+
+  HMM_Vec3 position = light->object->position;
+  float far_plane = fmaxf(light->range, 10.0f);
+  HMM_Mat4 projection = HMM_Perspective_RH_ZO(HMM_AngleDeg(90.0f), 1.0f, 0.05f, far_plane);
+  HMM_Vec3 directions[VULKAN_POINT_SHADOW_FACES] = {
+      HMM_V3(1.0f, 0.0f, 0.0f),
+      HMM_V3(-1.0f, 0.0f, 0.0f),
+      HMM_V3(0.0f, 1.0f, 0.0f),
+      HMM_V3(0.0f, -1.0f, 0.0f),
+      HMM_V3(0.0f, 0.0f, 1.0f),
+      HMM_V3(0.0f, 0.0f, -1.0f),
+  };
+  HMM_Vec3 ups[VULKAN_POINT_SHADOW_FACES] = {
+      HMM_V3(0.0f, -1.0f, 0.0f),
+      HMM_V3(0.0f, -1.0f, 0.0f),
+      HMM_V3(0.0f, 0.0f, 1.0f),
+      HMM_V3(0.0f, 0.0f, -1.0f),
+      HMM_V3(0.0f, -1.0f, 0.0f),
+      HMM_V3(0.0f, -1.0f, 0.0f),
+  };
+
+  for (uint32_t i = 0; i < VULKAN_POINT_SHADOW_FACES; i++) {
+    HMM_Mat4 view = HMM_LookAt_RH(position, HMM_AddV3(position, directions[i]), ups[i]);
+    shadow_mvp[i] = HMM_MulM4(projection, view);
+  }
+
+  *shadow_light = light;
+  return true;
+}
+
 static VulkanMaterial vulkan_material_from_state(const BLB_RenderMaterialState *state, bool lighting) {
 
   VulkanMaterial result = {0};
@@ -624,7 +827,9 @@ static VulkanMaterial vulkan_material_from_state(const BLB_RenderMaterialState *
   if (!state)
     return result;
 
-  result.lighting_enabled = lighting && state->lighting_enabled;
+  result.lighting_enabled = lighting && state->lighting_enabled && !state->unlit;
+
+  result.double_sided = state->double_sided;
 
   result.emission = state->emission;
 
@@ -635,6 +840,48 @@ static VulkanMaterial vulkan_material_from_state(const BLB_RenderMaterialState *
   result.glow_radius = state->glow_radius;
 
   result.glow_falloff = state->glow_falloff;
+
+  result.metallic = state->metallic;
+  result.roughness = state->roughness;
+  result.specular = state->specular;
+  result.occlusion = state->occlusion;
+  result.specular_color[0] = state->specular_color[0];
+  result.specular_color[1] = state->specular_color[1];
+  result.specular_color[2] = state->specular_color[2];
+  result.emission_color[0] = state->emission_color[0];
+  result.emission_color[1] = state->emission_color[1];
+  result.emission_color[2] = state->emission_color[2];
+  result.emission_color[3] = state->emission_color[3];
+  result.temperature = state->temperature;
+  result.entity_id = state->entity_id;
+  result.normal_scale = state->normal_scale;
+  result.ior = state->ior;
+  result.transmission = state->transmission;
+  result.volume_thickness = state->volume_thickness;
+  result.attenuation_color[0] = state->attenuation_color[0];
+  result.attenuation_color[1] = state->attenuation_color[1];
+  result.attenuation_color[2] = state->attenuation_color[2];
+  result.attenuation_distance = state->attenuation_distance;
+  result.clearcoat_factor = state->clearcoat_factor;
+  result.clearcoat_roughness = state->clearcoat_roughness;
+  result.clearcoat_normal_scale = state->clearcoat_normal_scale;
+  result.sheen_color[0] = state->sheen_color[0];
+  result.sheen_color[1] = state->sheen_color[1];
+  result.sheen_color[2] = state->sheen_color[2];
+  result.sheen_roughness = state->sheen_roughness;
+  result.iridescence_factor = state->iridescence_factor;
+  result.iridescence_ior = state->iridescence_ior;
+  result.iridescence_thickness_min = state->iridescence_thickness_min;
+  result.iridescence_thickness_max = state->iridescence_thickness_max;
+  result.anisotropy_strength = state->anisotropy_strength;
+  result.anisotropy_rotation = state->anisotropy_rotation;
+  result.dispersion = state->dispersion;
+  result.alpha_cutoff = state->alpha_cutoff;
+  result.alpha_mode = state->alpha_mode;
+  result.unlit = state->unlit;
+  result.depth_enabled = state->depth_enabled;
+  result.depth_write = state->depth_write;
+  result.source_material = state->source_material;
 
   result.render_mode = normalize_render_mode(state->render_mode);
 
@@ -650,11 +897,7 @@ static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, BLB_Camer
   HMM_Vec3 pass_scale = HMM_MulV3F(object->scale, scale_mul);
 
   HMM_Mat4 model;
-  HMM_Mat4 rotation;
-
-  float normal_rows[12];
-
-  build_model(object->position, object->rotation, pass_scale, &model, &rotation, normal_rows);
+  build_model(object->position, object->rotation, pass_scale, &model);
 
   HMM_Mat4 view = BLB_CameraView(camera);
 
@@ -668,13 +911,28 @@ static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, BLB_Camer
 
   BLB_RenderMaterialState pass = *state;
 
+  bool glow_pass = glow_mul < 0.9999f;
+
   pass.emission *= glow_mul;
   pass.glow *= glow_mul;
   pass.base_color[3] *= glow_mul;
 
-  VulkanMaterial vk_material = vulkan_material_from_state(&pass, true);
+  if (glow_pass) {
+    pass.lighting_enabled = false;
+    pass.emission = glow_mul;
+    pass.glow = 0.0f;
+    pass.base_color[0] = pass.emission_color[0];
+    pass.base_color[1] = pass.emission_color[1];
+    pass.base_color[2] = pass.emission_color[2];
+    pass.render_mode = BLB_RENDER_ADDITIVE;
+  } else if (pass.alpha_mode == BLB_ALPHA_BLEND && pass.render_mode == BLB_RENDER_OPAQUE) {
+    pass.render_mode = BLB_RENDER_TRANSPARENT;
+  }
 
-  VULKAN_RendererDrawPolygon3D(renderer, object->polygon, &mvp.Elements[0][0], model_rows, normal_rows, pass.base_color[0], pass.base_color[1],
+  VulkanMaterial vk_material = vulkan_material_from_state(&pass, !glow_pass);
+  vk_material.base_texture_override = object->texture;
+
+  VULKAN_RendererDrawPolygon3D(renderer, object->polygon, &mvp.Elements[0][0], model_rows, pass.base_color[0], pass.base_color[1],
                                pass.base_color[2], pass.base_color[3], &vk_material, object->texture);
 }
 
@@ -685,28 +943,29 @@ static void draw_object3d(BLB_Object3D *object, VULKAN *renderer, BLB_Camera *ca
 
   BLB_RenderMaterialState state = material_state_from_3d(object);
 
-  draw_object3d_pass(object, renderer, camera, aspect, &state, 1.0f, 1.0f);
+  if (state.glow > 0.0f && state.glow_radius > 0.0f) {
+    const int steps = 10;
+    const float radius = state.glow_radius;
+    const float falloff = fmaxf(state.glow_falloff, 0.2f);
 
-  if (state.glow <= 0.0f || state.glow_radius <= 0.0f)
-    return;
+    /*
+     * Render the additive shell before the solid object. The glow material
+     * does not write depth, so the object's own depth buffer entry cannot
+     * hide the inner side of a closed mesh such as a torus. The base pass is
+     * then rendered normally and writes the final opaque depth on top.
+     */
+    for (int i = 1; i <= steps; i++) {
+      float t = (float)i / (float)steps;
+      float envelope = powf(fmaxf(0.0f, 1.0f - t), falloff);
+      float smooth_envelope = envelope * (0.92f + 0.08f * (1.0f - t));
+      float scale_mul = 1.0f + radius * 0.019f * t;
+      float glow_mul = smooth_envelope * state.glow * 0.22f;
 
-  const int steps = 6;
-  const float radius = state.glow_radius;
-
-  const float falloff = fmaxf(state.glow_falloff, 0.2f);
-
-  for (int i = 1; i <= steps; i++) {
-
-    float t = (float)i / (float)steps;
-
-    float envelope = powf(fmaxf(0.0f, 1.0f - t), falloff);
-
-    float scale_mul = 1.0f + radius * 0.035f * t;
-
-    float glow_mul = envelope * state.glow * 0.32f;
-
-    draw_object3d_pass(object, renderer, camera, aspect, &state, scale_mul, glow_mul);
+      draw_object3d_pass(object, renderer, camera, aspect, &state, scale_mul, glow_mul);
+    }
   }
+
+  draw_object3d_pass(object, renderer, camera, aspect, &state, 1.0f, 1.0f);
 }
 
 static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, BLB_Camera *camera, float aspect, const BLB_RenderMaterialState *state,
@@ -717,32 +976,46 @@ static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, BLB_Camer
 
   BLB_RenderMaterialState pass = *state;
 
+  bool glow_pass = glow_mul < 0.9999f;
+
   pass.emission *= glow_mul;
   pass.glow *= glow_mul;
   pass.base_color[3] *= glow_mul;
 
-  VulkanMaterial vk_material = vulkan_material_from_state(&pass, false);
+  if (glow_pass) {
+    pass.lighting_enabled = false;
+    pass.emission = glow_mul;
+    pass.glow = 0.0f;
+    pass.base_color[0] = pass.emission_color[0];
+    pass.base_color[1] = pass.emission_color[1];
+    pass.base_color[2] = pass.emission_color[2];
+    pass.render_mode = BLB_RENDER_ADDITIVE;
+  } else if (pass.alpha_mode == BLB_ALPHA_BLEND && pass.render_mode == BLB_RENDER_OPAQUE) {
+    pass.render_mode = BLB_RENDER_TRANSPARENT;
+  }
 
-  float viewport_width = (float)renderer->swapchain_extent.width;
+  VulkanMaterial vk_material = vulkan_material_from_state(&pass, !glow_pass);
 
-  float viewport_height = (float)renderer->swapchain_extent.height;
-
-  size_t count = object->polygon->vertex_count;
+  const size_t count = object->polygon->vertex_count;
 
   if (count == 0)
     return;
 
+  const float viewport_width = (float)renderer->swapchain_extent.width;
+
+  const float viewport_height = (float)renderer->swapchain_extent.height;
+
   HMM_Vec2 vertices[count];
+  HMM_Vec2 world_positions[count];
 
-  float angle = HMM_AngleDeg(object->rotation);
+  const float angle = HMM_AngleDeg(object->rotation);
 
-  float c = cosf(angle);
-  float s = sinf(angle);
+  const float c = cosf(angle);
+  const float s = sinf(angle);
 
   HMM_Mat4 vp = HMM_M4D(1.0f);
 
   if (!object->screen_space && camera) {
-
     HMM_Mat4 view = BLB_CameraView(camera);
 
     HMM_Mat4 projection = BLB_CameraProjection(camera, aspect);
@@ -751,38 +1024,34 @@ static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, BLB_Camer
   }
 
   for (size_t i = 0; i < count; i++) {
+    const float x = object->polygon->vertices[i].x * object->scale.x * scale_mul;
+    const float y = object->polygon->vertices[i].y * object->scale.y * scale_mul;
+    const float transformed_x = x * c - y * s;
+    const float transformed_y = x * s + y * c;
+    const float world_x = object->position.x + transformed_x;
+    const float world_y = object->position.y + transformed_y;
 
-    float x = object->polygon->vertices[i].x * object->scale.x * scale_mul;
-
-    float y = object->polygon->vertices[i].y * object->scale.y * scale_mul;
-
-    float world_x = object->position.x + x * c - y * s;
-
-    float world_y = object->position.y + x * s + y * c;
+    world_positions[i] = HMM_V2(world_x, world_y);
 
     if (object->screen_space || !camera) {
-
       vertices[i] = HMM_V2(world_x, world_y);
 
       continue;
     }
 
-    HMM_Vec4 position = HMM_V4(world_x, world_y, 0.0f, 1.0f);
+    HMM_Vec4 world_position = HMM_V4(world_x, world_y, 0.0f, 1.0f);
 
-    HMM_Vec4 clip = HMM_MulM4V4(vp, position);
+    HMM_Vec4 clip = HMM_MulM4V4(vp, world_position);
 
     if (fabsf(clip.w) <= 0.000001f) {
-
       vertices[i] = HMM_V2(-100000.0f, -100000.0f);
 
       continue;
     }
 
-    float inv_w = 1.0f / clip.w;
-
-    float ndc_x = clip.x * inv_w;
-
-    float ndc_y = clip.y * inv_w;
+    const float inv_w = 1.0f / clip.w;
+    const float ndc_x = clip.x * inv_w;
+    const float ndc_y = clip.y * inv_w;
 
     vertices[i].x = (ndc_x * 0.5f + 0.5f) * viewport_width;
 
@@ -793,8 +1062,8 @@ static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, BLB_Camer
 
   transformed.vertices = vertices;
 
-  VULKAN_RendererDrawPolygon2D(renderer, &transformed, viewport_width, viewport_height, pass.base_color[0], pass.base_color[1], pass.base_color[2],
-                               pass.base_color[3], &vk_material, object->texture);
+  VULKAN_RendererDrawPolygon2D(renderer, &transformed, world_positions, viewport_width, viewport_height, pass.base_color[0], pass.base_color[1],
+                               pass.base_color[2], pass.base_color[3], &vk_material, object->texture);
 }
 
 static void draw_object2d(BLB_Object2D *object, VULKAN *renderer, BLB_Camera *camera, float aspect) {
@@ -809,21 +1078,20 @@ static void draw_object2d(BLB_Object2D *object, VULKAN *renderer, BLB_Camera *ca
   if (state.glow <= 0.0f || state.glow_radius <= 0.0f)
     return;
 
-  float base_size = fmaxf(fabsf(object->scale.x), fmaxf(fabsf(object->scale.y), 1.0f));
-
-  const int steps = 7;
+  const int steps = 10;
 
   const float falloff = fmaxf(state.glow_falloff, 0.2f);
 
   for (int i = 1; i <= steps; i++) {
+    const float t = (float)i / (float)steps;
 
-    float t = (float)i / (float)steps;
+    const float envelope = powf(fmaxf(0.0f, 1.0f - t), falloff);
 
-    float envelope = powf(fmaxf(0.0f, 1.0f - t), falloff);
+    const float smooth_envelope = envelope * (0.92f + 0.08f * (1.0f - t));
 
-    float scale_mul = 1.0f + (state.glow_radius / base_size) * t;
+    const float scale_mul = 1.0f + state.glow_radius * 0.016f * t;
 
-    float glow_mul = envelope * state.glow * 0.22f;
+    const float glow_mul = smooth_envelope * state.glow * 0.16f;
 
     draw_object2d_pass(object, renderer, camera, aspect, &state, scale_mul, glow_mul);
   }
@@ -853,7 +1121,6 @@ static void draw_text2d(BLB_Text2D *text, VULKAN *renderer, BLB_Camera *camera, 
 }
 
 int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
-
   if (!scene || !renderer)
     return -1;
 
@@ -893,6 +1160,7 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
     for (int i = 0; i < max_count; i++) {
 
       if (i < scene->object3d_count) {
+
         BLB_Object3D *object = scene->objects3d[i];
 
         if (object && object->delta_time)
@@ -900,6 +1168,7 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
       }
 
       if (i < scene->object2d_count) {
+
         BLB_Object2D *object = scene->objects2d[i];
 
         if (object && object->delta_time)
@@ -907,6 +1176,7 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
       }
 
       if (i < scene->text2d_count) {
+
         BLB_Text2D *text = scene->text2d[i];
 
         if (text && text->delta_time)
@@ -914,6 +1184,7 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
       }
 
       if (i < scene->light3d_count) {
+
         BLB_Light3D *light = scene->lights3d[i];
 
         if (light && light->object && light->object->delta_time)
@@ -921,6 +1192,7 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
       }
 
       if (i < scene->light2d_count) {
+
         BLB_Light2D *light = scene->lights2d[i];
 
         if (light && light->object && light->object->delta_time)
@@ -929,50 +1201,71 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
     }
   }
 
-  if (scene->camera) {
+  if (scene->camera)
     VULKAN_RendererSetCameraPosition(renderer, scene->camera->position);
-  } else {
+  else
     VULKAN_RendererSetCameraPosition(renderer, HMM_V3(0.0f, 0.0f, 0.0f));
-  }
 
   VULKAN_RendererSetLights3D(renderer, scene->lights3d, scene->light3d_count);
 
   VULKAN_RendererSetLights2D(renderer, scene->lights2d, scene->light2d_count);
 
+  VULKAN_RendererSetLightingObjects3D(renderer, scene->objects3d, scene->object3d_count);
+
+  VULKAN_RendererSetLightingObjects2D(renderer, scene->objects2d, scene->object2d_count);
+
+  update_light_buffer_3d(renderer);
+  update_light_buffer_2d(renderer);
+
   HMM_Mat4 shadow_vp = HMM_M4D(1.0f);
+  HMM_Mat4 point_shadow_mvp[VULKAN_POINT_SHADOW_FACES];
+  BLB_Light3D *point_shadow_light = NULL;
 
   bool scene_draw_enabled = scene->enabled && scene->visible;
 
-  bool shadow_enabled = scene_draw_enabled && build_shadow_matrix(scene, &shadow_vp);
+  bool directional_shadow = scene_draw_enabled && build_shadow_matrix(scene, &shadow_vp);
+  bool point_shadow = scene_draw_enabled && !directional_shadow && build_point_shadow_matrices(scene, point_shadow_mvp, &point_shadow_light);
 
-  VULKAN_RendererSetShadow(renderer, &shadow_vp.Elements[0][0], shadow_enabled, 0.002f);
+  if (directional_shadow) {
+    VULKAN_RendererSetShadow(renderer, &shadow_vp.Elements[0][0], true, 0.003f);
+  } else if (point_shadow) {
+    VULKAN_RendererSetPointShadow(renderer, point_shadow_mvp, true, 0.002f);
+    renderer->shadow_light3d = point_shadow_light;
+  } else {
+    VULKAN_RendererSetShadow(renderer, &shadow_vp.Elements[0][0], false, 0.003f);
+  }
 
-  if (shadow_enabled) {
-    VULKAN_RendererBeginShadowPass(renderer);
+  if (renderer->shadow_mode != 0) {
+    uint32_t shadow_count = renderer->shadow_mode == 2 ? VULKAN_POINT_SHADOW_FACES : 1;
 
-    for (int i = 0; i < scene->object3d_count; i++) {
+    uint32_t first_shadow_map = renderer->shadow_mode == 2 ? 1u : 0u;
 
-      BLB_Object3D *object = scene->objects3d[i];
+    for (uint32_t pass = 0; pass < shadow_count; pass++) {
 
-      if (!object || !object->visible || !object->polygon)
-        continue;
+      uint32_t shadow_map_index = first_shadow_map + pass;
 
-      if (object3d_render_mode(object) != BLB_RENDER_OPAQUE)
-        continue;
+      VULKAN_RendererBeginShadowPass(renderer, shadow_map_index);
 
-      HMM_Mat4 model;
-      HMM_Mat4 rotation;
+      for (int i = 0; i < scene->object3d_count; i++) {
 
-      float normal_rows[12];
+        BLB_Object3D *object = scene->objects3d[i];
 
-      build_model(object->position, object->rotation, object->scale, &model, &rotation, normal_rows);
+        if (!object || !object->visible || !object->polygon)
+          continue;
 
-      HMM_Mat4 shadow_mvp = HMM_MulM4(shadow_vp, model);
+        if (object3d_render_mode(object) != BLB_RENDER_OPAQUE)
+          continue;
 
-      VULKAN_RendererDrawShadowPolygon3D(renderer, object->polygon, &shadow_mvp.Elements[0][0]);
+        HMM_Mat4 model;
+        build_model(object->position, object->rotation, object->scale, &model);
+
+        HMM_Mat4 shadow_mvp = HMM_MulM4(renderer->shadow_mvp[shadow_map_index], model);
+
+        VULKAN_RendererDrawShadowPolygon3D(renderer, object->polygon, &shadow_mvp.Elements[0][0]);
+      }
+
+      VULKAN_RendererEndShadowPass(renderer);
     }
-
-    VULKAN_RendererEndShadowPass(renderer);
   }
 
   VULKAN_RendererBeginMainPass(renderer);
@@ -1006,11 +1299,8 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
 
     for (;;) {
       int best = -1;
-
       void *best_object = NULL;
-
       BLB_RenderMode best_mode = BLB_RENDER_OPAQUE;
-
       int best_layer = 0;
 
       for (int type = 0; type < 5; type++) {

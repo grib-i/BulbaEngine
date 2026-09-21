@@ -5,7 +5,7 @@
 #include "bulba/core/objects3d/cube.h"
 #include "bulba/core/objects3d/objects3d.h"
 #include "bulba/core/render/texture.h"
-#include "bulba/core/utils/debug.h"
+#include "bulba/core/utils/config.h"
 
 #include "light_256dp.h"
 #include "light_off_256dp.h"
@@ -43,6 +43,8 @@ BLB_Light3D *BLB_CreateLight3D(BLB_LightType type, HMM_Vec3 position, HMM_Vec3 r
     return NULL;
   }
 
+  light->light_debug_texture->clamp_to_edge = true;
+
   light->light_off_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_light_off_256dp_width, BLB_TEXTURE_light_off_256dp_height,
                                                         BLB_TEXTURE_light_off_256dp_pixels, BLB_TEXTURE_light_off_256dp_pixel_size);
 
@@ -51,6 +53,8 @@ BLB_Light3D *BLB_CreateLight3D(BLB_LightType type, HMM_Vec3 position, HMM_Vec3 r
     free(light);
     return NULL;
   }
+
+  light->light_off_debug_texture->clamp_to_edge = true;
 
   light->object = BLB_CreateCube3D(HMM_V3(1.0f, 1.0f, 0.001f), position, light->light_debug_texture);
 
@@ -86,6 +90,8 @@ BLB_Light2D *BLB_CreateLight2D(BLB_LightType type, HMM_Vec2 position, float rota
     return NULL;
   }
 
+  light->light_debug_texture->clamp_to_edge = true;
+
   light->light_off_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_light_off_256dp_width, BLB_TEXTURE_light_off_256dp_height,
                                                         BLB_TEXTURE_light_off_256dp_pixels, BLB_TEXTURE_light_off_256dp_pixel_size);
 
@@ -94,6 +100,8 @@ BLB_Light2D *BLB_CreateLight2D(BLB_LightType type, HMM_Vec2 position, float rota
     free(light);
     return NULL;
   }
+
+  light->light_off_debug_texture->clamp_to_edge = true;
 
   light->object = BLB_CreateSquare2D(HMM_V2(1.0f, 1.0f), position, light->light_debug_texture, false);
 
@@ -105,6 +113,10 @@ BLB_Light2D *BLB_CreateLight2D(BLB_LightType type, HMM_Vec2 position, float rota
   }
 
   light->object->visible = BLB_DEBUG;
+  BLB_Material_SetLighting(light->object->material, false);
+  BLB_Material_SetUnlit(light->object->material, true);
+  BLB_Material_SetDoubleSided(light->object->material, true);
+  BLB_Material_SetRenderMode(light->object->material, BLB_RENDER_TRANSPARENT);
 
   light->object->rotation = rotation;
 

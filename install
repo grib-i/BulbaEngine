@@ -7,12 +7,14 @@ PROJECT_NAME="bulba"
 BUILD_TYPE="Debug"
 CLEAN=0
 LTRACE=0
+VALGRIND=0
 
 LOG_ROOT="logs"
 RUN_ID="$(date '+%Y-%m-%d_%H-%M-%S')"
 RUN_DIR=""
 LOG_FILE=""
 APP_LOG=""
+VALGRIND_LOG=""
 
 MONITOR_INTERVAL="0.5"
 
@@ -54,16 +56,25 @@ for ARG in "$@"; do
     clean)
       CLEAN=1
       ;;
+    valgrind)
+      VALGRIND=1
+      ;;
     ltrack|ltraces)
       LTRACE=1
       ;;
     *)
       echo "[ERROR] Unknown argument: $ARG"
-      echo "Usage: ./install [debug|release] [clean] [ltrack|ltraces]"
+      echo "Usage: ./install [debug|release] [clean] [valgrind] [ltrack|ltraces]"
       exit 1
       ;;
   esac
 done
+
+if [ "$VALGRIND" -eq 1 ] && [ "$BUILD_TYPE" != "Debug" ]; then
+  echo "[ERROR] Valgrind mode requires Debug build."
+  echo "Use: ./install debug valgrind"
+  exit 1
+fi
 
 fail() {
   echo
@@ -179,6 +190,11 @@ setup_logs() {
   touch "$LOG_FILE" || fail "Failed to create log file"
   touch "$APP_LOG" || fail "Failed to create application log file"
 
+  if [ "$VALGRIND" -eq 1 ]; then
+    VALGRIND_LOG="$RUN_DIR/valgrind.log"
+    touch "$VALGRIND_LOG" || fail "Failed to create Valgrind log file"
+  fi
+
   {
     echo "============================================================"
     echo "BulbaEngine diagnostic session"
@@ -186,6 +202,7 @@ setup_logs() {
     echo "Project: $PROJECT_NAME"
     echo "Build type: $BUILD_TYPE"
     echo "Live monitor: $LTRACE"
+    echo "Valgrind: $VALGRIND"
     echo "============================================================"
   } >> "$LOG_FILE"
 
@@ -196,6 +213,16 @@ setup_logs() {
     echo "Project: $PROJECT_NAME"
     echo "============================================================"
   } >> "$APP_LOG"
+
+  if [ "$VALGRIND" -eq 1 ]; then
+    {
+      echo "============================================================"
+      echo "BulbaEngine Valgrind output"
+      echo "Date: $(date)"
+      echo "Project: $PROJECT_NAME"
+      echo "============================================================"
+    } >> "$VALGRIND_LOG"
+  fi
 }
 
 log_line() {
@@ -217,16 +244,6 @@ log_command() {
   return $?
 }
 
-#
-# Формируем ASAN_OPTIONS для запуска приложения.
-#
-# Сохраняем все существующие пользовательские опции,
-# но принудительно выставляем:
-#
-#     verify_asan_link_order=0
-#
-# Это нужно потому, что stdbuf использует LD_PRELOAD.
-#
 build_application_asan_options() {
   local options="${ASAN_OPTIONS:-}"
   local result=""
@@ -262,20 +279,27 @@ build_application_asan_options() {
   printf '%s' "$result"
 }
 
-#
-# Запуск приложения.
-#
-# ВАЖНО:
-#
-#     stdout -> application.log
-#     stderr -> application.log
-#
-# В терминал stdout/stderr приложения НЕ идут.
-#
-# stdbuf отключает буферизацию stdout/stderr.
-#
 run_application() {
   local log_file="$1"
+
+  if [ "$VALGRIND" -eq 1 ]; then
+    (
+      unset ASAN_OPTIONS
+      unset LSAN_OPTIONS
+
+      exec valgrind \
+        --tool=memcheck \
+        --leak-check=full \
+        --show-leak-kinds=all \
+        --track-origins=yes \
+        --num-callers=30 \
+        --log-file="$VALGRIND_LOG" \
+        "./$BUILD_DIR/$PROJECT_NAME"
+    ) >> "$log_file" 2>&1
+
+    return $?
+  fi
+
   local asan_options
 
   asan_options="$(build_application_asan_options)"
@@ -290,14 +314,29 @@ run_application() {
   return $?
 }
 
-#
-# То же самое, но приложение остаётся в фоне.
-#
-# За счёт exec PID фонового процесса после запуска
-# становится PID самого bulba.
-#
 start_application() {
   local log_file="$1"
+  APP_PID=""
+
+  if [ "$VALGRIND" -eq 1 ]; then
+    (
+      unset ASAN_OPTIONS
+      unset LSAN_OPTIONS
+
+      exec valgrind \
+        --tool=memcheck \
+        --leak-check=full \
+        --show-leak-kinds=all \
+        --track-origins=yes \
+        --num-callers=30 \
+        --log-file="$VALGRIND_LOG" \
+        "./$BUILD_DIR/$PROJECT_NAME"
+    ) >> "$log_file" 2>&1 &
+
+    APP_PID=$!
+    return 0
+  fi
+
   local asan_options
 
   asan_options="$(build_application_asan_options)"
@@ -309,7 +348,7 @@ start_application() {
       "./$BUILD_DIR/$PROJECT_NAME"
   ) >> "$log_file" 2>&1 &
 
-  echo $!
+  APP_PID=$!
 }
 
 get_status() {
@@ -905,6 +944,10 @@ monitor_process() {
   log_line "EXE: $(readlink -f "/proc/$pid/exe" 2>/dev/null || echo "?")"
   log_line "APPLICATION LOG: $APP_LOG"
 
+  if [ "$VALGRIND" -eq 1 ]; then
+    log_line "VALGRIND LOG: $VALGRIND_LOG"
+  fi
+
   while kill -0 "$pid" 2>/dev/null; do
     local now
     now="$(date +%s)"
@@ -1019,6 +1062,10 @@ monitor_process() {
   echo -e "${DIM}Run log: ${LOG_FILE}${RESET}"
   echo -e "${DIM}Application log: ${APP_LOG}${RESET}"
 
+  if [ "$VALGRIND" -eq 1 ]; then
+    echo -e "${DIM}Valgrind log: ${VALGRIND_LOG}${RESET}"
+  fi
+
   return "$result"
 }
 
@@ -1032,6 +1079,12 @@ echo -e "${RESET}"
 
 echo -e "${WHITE}Project:${RESET}     ${BRIGHT_CYAN}$PROJECT_NAME${RESET}"
 echo -e "${WHITE}Build type:${RESET}  ${BRIGHT_YELLOW}$BUILD_TYPE${RESET}"
+
+if [ "$VALGRIND" -eq 1 ]; then
+  echo -e "${WHITE}Valgrind:${RESET}     ${BRIGHT_GREEN}ON${RESET}"
+else
+  echo -e "${WHITE}Valgrind:${RESET}     ${BRIGHT_RED}OFF${RESET}"
+fi
 
 if [ "$LTRACE" -eq 1 ]; then
   echo -e "${WHITE}Live trace:${RESET}  ${BRIGHT_GREEN}ON${RESET}"
@@ -1054,13 +1107,23 @@ check_command wc
 check_command tail
 check_command date
 check_command timeout
-check_command stdbuf
+
+if [ "$VALGRIND" -eq 1 ]; then
+  check_command valgrind
+else
+  check_command stdbuf
+fi
 
 setup_logs
 
 echo -e "${WHITE}Logs:${RESET}             ${BRIGHT_CYAN}$RUN_DIR${RESET}"
 echo -e "${WHITE}Run log:${RESET}          ${BRIGHT_CYAN}$LOG_FILE${RESET}"
 echo -e "${WHITE}Application log:${RESET}  ${BRIGHT_CYAN}$APP_LOG${RESET}"
+
+if [ "$VALGRIND" -eq 1 ]; then
+  echo -e "${WHITE}Valgrind log:${RESET}     ${BRIGHT_MAGENTA}$VALGRIND_LOG${RESET}"
+fi
+
 echo
 ok "Required tools found"
 
@@ -1076,16 +1139,25 @@ fi
 if [ "$BUILD_TYPE" = "Debug" ]; then
   BUILD_DIR="build/debug"
 
-  section "1/3  CONFIGURING DEBUG"
+  if [ "$VALGRIND" -eq 1 ]; then
+    section "1/3  CONFIGURING DEBUG (VALGRIND / NO ASAN)"
+    ASAN_OPTION="-DBULBA_ENABLE_ASAN=OFF"
+  else
+    section "1/3  CONFIGURING DEBUG"
+    ASAN_OPTION="-DBULBA_ENABLE_ASAN=ON"
+  fi
 
   if log_command \
     "CMAKE DEBUG CONFIGURE" \
     cmake -S . -B "$BUILD_DIR" \
       -G Ninja \
       -DCMAKE_BUILD_TYPE=Debug \
+      -DCMAKE_BUILD_TYPE=Debug \
       -DPROJECT_NAME="$PROJECT_NAME" \
       -DBLB_BUILD_APP=ON \
-      -DBLB_BUILD_SHADERS=ON; then
+      -DBLB_BUILD_SHADERS=ON \
+      "$ASAN_OPTION"; then
+
     ok "CMake configuration"
   else
     fail "CMake configuration failed"
@@ -1096,6 +1168,7 @@ if [ "$BUILD_TYPE" = "Debug" ]; then
   if log_command \
     "CMAKE DEBUG BUILD" \
     cmake --build "$BUILD_DIR" -j"$(nproc)"; then
+
     ok "Debug build"
   else
     fail "Debug build failed"
@@ -1107,18 +1180,40 @@ if [ "$BUILD_TYPE" = "Debug" ]; then
 
   ok "Debug binary found"
 
-  section "3/3  RUNNING DEBUG"
+  if [ "$VALGRIND" -eq 1 ]; then
+    section "3/3  RUNNING DEBUG UNDER VALGRIND"
+  else
+    section "3/3  RUNNING DEBUG"
+  fi
 
   log_line "APPLICATION LOG: $APP_LOG"
+
+  if [ "$VALGRIND" -eq 1 ]; then
+    log_line "VALGRIND LOG: $VALGRIND_LOG"
+    log_line "ASAN: OFF"
+  else
+    log_line "ASAN: ON"
+  fi
 
   if [ "$LTRACE" -eq 0 ]; then
     log_line "Running without live monitor"
     log_line "Application output redirected to: $APP_LOG"
 
-    run_application "$APP_LOG"
-    RESULT=$?
+    if [ "$VALGRIND" -eq 1 ]; then
+      run_application "$APP_LOG"
+      RESULT=$?
+
+      echo
+      echo -e "${BRIGHT_GREEN}${BOLD}✓ VALGRIND RUN COMPLETED${RESET}"
+      echo -e "${DIM}Application log: ${APP_LOG}${RESET}"
+      echo -e "${DIM}Valgrind log: ${VALGRIND_LOG}${RESET}"
+    else
+      run_application "$APP_LOG"
+      RESULT=$?
+    fi
   else
-    PID="$(start_application "$APP_LOG")"
+    start_application "$APP_LOG"
+    PID="$APP_PID"
 
     if [ -z "$PID" ]; then
       fail "Failed to start application"
@@ -1127,6 +1222,10 @@ if [ "$BUILD_TYPE" = "Debug" ]; then
     log_line "Application started"
     log_line "PID: $PID"
     log_line "Application output redirected to: $APP_LOG"
+
+    if [ "$VALGRIND" -eq 1 ]; then
+      log_line "Valgrind output redirected to: $VALGRIND_LOG"
+    fi
 
     monitor_process "$PID"
     RESULT=$?
@@ -1142,6 +1241,10 @@ if [ "$BUILD_TYPE" = "Debug" ]; then
 
   echo -e "${DIM}Run logs: ${RUN_DIR}${RESET}"
   echo -e "${DIM}Application log: ${APP_LOG}${RESET}"
+
+  if [ "$VALGRIND" -eq 1 ]; then
+    echo -e "${DIM}Valgrind log: ${VALGRIND_LOG}${RESET}"
+  fi
 
   exit "$RESULT"
 fi
@@ -1159,6 +1262,7 @@ if log_command \
     -DBLB_BUILD_APP=OFF \
     -DBLB_BUILD_SHADERS=ON \
     -DCMAKE_INSTALL_PREFIX=/usr/local; then
+
   ok "CMake configuration"
 else
   fail "CMake configuration failed"
@@ -1169,6 +1273,7 @@ section "2/4  BUILDING RELEASE"
 if log_command \
   "CMAKE RELEASE BUILD" \
   cmake --build "$BUILD_DIR" -j"$(nproc)"; then
+
   ok "Release build"
 else
   fail "Release build failed"
@@ -1187,6 +1292,7 @@ section "3/4  INSTALLING"
 if log_command \
   "CMAKE INSTALL" \
   sudo cmake --install "$BUILD_DIR"; then
+
   ok "Installation completed"
 else
   fail "Installation failed"
@@ -1203,6 +1309,7 @@ section "4/4  LINKER CACHE"
 if log_command \
   "LDCONFIG" \
   sudo ldconfig; then
+
   ok "Linker cache updated"
 else
   fail "ldconfig failed"

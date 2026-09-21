@@ -15,7 +15,7 @@ int BLB_InitFPS(BLB_FPS *f, VULKAN *v, int limit, bool vsync) {
   if (limit >= 0)
     f->limit = limit;
 
-  if (VULKAN_RendererRecreateSwapchain(v, vsync) != 0)
+  if (v->vsync_enabled != vsync && VULKAN_RendererRecreateSwapchain(v, vsync) != 0)
     return -1;
 
   return 0;

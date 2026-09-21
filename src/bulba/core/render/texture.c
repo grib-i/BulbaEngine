@@ -35,6 +35,7 @@ BLB_Texture *BLB_Texture_Create2D(uint32_t width, uint32_t height, const void *p
   texture->height = height;
   texture->depth = 1;
   texture->pixel_size = expected;
+  texture->clamp_to_edge = false;
 
   return texture;
 }

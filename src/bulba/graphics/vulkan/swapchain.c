@@ -173,6 +173,7 @@ int VULKAN_CreateSwapchain(VULKAN *v, bool vsync) {
 
   v->swapchain_format = sf.format;
   v->swapchain_extent = ex;
+  v->vsync_enabled = vsync;
 
   uint32_t image_count = 0;
 
@@ -252,3 +253,4 @@ void VULKAN_DestroySwapchain(VULKAN *v) {
     v->swapchain = VK_NULL_HANDLE;
   }
 }
+

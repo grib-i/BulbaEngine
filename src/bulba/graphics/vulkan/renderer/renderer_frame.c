@@ -9,13 +9,10 @@ int create_depth_resources(VULKAN *vulkan) {
     return -1;
 
   vulkan->depth_images = calloc(vulkan->swapchain_image_count, sizeof(VkImage));
-
   vulkan->depth_memories = calloc(vulkan->swapchain_image_count, sizeof(VkDeviceMemory));
-
   vulkan->depth_image_views = calloc(vulkan->swapchain_image_count, sizeof(VkImageView));
 
   if (!vulkan->depth_images || !vulkan->depth_memories || !vulkan->depth_image_views) {
-
     free(vulkan->depth_images);
     free(vulkan->depth_memories);
     free(vulkan->depth_image_views);
@@ -28,7 +25,6 @@ int create_depth_resources(VULKAN *vulkan) {
   }
 
   for (uint32_t i = 0; i < vulkan->swapchain_image_count; i++) {
-
     VkImageCreateInfo image_info = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .imageType = VK_IMAGE_TYPE_2D,
@@ -92,6 +88,7 @@ int create_depth_resources(VULKAN *vulkan) {
   }
 
   return 0;
+
 fail:
   destroy_depth_resources(vulkan);
   return -1;
@@ -102,23 +99,19 @@ void destroy_depth_resources(VULKAN *vulkan) {
     return;
 
   for (uint32_t i = 0; i < vulkan->swapchain_image_count; i++) {
-
     if (vulkan->depth_image_views && vulkan->depth_image_views[i] != VK_NULL_HANDLE) {
-
       vkDestroyImageView(vulkan->device, vulkan->depth_image_views[i], NULL);
 
       vulkan->depth_image_views[i] = VK_NULL_HANDLE;
     }
 
     if (vulkan->depth_images && vulkan->depth_images[i] != VK_NULL_HANDLE) {
-
       vkDestroyImage(vulkan->device, vulkan->depth_images[i], NULL);
 
       vulkan->depth_images[i] = VK_NULL_HANDLE;
     }
 
     if (vulkan->depth_memories && vulkan->depth_memories[i] != VK_NULL_HANDLE) {
-
       vkFreeMemory(vulkan->device, vulkan->depth_memories[i], NULL);
 
       vulkan->depth_memories[i] = VK_NULL_HANDLE;
@@ -205,7 +198,6 @@ int create_command_resources(VULKAN *vulkan) {
   };
 
   if (vkAllocateCommandBuffers(vulkan->device, &alloc, vulkan->command_buffers) != VK_SUCCESS) {
-
     vkDestroyCommandPool(vulkan->device, vulkan->command_pool, NULL);
 
     vulkan->command_pool = VK_NULL_HANDLE;
@@ -221,20 +213,19 @@ static void destroy_sync_internal(VULKAN *vulkan) {
     return;
 
   for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++) {
-
-    if (vulkan->image_available[i]) {
+    if (vulkan->image_available[i] != VK_NULL_HANDLE) {
       vkDestroySemaphore(vulkan->device, vulkan->image_available[i], NULL);
 
       vulkan->image_available[i] = VK_NULL_HANDLE;
     }
 
-    if (vulkan->render_finished[i]) {
+    if (vulkan->render_finished[i] != VK_NULL_HANDLE) {
       vkDestroySemaphore(vulkan->device, vulkan->render_finished[i], NULL);
 
       vulkan->render_finished[i] = VK_NULL_HANDLE;
     }
 
-    if (vulkan->in_flight[i]) {
+    if (vulkan->in_flight[i] != VK_NULL_HANDLE) {
       vkDestroyFence(vulkan->device, vulkan->in_flight[i], NULL);
 
       vulkan->in_flight[i] = VK_NULL_HANDLE;
@@ -242,7 +233,6 @@ static void destroy_sync_internal(VULKAN *vulkan) {
   }
 
   free(vulkan->images_in_flight);
-
   vulkan->images_in_flight = NULL;
 }
 
@@ -260,7 +250,6 @@ int create_sync(VULKAN *vulkan) {
   };
 
   for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++) {
-
     if (vkCreateSemaphore(vulkan->device, &semaphore, NULL, &vulkan->image_available[i]) != VK_SUCCESS)
       goto fail;
 
@@ -277,6 +266,7 @@ int create_sync(VULKAN *vulkan) {
     goto fail;
 
   return 0;
+
 fail:
   destroy_sync_internal(vulkan);
   return -1;
@@ -306,7 +296,6 @@ int VULKAN_RendererBeginFrame(VULKAN *vulkan) {
     return -1;
 
   if (vulkan->images_in_flight[vulkan->current_image] != VK_NULL_HANDLE) {
-
     result = vkWaitForFences(vulkan->device, 1, &vulkan->images_in_flight[vulkan->current_image], VK_TRUE, UINT64_MAX);
 
     if (result != VK_SUCCESS)
@@ -331,13 +320,18 @@ int VULKAN_RendererBeginFrame(VULKAN *vulkan) {
   vulkan->vertex_cursor = 0;
   vulkan->index_cursor = 0;
   vulkan->text_vertex_cursor = 0;
+
   vulkan->main_render_pass_begun = false;
+  vulkan->shadow_pass_begun = false;
 
   return 0;
 }
 
 void VULKAN_RendererBeginMainPass(VULKAN *vulkan) {
   if (!vulkan || vulkan->device == VK_NULL_HANDLE || vulkan->render_pass == VK_NULL_HANDLE || vulkan->main_render_pass_begun)
+    return;
+
+  if (vulkan->shadow_pass_begun)
     return;
 
   if (vulkan->current_frame >= VULKAN_MAX_FRAMES_IN_FLIGHT)
@@ -407,7 +401,6 @@ void VULKAN_RendererBeginMainPass(VULKAN *vulkan) {
   };
 
   vkCmdSetViewport(command, 0, 1, &viewport);
-
   vkCmdSetScissor(command, 0, 1, &scissor);
 
   vulkan->vertex_cursor = 0;
@@ -430,17 +423,54 @@ void VULKAN_RendererSetShadow(VULKAN *vulkan, const float *shadow_mvp, bool enab
   if (!vulkan || !shadow_mvp)
     return;
 
-  memcpy(&vulkan->shadow_mvp.Elements[0][0], shadow_mvp, sizeof(vulkan->shadow_mvp.Elements));
+  memcpy(vulkan->shadow_mvp[0].Elements, shadow_mvp, sizeof(vulkan->shadow_mvp[0].Elements));
 
   vulkan->shadow_enabled = enabled;
+  vulkan->shadow_mode = enabled ? 1u : 0u;
+  vulkan->shadow_bias = bias;
+  vulkan->shadow_light3d = NULL;
+}
+
+void VULKAN_RendererSetPointShadow(VULKAN *vulkan, const HMM_Mat4 *shadow_mvp, bool enabled, float bias) {
+  if (!vulkan || !shadow_mvp)
+    return;
+
+  for (uint32_t i = 0; i < VULKAN_POINT_SHADOW_FACES; i++)
+    vulkan->shadow_mvp[i + 1] = shadow_mvp[i];
+
+  vulkan->shadow_enabled = enabled;
+  vulkan->shadow_mode = enabled ? 2u : 0u;
   vulkan->shadow_bias = bias;
 }
 
-void VULKAN_RendererBeginShadowPass(VULKAN *vulkan) {
-  if (!vulkan || !vulkan->shadow_enabled)
+void VULKAN_RendererBeginShadowPass(VULKAN *vulkan, uint32_t shadow_map_index) {
+  if (!vulkan)
+    return;
+
+  if (vulkan->shadow_mode == 0)
+    return;
+
+  if (shadow_map_index >= VULKAN_SHADOW_MAP_COUNT)
+    return;
+
+  if (vulkan->shadow_pass_begun)
+    return;
+
+  if (vulkan->main_render_pass_begun)
+    return;
+
+  if (vulkan->current_frame >= VULKAN_MAX_FRAMES_IN_FLIGHT)
     return;
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
+
+  if (command == VK_NULL_HANDLE)
+    return;
+
+  VkFramebuffer framebuffer = vulkan->shadow_framebuffers[vulkan->current_frame][shadow_map_index];
+
+  if (framebuffer == VK_NULL_HANDLE)
+    return;
 
   VkClearValue clear = {
       .depthStencil = {1.0f, 0},
@@ -449,7 +479,7 @@ void VULKAN_RendererBeginShadowPass(VULKAN *vulkan) {
   VkRenderPassBeginInfo render = {
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .renderPass = vulkan->shadow_render_pass,
-      .framebuffer = vulkan->shadow_framebuffers[vulkan->current_frame],
+      .framebuffer = framebuffer,
       .renderArea =
           {
               .offset = {0, 0},
@@ -484,15 +514,18 @@ void VULKAN_RendererBeginShadowPass(VULKAN *vulkan) {
   };
 
   vkCmdSetViewport(command, 0, 1, &viewport);
-
   vkCmdSetScissor(command, 0, 1, &scissor);
+
+  vulkan->shadow_pass_begun = true;
 }
 
 void VULKAN_RendererEndShadowPass(VULKAN *vulkan) {
-  if (!vulkan || !vulkan->shadow_enabled)
+  if (!vulkan || !vulkan->shadow_pass_begun)
     return;
 
   vkCmdEndRenderPass(vulkan->command_buffers[vulkan->current_frame]);
+
+  vulkan->shadow_pass_begun = false;
 }
 
 int VULKAN_RendererEndFrame(VULKAN *vulkan) {
@@ -502,6 +535,11 @@ int VULKAN_RendererEndFrame(VULKAN *vulkan) {
   uint32_t frame = vulkan->current_frame;
 
   VkCommandBuffer command = vulkan->command_buffers[frame];
+
+  if (vulkan->shadow_pass_begun) {
+    vkCmdEndRenderPass(command);
+    vulkan->shadow_pass_begun = false;
+  }
 
   if (vulkan->main_render_pass_begun) {
     vkCmdEndRenderPass(command);
@@ -599,6 +637,9 @@ int VULKAN_RendererRecreateSwapchain(VULKAN *vulkan, bool vsync) {
   if (vkDeviceWaitIdle(vulkan->device) != VK_SUCCESS)
     return -1;
 
+  vulkan->main_render_pass_begun = false;
+  vulkan->shadow_pass_begun = false;
+
   if (vulkan->framebuffers) {
     for (uint32_t i = 0; i < vulkan->swapchain_image_count; i++) {
       if (vulkan->framebuffers[i] != VK_NULL_HANDLE) {
@@ -631,6 +672,7 @@ int VULKAN_RendererRecreateSwapchain(VULKAN *vulkan, bool vsync) {
   }
 
   free(vulkan->images_in_flight);
+  vulkan->images_in_flight = NULL;
 
   vulkan->images_in_flight = calloc(vulkan->swapchain_image_count, sizeof(VkFence));
 
@@ -654,7 +696,10 @@ int VULKAN_RendererRecreateSwapchain(VULKAN *vulkan, bool vsync) {
 
   vulkan->current_image = 0;
   vulkan->current_frame = 0;
+
   vulkan->main_render_pass_begun = false;
+  vulkan->shadow_pass_begun = false;
 
   return 0;
 }
+

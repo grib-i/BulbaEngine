@@ -123,11 +123,17 @@ int VULKAN_Init(VULKAN *v, GLFWwindow *w) {
 
   result = glfwCreateWindowSurface(v->instance, w, NULL, &v->surface);
 
-  if (result != VK_SUCCESS)
-    return fail_vk(v, "glfwCreateWindowSurface", result);
+  if (result != VK_SUCCESS) {
+    fail_vk(v, "glfwCreateWindowSurface", result);
+    VULKAN_Shutdown(v);
+    return -1;
+  }
 
-  if (pick_device(v) != 0)
-    return fail(v, "No Vulkan physical device with graphics and present support was found");
+  if (pick_device(v) != 0) {
+    fail(v, "No Vulkan physical device with graphics and present support was found");
+    VULKAN_Shutdown(v);
+    return -1;
+  }
 
   float priority = 1.0f;
 
@@ -155,15 +161,21 @@ int VULKAN_Init(VULKAN *v, GLFWwindow *w) {
 
   result = vkCreateDevice(v->physical_device, &device_info, NULL, &v->device);
 
-  if (result != VK_SUCCESS)
-    return fail_vk(v, "vkCreateDevice", result);
+  if (result != VK_SUCCESS) {
+    fail_vk(v, "vkCreateDevice", result);
+    VULKAN_Shutdown(v);
+    return -1;
+  }
 
   vkGetDeviceQueue(v->device, v->graphics_queue_family, 0, &v->graphics_queue);
 
   v->present_queue = v->graphics_queue;
 
-  if (VULKAN_CreateSwapchain(v, false) != 0)
-    return fail(v, "VULKAN_CreateSwapchain failed");
+  if (VULKAN_CreateSwapchain(v, false) != 0) {
+    fail(v, "VULKAN_CreateSwapchain failed");
+    VULKAN_Shutdown(v);
+    return -1;
+  }
 
   v->current_frame = 0;
 
@@ -195,9 +207,15 @@ void VULKAN_Shutdown(VULKAN *v) {
 
   if (v->instance != VK_NULL_HANDLE) {
     vkDestroyInstance(v->instance, NULL);
-
     v->instance = VK_NULL_HANDLE;
   }
+
+  v->physical_device = VK_NULL_HANDLE;
+  v->graphics_queue = VK_NULL_HANDLE;
+  v->present_queue = VK_NULL_HANDLE;
+  v->graphics_queue_family = 0;
+  v->current_frame = 0;
+  v->current_image = 0;
 }
 
 const char *VULKAN_GetLastError(const VULKAN *vulkan) {
@@ -206,3 +224,4 @@ const char *VULKAN_GetLastError(const VULKAN *vulkan) {
 
   return vulkan->last_error;
 }
+

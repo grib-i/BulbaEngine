@@ -1,5 +1,13 @@
 #pragma once
 
+#include <stdio.h>
+#include <wchar.h>
+
+static inline void DEBUG_InitStdIO(void) {
+  setvbuf(stdout, NULL, _IONBF, 0);
+  setvbuf(stderr, NULL, _IONBF, 0);
+}
+
 #ifdef NDEBUG
 
 #define printd(...) ((void)0)
@@ -7,9 +15,6 @@
 #define printp(...) ((void)0)
 
 #else
-
-#include <stdio.h>
-#include <wchar.h>
 
 #define printd(...) fprintf(stderr, __VA_ARGS__)
 #define wprintd(...) fwprintf(stderr, __VA_ARGS__)

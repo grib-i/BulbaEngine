@@ -40,3 +40,4 @@ char *read_binary(const char *path, size_t *size) {
 
   return buffer;
 }
+

@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void pack_material_payload(float material_out[4], float pbr_out[4], float emission_out[4], uint32_t material_ext_out[4],
+                                  uint32_t surface_out[8], uint32_t meta_out[4], const VulkanMaterial *material);
+
 static HMM_Vec3 calculate_face_normal(HMM_Vec3 a, HMM_Vec3 b, HMM_Vec3 c) { return HMM_Cross(HMM_SubV3(b, a), HMM_SubV3(c, a)); }
 
 static HMM_Vec3 safe_normalize(HMM_Vec3 value, HMM_Vec3 fallback) {
@@ -49,32 +52,39 @@ static void upload_vertex(VulkanVertex *vertices, size_t index, HMM_Vec3 positio
   };
 }
 
-static VkPipeline select_3d_pipeline(VULKAN *vulkan, BLB_RenderMode mode) {
-  if (mode < BLB_RENDER_OPAQUE || mode >= BLB_RENDER_MODE_COUNT)
-    mode = BLB_RENDER_OPAQUE;
-
-  return vulkan->pipeline_3d[mode];
+static uint32_t depth_variant(bool enabled, bool write) {
+  if (enabled && write) return 3u;
+  if (enabled) return 1u;
+  if (write) return 2u;
+  return 0u;
 }
 
-static VkPipelineLayout select_3d_layout(VULKAN *vulkan, BLB_RenderMode mode) {
+static VkPipeline select_3d_pipeline(VULKAN *vulkan, BLB_RenderMode mode, bool depth_enabled, bool depth_write) {
   if (mode < BLB_RENDER_OPAQUE || mode >= BLB_RENDER_MODE_COUNT)
     mode = BLB_RENDER_OPAQUE;
 
-  return vulkan->pipeline_layout_3d[mode];
+  return vulkan->pipeline_3d[mode][depth_variant(depth_enabled, depth_write)];
 }
 
-static VkPipeline select_2d_pipeline(VULKAN *vulkan, BLB_RenderMode mode) {
+static VkPipelineLayout select_3d_layout(VULKAN *vulkan, BLB_RenderMode mode, bool depth_enabled, bool depth_write) {
   if (mode < BLB_RENDER_OPAQUE || mode >= BLB_RENDER_MODE_COUNT)
     mode = BLB_RENDER_OPAQUE;
 
-  return vulkan->pipeline_2d[mode];
+  return vulkan->pipeline_layout_3d[mode][depth_variant(depth_enabled, depth_write)];
 }
 
-static VkPipelineLayout select_2d_layout(VULKAN *vulkan, BLB_RenderMode mode) {
+static VkPipeline select_2d_pipeline(VULKAN *vulkan, BLB_RenderMode mode, bool depth_enabled, bool depth_write) {
   if (mode < BLB_RENDER_OPAQUE || mode >= BLB_RENDER_MODE_COUNT)
     mode = BLB_RENDER_OPAQUE;
 
-  return vulkan->pipeline_layout_2d[mode];
+  return vulkan->pipeline_2d[mode][depth_variant(depth_enabled, depth_write)];
+}
+
+static VkPipelineLayout select_2d_layout(VULKAN *vulkan, BLB_RenderMode mode, bool depth_enabled, bool depth_write) {
+  if (mode < BLB_RENDER_OPAQUE || mode >= BLB_RENDER_MODE_COUNT)
+    mode = BLB_RENDER_OPAQUE;
+
+  return vulkan->pipeline_layout_2d[mode][depth_variant(depth_enabled, depth_write)];
 }
 
 static void identity_rows(float rows[12]) {
@@ -201,18 +211,28 @@ void VULKAN_RendererDrawTriangle(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec
   upload_vertex(vertices, start + 2, c, normal, r, g, b_color, a_color, HMM_V2(0.5f, 1.0f));
 
   float rows[12];
-  float normal_rows[12];
-
   identity_rows(rows);
-  identity_rows(normal_rows);
 
   VulkanMaterial material = {
       .lighting_enabled = true,
+      .depth_enabled = true,
+      .depth_write = true,
+      .double_sided = false,
+      .unlit = false,
+      .alpha_mode = BLB_ALPHA_OPAQUE,
+      .alpha_cutoff = 0.5f,
       .emission = 0.0f,
       .glow = 0.0f,
       .roundness = 0.0f,
       .glow_radius = 0.0f,
       .glow_falloff = 0.0f,
+      .metallic = 0.0f,
+      .roughness = 0.65f,
+      .specular = 1.0f,
+      .occlusion = 1.0f,
+      .specular_color = {1.0f, 1.0f, 1.0f},
+      .emission_color = {1.0f, 1.0f, 1.0f, 1.0f},
+      .temperature = 6500.0f,
       .render_mode = BLB_RENDER_OPAQUE,
   };
 
@@ -226,17 +246,17 @@ void VULKAN_RendererDrawTriangle(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec
 
   update_light_buffer_3d(vulkan);
 
-  VkPipeline pipeline = select_3d_pipeline(vulkan, material.render_mode);
+  VkPipeline pipeline = select_3d_pipeline(vulkan, material.render_mode, material.depth_enabled, material.depth_write);
 
-  VkPipelineLayout layout = select_3d_layout(vulkan, material.render_mode);
+  VkPipelineLayout layout = select_3d_layout(vulkan, material.render_mode, material.depth_enabled, material.depth_write);
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
   vkCmdBindVertexBuffers(command, 0, 1, &buffer, &offset);
 
-  VULKAN_RendererBindTexture(vulkan, layout, NULL);
+  VULKAN_RendererBindMaterial(vulkan, layout, &material);
 
-  push_lighting(vulkan, layout, mvp, rows, normal_rows, &material, 0);
+  push_lighting(vulkan, layout, mvp, rows, &material, 0);
 
   vkCmdDraw(command, 3, 1, 0, 0);
 
@@ -277,19 +297,38 @@ void VULKAN_RendererDrawTriangle2D(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_V
 
   VulkanMaterial material = {
       .lighting_enabled = lighting_enabled != 0,
+      .depth_enabled = false,
+      .depth_write = false,
+      .double_sided = true,
+      .unlit = lighting_enabled == 0,
+      .alpha_mode = BLB_ALPHA_OPAQUE,
+      .alpha_cutoff = 0.5f,
       .emission = 0.0f,
       .glow = 0.0f,
       .roundness = 0.0f,
       .glow_radius = 0.0f,
       .glow_falloff = 0.0f,
+      .metallic = 0.0f,
+      .roughness = 0.65f,
+      .specular = 1.0f,
+      .occlusion = 1.0f,
+      .specular_color = {1.0f, 1.0f, 1.0f},
+      .emission_color = {1.0f, 1.0f, 1.0f, 1.0f},
+      .temperature = 6500.0f,
       .render_mode = BLB_RENDER_OPAQUE,
   };
 
   (void)mvp;
   (void)camera_position;
 
-  VULKAN_RendererDrawPolygon2D(vulkan, &polygon, (float)vulkan->swapchain_extent.width, (float)vulkan->swapchain_extent.height, r, g, b_color,
-                               a_color, &material, NULL);
+  HMM_Vec2 world_positions[3] = {
+      vertices[0],
+      vertices[1],
+      vertices[2],
+  };
+
+  VULKAN_RendererDrawPolygon2D(vulkan, &polygon, world_positions, (float)vulkan->swapchain_extent.width,
+                               (float)vulkan->swapchain_extent.height, r, g, b_color, a_color, &material, NULL);
 }
 
 void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, HMM_Vec3 camera_position) {
@@ -347,18 +386,28 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
   free(computed_normals);
 
   float rows[12];
-  float normal_rows[12];
-
   identity_rows(rows);
-  identity_rows(normal_rows);
 
   VulkanMaterial material = {
       .lighting_enabled = true,
+      .depth_enabled = true,
+      .depth_write = true,
+      .double_sided = false,
+      .unlit = false,
+      .alpha_mode = BLB_ALPHA_OPAQUE,
+      .alpha_cutoff = 0.5f,
       .emission = 0.0f,
       .glow = 0.0f,
       .roundness = 0.0f,
       .glow_radius = 0.0f,
       .glow_falloff = 0.0f,
+      .metallic = 0.0f,
+      .roughness = 0.65f,
+      .specular = 1.0f,
+      .occlusion = 1.0f,
+      .specular_color = {1.0f, 1.0f, 1.0f},
+      .emission_color = {1.0f, 1.0f, 1.0f, 1.0f},
+      .temperature = 6500.0f,
       .render_mode = BLB_RENDER_OPAQUE,
   };
 
@@ -372,9 +421,9 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
 
   update_light_buffer_3d(vulkan);
 
-  VkPipeline pipeline = select_3d_pipeline(vulkan, material.render_mode);
+  VkPipeline pipeline = select_3d_pipeline(vulkan, material.render_mode, material.depth_enabled, material.depth_write);
 
-  VkPipelineLayout layout = select_3d_layout(vulkan, material.render_mode);
+  VkPipelineLayout layout = select_3d_layout(vulkan, material.render_mode, material.depth_enabled, material.depth_write);
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
@@ -382,9 +431,9 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
 
   vkCmdBindIndexBuffer(command, vulkan->index_buffers[vulkan->current_frame].buffer, 0, VK_INDEX_TYPE_UINT32);
 
-  VULKAN_RendererBindTexture(vulkan, layout, NULL);
+  VULKAN_RendererBindMaterial(vulkan, layout, &material);
 
-  push_lighting(vulkan, layout, mvp, rows, normal_rows, &material, 0);
+  push_lighting(vulkan, layout, mvp, rows, &material, 0);
 
   vkCmdDrawIndexed(command, (uint32_t)mesh->index_count, 1, (uint32_t)index_start, 0, 0);
 
@@ -393,9 +442,9 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
   vulkan->index_cursor += mesh->index_count;
 }
 
-void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float *mvp, const float *model_rows, const float *normal_rows,
+void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float *mvp, const float *model_rows,
                                   float r, float g, float b, float a, const VulkanMaterial *material, BLB_Texture *texture) {
-  if (!vulkan || !polygon || !mvp || !model_rows || !normal_rows || !material || !polygon->vertices || !polygon->indices)
+  if (!vulkan || !polygon || !mvp || !model_rows || !material || !polygon->vertices || !polygon->indices)
     return;
 
   if (polygon->vertex_count == 0 || polygon->index_count < 3 || polygon->index_count % 3 != 0)
@@ -446,11 +495,9 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
 
   VkDeviceSize offset = vertex_start * sizeof(VulkanVertex);
 
-  VkPipeline pipeline = select_3d_pipeline(vulkan, material->render_mode);
+  VkPipeline pipeline = select_3d_pipeline(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
 
-  VkPipelineLayout layout = select_3d_layout(vulkan, material->render_mode);
-
-  update_light_buffer_3d(vulkan);
+  VkPipelineLayout layout = select_3d_layout(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
@@ -458,9 +505,11 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
 
   vkCmdBindIndexBuffer(command, vulkan->index_buffers[vulkan->current_frame].buffer, 0, VK_INDEX_TYPE_UINT32);
 
-  VULKAN_RendererBindTexture(vulkan, layout, texture);
+  VulkanMaterial bound_material = *material;
+  bound_material.base_texture_override = texture;
+  VULKAN_RendererBindMaterial(vulkan, layout, &bound_material);
 
-  push_lighting(vulkan, layout, mvp, model_rows, normal_rows, material, 0);
+  push_lighting(vulkan, layout, mvp, model_rows, material, 0);
 
   vkCmdDrawIndexed(command, (uint32_t)polygon->index_count, 1, (uint32_t)index_start, 0, 0);
 
@@ -469,8 +518,9 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
   vulkan->index_cursor += polygon->index_count;
 }
 
-void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, float viewport_width, float viewport_height, float r, float g,
-                                  float b, float a, const VulkanMaterial *material, BLB_Texture *texture) {
+void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, const HMM_Vec2 *world_positions, float viewport_width,
+                                  float viewport_height, float r, float g, float b, float a, const VulkanMaterial *material,
+                                  BLB_Texture *texture) {
   if (!vulkan || !polygon || !material || !polygon->vertices || !polygon->indices)
     return;
 
@@ -520,9 +570,9 @@ void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, 
             },
         .normal =
             {
+                (world_positions ? world_positions[i].x : polygon->vertices[i].x),
+                (world_positions ? world_positions[i].y : polygon->vertices[i].y),
                 0.0f,
-                0.0f,
-                1.0f,
             },
         .uv =
             {
@@ -542,28 +592,14 @@ void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, 
 
   VkDeviceSize offset = vertex_start * sizeof(VulkanVertex);
 
-  VkPipeline pipeline = select_2d_pipeline(vulkan, material->render_mode);
+  VkPipeline pipeline = select_2d_pipeline(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
 
-  VkPipelineLayout layout = select_2d_layout(vulkan, material->render_mode);
+  VkPipelineLayout layout = select_2d_layout(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
 
-  Vulkan2DPushConstants push = {
-      .viewport =
-          {
-              viewport_width,
-              viewport_height,
-              0.0f,
-              0.0f,
-          },
-      .material =
-          {
-              material->lighting_enabled ? 1.0f : 0.0f,
-              fmaxf(material->emission, 0.0f),
-              fmaxf(material->glow, 0.0f),
-              fmaxf(material->roundness, 0.0f),
-          },
-  };
-
-  update_light_buffer_2d(vulkan);
+  Vulkan2DPushConstants push = {0};
+  push.viewport[0] = viewport_width;
+  push.viewport[1] = viewport_height;
+  pack_material_payload(push.material, push.pbr, push.emission, push.material_ext, push.surface, push.meta, material);
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
@@ -571,7 +607,9 @@ void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, 
 
   vkCmdBindIndexBuffer(command, vulkan->index_buffers[vulkan->current_frame].buffer, 0, VK_INDEX_TYPE_UINT32);
 
-  VULKAN_RendererBindTexture(vulkan, layout, texture);
+  VulkanMaterial bound_material = *material;
+  bound_material.base_texture_override = texture;
+  VULKAN_RendererBindMaterial(vulkan, layout, &bound_material);
 
   vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &vulkan->light_descriptor_sets_2d[vulkan->current_frame], 0, NULL);
 
@@ -635,38 +673,132 @@ void VULKAN_RendererDrawShadowPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *pol
   vkCmdDraw(command, (uint32_t)polygon->index_count, 1, 0, 0);
 }
 
-void push_lighting(VULKAN *vulkan, VkPipelineLayout layout, const float *mvp, const float *model_rows, const float *normal_rows,
+static uint16_t pack_unorm16(float value, float min_value, float max_value) {
+  if (!(max_value > min_value))
+    return 0;
+
+  float t = (value - min_value) / (max_value - min_value);
+  t = fminf(fmaxf(t, 0.0f), 1.0f);
+  return (uint16_t)lroundf(t * 65535.0f);
+}
+
+static uint32_t pack_pair16(float a, float a_min, float a_max, float b, float b_min, float b_max) {
+  uint32_t pa = pack_unorm16(a, a_min, a_max);
+  uint32_t pb = pack_unorm16(b, b_min, b_max);
+  return pa | (pb << 16u);
+}
+
+static uint32_t pack_rgb10(const float color[3]) {
+  uint32_t r = (uint32_t)lroundf(fminf(fmaxf(color[0], 0.0f), 1.0f) * 1023.0f);
+  uint32_t g = (uint32_t)lroundf(fminf(fmaxf(color[1], 0.0f), 1.0f) * 1023.0f);
+  uint32_t b = (uint32_t)lroundf(fminf(fmaxf(color[2], 0.0f), 1.0f) * 1023.0f);
+  return r | (g << 10u) | (b << 20u);
+}
+
+static uint32_t material_texture_mask(const VulkanMaterial *material) {
+  if (!material || !material->source_material)
+    return material && material->base_texture_override ? 1u : 0u;
+
+  const BLB_Material *m = material->source_material;
+  uint32_t mask = 0;
+  const BLB_MaterialTexture *slots[] = {
+      &m->base_color_texture,
+      &m->metallic_roughness_texture,
+      &m->normal_texture,
+      &m->occlusion_texture,
+      &m->emission_texture,
+      &m->specular_texture,
+      &m->specular_color_texture,
+      &m->clearcoat_texture,
+      &m->clearcoat_roughness_texture,
+      &m->clearcoat_normal_texture,
+      &m->transmission_texture,
+      &m->thickness_texture,
+      &m->sheen_color_texture,
+      &m->sheen_roughness_texture,
+      &m->iridescence_texture,
+      &m->iridescence_thickness_texture,
+      &m->anisotropy_texture,
+  };
+
+  for (uint32_t i = 0; i < 17u; i++) {
+    if (slots[i] && slots[i]->texture)
+      mask |= 1u << i;
+  }
+
+  if (!(mask & 1u) && material->base_texture_override)
+    mask |= 1u;
+
+  return mask;
+}
+
+static void pack_material_payload(float material_out[4], float pbr_out[4], float emission_out[4], uint32_t material_ext_out[4],
+                                  uint32_t surface_out[8], uint32_t meta_out[4], const VulkanMaterial *material) {
+  if (!material)
+    return;
+
+  uint32_t flags = 0;
+  if (material->double_sided)
+    flags |= 1u << 0u;
+  if (material->unlit)
+    flags |= 1u << 1u;
+  flags |= ((uint32_t)material->alpha_mode & 0x3u) << 2u;
+  if (material->depth_enabled)
+    flags |= 1u << 4u;
+  if (material->depth_write)
+    flags |= 1u << 5u;
+  uint32_t cutoff = (uint32_t)lroundf(fminf(fmaxf(material->alpha_cutoff, 0.0f), 1.0f) * 1023.0f);
+  flags |= (cutoff & 0x3ffu) << 6u;
+
+  material_out[0] = material->lighting_enabled ? 1.0f : 0.0f;
+  material_out[1] = fmaxf(material->emission, 0.0f);
+  material_out[2] = fmaxf(material->glow, 0.0f);
+  material_out[3] = 0.0f;
+
+  pbr_out[0] = fminf(fmaxf(material->metallic, 0.0f), 1.0f);
+  pbr_out[1] = fminf(fmaxf(material->roughness, 0.045f), 1.0f);
+  pbr_out[2] = fminf(fmaxf(material->specular, 0.0f), 1.0f);
+  pbr_out[3] = fminf(fmaxf(material->occlusion, 0.0f), 1.0f);
+
+  emission_out[0] = material->emission_color[0];
+  emission_out[1] = material->emission_color[1];
+  emission_out[2] = material->emission_color[2];
+  emission_out[3] = material->temperature;
+
+  material_ext_out[0] = pack_rgb10(material->specular_color);
+  material_ext_out[1] = pack_rgb10(material->attenuation_color);
+  material_ext_out[2] = pack_rgb10(material->sheen_color);
+  union { uint32_t u; float f; } entity_bits;
+  entity_bits.f = material->entity_id;
+  material_ext_out[3] = entity_bits.u;
+
+  surface_out[0] = pack_pair16(material->normal_scale, 0.0f, 4.0f, material->ior, 1.0f, 4.0f);
+  surface_out[1] = pack_pair16(material->transmission, 0.0f, 1.0f, material->volume_thickness, 0.0f, 100.0f);
+  surface_out[2] = pack_pair16(material->attenuation_distance, 0.0f, 1000.0f, material->clearcoat_factor, 0.0f, 1.0f);
+  surface_out[3] = pack_pair16(material->clearcoat_roughness, 0.0f, 1.0f, material->clearcoat_normal_scale, 0.0f, 4.0f);
+  surface_out[4] = pack_pair16(material->sheen_roughness, 0.0f, 1.0f, material->iridescence_factor, 0.0f, 1.0f);
+  surface_out[5] = pack_pair16(material->iridescence_ior, 1.0f, 4.0f, material->iridescence_thickness_min, 0.0f, 2000.0f);
+  surface_out[6] = pack_pair16(material->iridescence_thickness_max, 0.0f, 2000.0f, material->anisotropy_strength, 0.0f, 1.0f);
+  surface_out[7] = pack_pair16(material->anisotropy_rotation, -3.14159265358979323846f, 3.14159265358979323846f, material->dispersion, 0.0f, 1.0f);
+  memset(meta_out, 0, sizeof(uint32_t) * 4u);
+  meta_out[0] = material_texture_mask(material);
+  meta_out[1] = flags;
+}
+
+void push_lighting(VULKAN *vulkan, VkPipelineLayout layout, const float *mvp, const float *model_rows,
                    const VulkanMaterial *material, int is_2d) {
-  if (!vulkan || !mvp || !model_rows || !normal_rows || !material || vulkan->current_frame >= VULKAN_MAX_FRAMES_IN_FLIGHT)
+  if (!vulkan || !mvp || !model_rows || !material || vulkan->current_frame >= VULKAN_MAX_FRAMES_IN_FLIGHT)
     return;
 
   VulkanLightingPushConstants data = {0};
-
   memcpy(data.mvp, mvp, sizeof(data.mvp));
-
   memcpy(data.model_rows, model_rows, sizeof(data.model_rows));
-
-  memcpy(data.normal_rows, normal_rows, sizeof(data.normal_rows));
-
-  data.material[0] = material->lighting_enabled ? 1.0f : 0.0f;
-
-  data.material[1] = fmaxf(material->emission, 0.0f);
-
-  data.material[2] = fmaxf(material->glow, 0.0f);
-
-  data.material[3] = fmaxf(material->roundness, 0.0f);
-
-  if (is_2d)
-    update_light_buffer_2d(vulkan);
-  else
-    update_light_buffer_3d(vulkan);
+  pack_material_payload(data.material, data.pbr, data.emission, data.material_ext, data.surface, data.meta, material);
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
-
   VkDescriptorSet descriptor_set =
       is_2d ? vulkan->light_descriptor_sets_2d[vulkan->current_frame] : vulkan->light_descriptor_sets_3d[vulkan->current_frame];
 
   vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptor_set, 0, NULL);
-
   vkCmdPushConstants(command, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(data), &data);
 }

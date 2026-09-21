@@ -5,6 +5,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #define BLB_MATERIAL_NAME_MAX 64
 
@@ -35,7 +36,10 @@ typedef BLB_Texture *(*BLB_MaterialTextureLoadFn)(const char *path, void *user_d
 typedef void (*BLB_MaterialTextureRetainFn)(BLB_Texture *texture, void *user_data);
 typedef void (*BLB_MaterialTextureReleaseFn)(BLB_Texture *texture, void *user_data);
 
-typedef struct BLB_Material {
+typedef struct BLB_Material BLB_Material;
+typedef void (*BLB_MaterialConfigureFn)(BLB_Material *material);
+
+struct BLB_Material {
   size_t ref_count;
   BLB_MaterialDomain domain;
   BLB_RenderMode render_mode;
@@ -89,6 +93,7 @@ typedef struct BLB_Material {
   float glow_strength;
   float glow_radius;
   float glow_falloff;
+  float temperature;
 
   BLB_MaterialTexture base_color_texture;
   BLB_MaterialTexture metallic_roughness_texture;
@@ -124,11 +129,17 @@ typedef struct BLB_Material {
   void *texture_user_data;
 
   void *user_data;
-} BLB_Material;
+
+  /* Renderer-side cache revision. Opaque backend state is owned by the renderer. */
+  uint64_t revision;
+  void *backend_data;
+  void (*backend_destroy)(void *backend_data);
+};
 
 BLB_Material *BLB_Material_Create(BLB_MaterialDomain domain);
 BLB_Material *BLB_Material_Create2D(void);
 BLB_Material *BLB_Material_Create3D(void);
+BLB_Material *BLB_Material_Build(BLB_MaterialDomain domain, BLB_MaterialConfigureFn configure);
 
 BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn texture_load, BLB_MaterialTextureRetainFn texture_retain,
                                 BLB_MaterialTextureReleaseFn texture_release, void *user_data);
@@ -141,6 +152,7 @@ void BLB_Material_SetName(BLB_Material *material, const char *name);
 void BLB_Material_SetDomain(BLB_Material *material, BLB_MaterialDomain domain);
 void BLB_Material_SetBaseColor(BLB_Material *material, float r, float g, float b, float a);
 void BLB_Material_SetEmission(BLB_Material *material, float r, float g, float b, float a, float strength);
+void BLB_Material_SetAlphaCutoff(BLB_Material *material, float cutoff);
 void BLB_Material_SetPBR(BLB_Material *material, float metallic, float roughness);
 void BLB_Material_SetNormal(BLB_Material *material, float scale);
 void BLB_Material_SetOcclusion(BLB_Material *material, float strength);
@@ -154,6 +166,7 @@ void BLB_Material_SetIridescence(BLB_Material *material, float factor, float ior
 void BLB_Material_SetAnisotropy(BLB_Material *material, float strength, float rotation);
 void BLB_Material_SetDispersion(BLB_Material *material, float dispersion);
 void BLB_Material_SetGlow(BLB_Material *material, float strength, float radius, float falloff);
+void BLB_Material_SetTemperature(BLB_Material *material, float kelvin);
 void BLB_Material_SetRenderMode(BLB_Material *material, BLB_RenderMode mode);
 void BLB_Material_SetAlphaMode(BLB_Material *material, BLB_AlphaMode mode);
 void BLB_Material_SetLighting(BLB_Material *material, bool enabled);
@@ -168,6 +181,7 @@ void BLB_MaterialTexture_SetTransform(BLB_MaterialTexture *texture, float offset
 void BLB_MaterialTexture_SetSampler(BLB_MaterialTexture *texture, BLB_TextureWrap wrap_u, BLB_TextureWrap wrap_v, BLB_TextureFilter min_filter,
                                     BLB_TextureFilter mag_filter);
 bool BLB_MaterialTexture_Valid(const BLB_MaterialTexture *texture);
+uint64_t BLB_Material_TextureStateRevision(void);
 
 bool BLB_Material_IsGlowing(const BLB_Material *material);
 

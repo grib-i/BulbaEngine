@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+static BLB_Polygon3D **polygon = NULL;
+
 int BLB_LoadModelOBJ(const char *path, Mesh *m) {
   (void)path;
   if (!m)

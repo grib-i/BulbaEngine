@@ -20,7 +20,7 @@
 #include "bulba/core/render/shader.h"
 #include "bulba/core/render/texture.h"
 #include "bulba/core/scene.h"
-#include "bulba/core/utils/debug.h"
+#include "bulba/core/utils/config.h"
 #include "bulba/core/utils/font.h"
 #include "bulba/core/utils/fps.h"
 #include "bulba/core/window.h"
@@ -28,5 +28,7 @@
 #include "bulba/graphics/vulkan/vulkan.h"
 #include "bulba/plugins/bpl.h"
 #include "bulba/plugins/plugin.h"
+
+void BLB_Init(void);
 
 #endif

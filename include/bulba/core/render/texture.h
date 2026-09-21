@@ -29,6 +29,8 @@ typedef struct BLB_Texture {
   unsigned char *pixels;
   size_t pixel_size;
 
+  bool clamp_to_edge;
+
   void *backend_data;
 
   void (*backend_destroy)(void *backend_data);

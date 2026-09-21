@@ -7,6 +7,7 @@
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
 #include "bulba/core/render_mode.h"
+#include "bulba/core/utils/object.h"
 
 #include <stdbool.h>
 
@@ -19,6 +20,9 @@ typedef struct {
 
   BLB_Material *material;
   BLB_Texture *texture;
+
+  BLB_ObjectType type;
+  BLB_ObjectID *id;
 
   BLB_RigidBody *rigid_body;
   BLB_Collider *collider;

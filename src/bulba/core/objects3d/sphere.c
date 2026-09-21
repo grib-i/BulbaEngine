@@ -3,9 +3,28 @@
 #include "bulba/core/objects3d/objects3d.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
+#include "bulba/core/utils/object.h"
 
 #include <math.h>
+#include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
+
+static BLB_Polygon3D *polygon = NULL;
+
+static void BLB_SphereFreePolygon(void) {
+  if (polygon == NULL)
+    return;
+
+  free(polygon->vertices);
+  free(polygon->base_vertices);
+  free(polygon->uvs);
+  free(polygon->indices);
+  free(polygon->normals);
+  free(polygon);
+
+  polygon = NULL;
+}
 
 static size_t sphere_get_slices(int level_of_detail) {
   static const size_t lod_slices[] = {12, 16, 24, 32, 48, 64, 80, 96};
@@ -24,181 +43,218 @@ static size_t sphere_get_slices(int level_of_detail) {
 }
 
 BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of_detail, BLB_Texture *texture) {
+
   BLB_Object3D *object = calloc(1, sizeof(*object));
+
   if (object == NULL)
     return NULL;
 
-  const size_t slices = sphere_get_slices(level_of_detail);
-  const size_t stacks = slices / 2;
-  const size_t vertex_count = 2 + (stacks - 1) * (slices + 1);
-  const size_t index_count = 6 * slices * (stacks - 1);
+  bool polygon_created = false;
 
-  object->delta_time = calloc(1, sizeof(float));
-  object->polygon = calloc(1, sizeof(*object->polygon));
+  object->delta_time = calloc(1, sizeof(*object->delta_time));
 
-  if (object->delta_time == NULL || object->polygon == NULL) {
+  if (object->delta_time == NULL)
+    goto fail;
 
-    free(object->polygon);
-    free(object->delta_time);
-    free(object);
+  object->type = BLB_OBJECT_SPHERE;
 
-    return NULL;
-  }
+  if (BLB_OBJECTS_ID == NULL || object->type >= BLB_OBJECTS_ID_COUNT)
+    goto fail;
 
-  object->polygon->vertices = malloc(sizeof(HMM_Vec3) * vertex_count);
-  object->polygon->base_vertices = malloc(sizeof(HMM_Vec3) * vertex_count);
-  object->polygon->uvs = malloc(sizeof(HMM_Vec2) * vertex_count);
-  object->polygon->indices = malloc(sizeof(unsigned int) * index_count);
+  object->id = &BLB_OBJECTS_ID[object->type];
 
-  if (object->polygon->vertices == NULL || object->polygon->base_vertices == NULL || object->polygon->uvs == NULL ||
-      object->polygon->indices == NULL) {
+  if (polygon == NULL && object->id->id == 0 && strcmp(object->id->id_type, "sphere") == 0) {
 
-    free(object->polygon->vertices);
-    free(object->polygon->base_vertices);
-    free(object->polygon->uvs);
-    free(object->polygon->indices);
-    free(object->polygon);
-    free(object->delta_time);
-    free(object);
+    polygon = calloc(1, sizeof(*object->polygon));
 
-    return NULL;
-  }
+    if (polygon == NULL)
+      goto fail;
 
-  object->mesh.vertices = object->polygon->vertices;
-  object->mesh.normals = NULL;
-  object->mesh.uvs = object->polygon->uvs;
-  object->mesh.vertex_count = vertex_count;
-  object->mesh.indices = object->polygon->indices;
-  object->mesh.index_count = index_count;
+    polygon_created = true;
 
-  float *sin_theta = malloc(sizeof(float) * (slices + 1));
-  float *cos_theta = malloc(sizeof(float) * (slices + 1));
-  float *sin_phi = malloc(sizeof(float) * (stacks + 1));
-  float *cos_phi = malloc(sizeof(float) * (stacks + 1));
+    const size_t slices = sphere_get_slices(level_of_detail);
 
-  if (sin_theta == NULL || cos_theta == NULL || sin_phi == NULL || cos_phi == NULL) {
+    const size_t stacks = slices / 2;
+
+    const size_t vertex_count = 2 + (stacks - 1) * (slices + 1);
+
+    const size_t index_count = 6 * slices * (stacks - 1);
+
+    polygon->vertices = malloc(sizeof(HMM_Vec3) * vertex_count);
+
+    polygon->base_vertices = malloc(sizeof(HMM_Vec3) * vertex_count);
+
+    polygon->uvs = malloc(sizeof(HMM_Vec2) * vertex_count);
+
+    polygon->indices = malloc(sizeof(unsigned int) * index_count);
+
+    if (polygon->vertices == NULL || polygon->base_vertices == NULL || polygon->uvs == NULL || polygon->indices == NULL)
+      goto fail;
+
+    float *sin_theta = malloc(sizeof(float) * (slices + 1));
+
+    float *cos_theta = malloc(sizeof(float) * (slices + 1));
+
+    float *sin_phi = malloc(sizeof(float) * (stacks + 1));
+
+    float *cos_phi = malloc(sizeof(float) * (stacks + 1));
+
+    if (sin_theta == NULL || cos_theta == NULL || sin_phi == NULL || cos_phi == NULL) {
+
+      free(sin_theta);
+      free(cos_theta);
+      free(sin_phi);
+      free(cos_phi);
+
+      goto fail;
+    }
+
+    for (size_t j = 0; j <= slices; j++) {
+      const float theta = 2.0f * (float)M_PI * (float)j / (float)slices;
+
+      sin_theta[j] = sinf(theta);
+      cos_theta[j] = cosf(theta);
+    }
+
+    for (size_t i = 0; i <= stacks; i++) {
+      const float phi = (float)M_PI * (float)i / (float)stacks;
+
+      sin_phi[i] = sinf(phi);
+      cos_phi[i] = cosf(phi);
+    }
+
+    size_t vertex_index = 0;
+
+    const HMM_Vec3 top = HMM_V3(0.0f, 0.5f, 0.0f);
+
+    polygon->vertices[vertex_index] = top;
+    polygon->base_vertices[vertex_index] = top;
+    polygon->uvs[vertex_index] = HMM_V2(0.5f, 0.0f);
+
+    vertex_index++;
+
+    for (size_t i = 1; i < stacks; i++) {
+      const float sin_current_phi = sin_phi[i];
+
+      const float cos_current_phi = cos_phi[i];
+
+      const float v = (float)i / (float)stacks;
+
+      for (size_t j = 0; j <= slices; j++) {
+        HMM_Vec3 vertex = HMM_V3(0.5f * sin_current_phi * cos_theta[j], 0.5f * cos_current_phi, 0.5f * sin_current_phi * sin_theta[j]);
+
+        polygon->vertices[vertex_index] = vertex;
+
+        polygon->base_vertices[vertex_index] = vertex;
+
+        polygon->uvs[vertex_index] = HMM_V2((float)j / (float)slices, v);
+
+        vertex_index++;
+      }
+    }
+
+    const size_t bottom_index = vertex_index;
+
+    const HMM_Vec3 bottom = HMM_V3(0.0f, -0.5f, 0.0f);
+
+    polygon->vertices[bottom_index] = bottom;
+
+    polygon->base_vertices[bottom_index] = bottom;
+
+    polygon->uvs[bottom_index] = HMM_V2(0.5f, 1.0f);
+
+    size_t index = 0;
+
+    for (size_t j = 0; j < slices; j++) {
+      const size_t current = 1 + j;
+      const size_t next = current + 1;
+
+      polygon->indices[index++] = 0;
+      polygon->indices[index++] = (unsigned int)next;
+      polygon->indices[index++] = (unsigned int)current;
+    }
+
+    for (size_t i = 0; i < stacks - 2; i++) {
+      const size_t row = 1 + i * (slices + 1);
+
+      const size_t next_row = row + slices + 1;
+
+      for (size_t j = 0; j < slices; j++) {
+        const size_t a = row + j;
+        const size_t b = row + j + 1;
+        const size_t c = next_row + j;
+        const size_t d = next_row + j + 1;
+
+        polygon->indices[index++] = (unsigned int)a;
+
+        polygon->indices[index++] = (unsigned int)b;
+
+        polygon->indices[index++] = (unsigned int)c;
+
+        polygon->indices[index++] = (unsigned int)b;
+
+        polygon->indices[index++] = (unsigned int)d;
+
+        polygon->indices[index++] = (unsigned int)c;
+      }
+    }
+
+    const size_t bottom_row = 1 + (stacks - 2) * (slices + 1);
+
+    for (size_t j = 0; j < slices; j++) {
+      const size_t current = bottom_row + j;
+
+      const size_t next = current + 1;
+
+      polygon->indices[index++] = (unsigned int)current;
+
+      polygon->indices[index++] = (unsigned int)next;
+
+      polygon->indices[index++] = (unsigned int)bottom_index;
+    }
 
     free(sin_theta);
     free(cos_theta);
     free(sin_phi);
     free(cos_phi);
 
-    free(object->polygon->vertices);
-    free(object->polygon->base_vertices);
-    free(object->polygon->uvs);
-    free(object->polygon->indices);
+    polygon->vertex_count = vertex_count;
 
-    free(object->polygon);
-    free(object->delta_time);
-    free(object);
+    polygon->index_count = index_count;
 
-    return NULL;
+  } else if (object->id->id == BLB_INVALID_OBJECT_ID) {
+
+    goto fail;
+
+  } else {
+
+    object->polygon = polygon;
   }
 
-  for (size_t j = 0; j <= slices; j++) {
-    float theta = 2.0f * (float)M_PI * (float)j / (float)slices;
+  if (object->polygon == NULL)
+    object->polygon = polygon;
 
-    sin_theta[j] = sinf(theta);
-    cos_theta[j] = cosf(theta);
-  }
+  if (object->delta_time == NULL || object->polygon == NULL)
+    goto fail;
 
-  for (size_t i = 0; i <= stacks; i++) {
-    float phi = (float)M_PI * (float)i / (float)stacks;
+  object->polygon = polygon;
 
-    sin_phi[i] = sinf(phi);
-    cos_phi[i] = cosf(phi);
-  }
+  object->id->id++;
 
-  size_t vertex_index = 0;
-  const HMM_Vec3 top = HMM_V3(0.0f, 0.5f, 0.0f);
+  object->mesh.vertices = object->polygon->vertices;
 
-  object->polygon->vertices[vertex_index] = top;
-  object->polygon->base_vertices[vertex_index] = top;
-  object->polygon->uvs[vertex_index] = HMM_V2(0.5f, 0.0f);
+  object->mesh.normals = NULL;
 
-  vertex_index++;
+  object->mesh.uvs = object->polygon->uvs;
 
-  for (size_t i = 1; i < stacks; i++) {
-    const float sin_current_phi = sin_phi[i];
-    const float cos_current_phi = cos_phi[i];
+  object->mesh.vertex_count = object->polygon->vertex_count;
 
-    const float v = (float)i / (float)stacks;
+  object->mesh.indices = object->polygon->indices;
 
-    for (size_t j = 0; j <= slices; j++) {
-      HMM_Vec3 vertex = HMM_V3(0.5f * sin_current_phi * cos_theta[j], 0.5f * cos_current_phi, 0.5f * sin_current_phi * sin_theta[j]);
-
-      object->polygon->vertices[vertex_index] = vertex;
-
-      object->polygon->base_vertices[vertex_index] = vertex;
-
-      object->polygon->uvs[vertex_index] = HMM_V2((float)j / (float)slices, v);
-
-      vertex_index++;
-    }
-  }
-
-  const size_t bottom_index = vertex_index;
-
-  const HMM_Vec3 bottom = HMM_V3(0.0f, -0.5f, 0.0f);
-
-  object->polygon->vertices[bottom_index] = bottom;
-  object->polygon->base_vertices[bottom_index] = bottom;
-  object->polygon->uvs[bottom_index] = HMM_V2(0.5f, 1.0f);
-
-  size_t index = 0;
-  for (size_t j = 0; j < slices; j++) {
-    const size_t current = 1 + j;
-    const size_t next = current + 1;
-
-    object->polygon->indices[index++] = 0;
-    object->polygon->indices[index++] = next;
-    object->polygon->indices[index++] = current;
-  }
-
-  for (size_t i = 0; i < stacks - 2; i++) {
-    const size_t row = 1 + i * (slices + 1);
-
-    const size_t next_row = row + slices + 1;
-
-    for (size_t j = 0; j < slices; j++) {
-      const size_t a = row + j;
-      const size_t b = row + j + 1;
-      const size_t c = next_row + j;
-      const size_t d = next_row + j + 1;
-
-      object->polygon->indices[index++] = a;
-      object->polygon->indices[index++] = b;
-      object->polygon->indices[index++] = c;
-
-      object->polygon->indices[index++] = b;
-      object->polygon->indices[index++] = d;
-      object->polygon->indices[index++] = c;
-    }
-  }
-
-  const size_t bottom_row = 1 + (stacks - 2) * (slices + 1);
-
-  for (size_t j = 0; j < slices; j++) {
-    const size_t current = bottom_row + j;
-
-    const size_t next = current + 1;
-
-    object->polygon->indices[index++] = current;
-    object->polygon->indices[index++] = next;
-    object->polygon->indices[index++] = bottom_index;
-  }
-
-  free(sin_theta);
-  free(cos_theta);
-  free(sin_phi);
-  free(cos_phi);
-
-  object->polygon->vertex_count = vertex_count;
-  object->polygon->index_count = index_count;
+  object->mesh.index_count = object->polygon->index_count;
 
   object->position = position;
   object->rotation = HMM_V3(0.0f, 0.0f, 0.0f);
-
   object->scale = scale;
 
   object->render_mode = BLB_RENDER_OPAQUE;
@@ -215,7 +271,7 @@ BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of
 
   object->material = BLB_Material_Create3D();
 
-  if (!object->material) {
+  if (object->material == NULL) {
     BLB_DestroySphere3D(object);
     return NULL;
   }
@@ -228,6 +284,15 @@ BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of
     object->texture = NULL;
 
   return object;
+
+fail:
+  if (polygon_created)
+    BLB_SphereFreePolygon();
+
+  free(object->delta_time);
+  free(object);
+
+  return NULL;
 }
 
 void BLB_DestroySphere3D(BLB_Object3D *object) {
@@ -240,13 +305,12 @@ void BLB_DestroySphere3D(BLB_Object3D *object) {
   if (object->texture)
     BLB_Texture_Release(object->texture);
 
-  if (object->polygon != NULL) {
-    free(object->polygon->vertices);
-    free(object->polygon->base_vertices);
-    free(object->polygon->uvs);
-    free(object->polygon->indices);
-    free(object->polygon->normals);
-    free(object->polygon);
+  if (object->id != NULL && object->id->id > 0) {
+
+    object->id->id--;
+
+    if (object->id->id == 0)
+      BLB_SphereFreePolygon();
   }
 
   free(object->delta_time);

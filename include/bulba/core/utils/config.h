@@ -1,5 +1,5 @@
-#ifndef BLB_DEBUG_H
-#define BLB_DEBUG_H
+#ifndef BLB_CONFIG_H
+#define BLB_CONFIG_H
 
 #include <stdbool.h>
 

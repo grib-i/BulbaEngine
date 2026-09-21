@@ -30,40 +30,52 @@ static uint32_t utf8_decode(const char **text) {
   return codepoint;
 }
 
+static void destroy_font_resource(VULKAN *vulkan, VULKAN_FontResource *resource);
+
 int create_text_buffers(VULKAN *vulkan) {
   if (!vulkan)
     return -1;
 
   for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++) {
-
-    if (create_buffer(vulkan, sizeof(VulkanTextVertex) * VULKAN_MAX_TEXT_VERTICES, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                      &vulkan->text_vertex_buffers[i]) != 0)
+    if (create_buffer(
+            vulkan,
+            sizeof(VulkanTextVertex) * VULKAN_MAX_TEXT_VERTICES,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            &vulkan->text_vertex_buffers[i]
+        ) != 0) {
+      for (uint32_t j = 0; j <= i; j++)
+        destroy_buffer(vulkan, &vulkan->text_vertex_buffers[j]);
       return -1;
+    }
   }
 
   return 0;
 }
 
 static int create_font_texture(VULKAN *vulkan, const Font *font, VULKAN_FontResource *resource) {
-
   if (!vulkan || !font || !resource || !font->atlas || !font->atlas_width || !font->atlas_height)
     return -1;
 
-  VkDeviceSize size = (VkDeviceSize)font->atlas_width * (VkDeviceSize)font->atlas_height;
+  VkDeviceSize size =
+      (VkDeviceSize)font->atlas_width *
+      (VkDeviceSize)font->atlas_height;
 
   VULKAN_Buffer staging = {0};
+  VkCommandBuffer command = VK_NULL_HANDLE;
 
   if (create_buffer(vulkan, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, &staging) != 0)
-    return -1;
+    goto fail;
 
   memcpy(staging.mapped, font->atlas, (size_t)size);
 
-  if (create_image(vulkan, font->atlas_width, font->atlas_height, VK_FORMAT_R8_UNORM, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                   &resource->image, &resource->memory) != 0) {
-
-    destroy_buffer(vulkan, &staging);
-    return -1;
-  }
+  if (create_image(vulkan,
+                   font->atlas_width,
+                   font->atlas_height,
+                   VK_FORMAT_R8_UNORM,
+                   VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                   &resource->image,
+                   &resource->memory) != 0)
+    goto fail;
 
   VkCommandBufferAllocateInfo alloc = {
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -72,26 +84,16 @@ static int create_font_texture(VULKAN *vulkan, const Font *font, VULKAN_FontReso
       .commandBufferCount = 1,
   };
 
-  VkCommandBuffer command = VK_NULL_HANDLE;
-
-  if (vkAllocateCommandBuffers(vulkan->device, &alloc, &command) != VK_SUCCESS) {
-
-    destroy_buffer(vulkan, &staging);
-    return -1;
-  }
+  if (vkAllocateCommandBuffers(vulkan->device, &alloc, &command) != VK_SUCCESS)
+    goto fail;
 
   VkCommandBufferBeginInfo begin = {
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
       .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
   };
 
-  if (vkBeginCommandBuffer(command, &begin) != VK_SUCCESS) {
-
-    vkFreeCommandBuffers(vulkan->device, vulkan->command_pool, 1, &command);
-
-    destroy_buffer(vulkan, &staging);
-    return -1;
-  }
+  if (vkBeginCommandBuffer(command, &begin) != VK_SUCCESS)
+    goto fail;
 
   VkImageMemoryBarrier barrier = {
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -102,56 +104,75 @@ static int create_font_texture(VULKAN *vulkan, const Font *font, VULKAN_FontReso
       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .image = resource->image,
-      .subresourceRange =
-          {
-              .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-              .baseMipLevel = 0,
-              .levelCount = 1,
-              .baseArrayLayer = 0,
-              .layerCount = 1,
-          },
+      .subresourceRange = {
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .baseMipLevel = 0,
+          .levelCount = 1,
+          .baseArrayLayer = 0,
+          .layerCount = 1,
+      },
   };
 
-  vkCmdPipelineBarrier(command, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
+  vkCmdPipelineBarrier(
+      command,
+      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT,
+      0,
+      0,
+      NULL,
+      0,
+      NULL,
+      1,
+      &barrier
+  );
 
   VkBufferImageCopy copy = {
       .bufferOffset = 0,
       .bufferRowLength = 0,
       .bufferImageHeight = 0,
-      .imageSubresource =
-          {
-              .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-              .mipLevel = 0,
-              .baseArrayLayer = 0,
-              .layerCount = 1,
-          },
+      .imageSubresource = {
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .mipLevel = 0,
+          .baseArrayLayer = 0,
+          .layerCount = 1,
+      },
       .imageOffset = {0, 0, 0},
-      .imageExtent =
-          {
-              font->atlas_width,
-              font->atlas_height,
-              1,
-          },
+      .imageExtent = {
+          font->atlas_width,
+          font->atlas_height,
+          1,
+      },
   };
 
-  vkCmdCopyBufferToImage(command, staging.buffer, resource->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
+  vkCmdCopyBufferToImage(
+      command,
+      staging.buffer,
+      resource->image,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      1,
+      &copy
+  );
 
   barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
   barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
   barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-
   barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-  vkCmdPipelineBarrier(command, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
+  vkCmdPipelineBarrier(
+      command,
+      VK_PIPELINE_STAGE_TRANSFER_BIT,
+      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+      0,
+      0,
+      NULL,
+      0,
+      NULL,
+      1,
+      &barrier
+  );
 
-  if (vkEndCommandBuffer(command) != VK_SUCCESS) {
-    vkFreeCommandBuffers(vulkan->device, vulkan->command_pool, 1, &command);
-
-    destroy_buffer(vulkan, &staging);
-    return -1;
-  }
+  if (vkEndCommandBuffer(command) != VK_SUCCESS)
+    goto fail;
 
   VkSubmitInfo submit = {
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -159,45 +180,52 @@ static int create_font_texture(VULKAN *vulkan, const Font *font, VULKAN_FontReso
       .pCommandBuffers = &command,
   };
 
-  VkResult result = vkQueueSubmit(vulkan->graphics_queue, 1, &submit, VK_NULL_HANDLE);
+  VkResult result =
+      vkQueueSubmit(
+          vulkan->graphics_queue,
+          1,
+          &submit,
+          VK_NULL_HANDLE
+      );
 
   if (result == VK_SUCCESS)
     result = vkQueueWaitIdle(vulkan->graphics_queue);
 
-  vkFreeCommandBuffers(vulkan->device, vulkan->command_pool, 1, &command);
+  vkFreeCommandBuffers(
+      vulkan->device,
+      vulkan->command_pool,
+      1,
+      &command
+  );
+
+  command = VK_NULL_HANDLE;
 
   destroy_buffer(vulkan, &staging);
 
-  if (result != VK_SUCCESS) {
-    if (resource->image != VK_NULL_HANDLE)
-      vkDestroyImage(vulkan->device, resource->image, NULL);
-
-    if (resource->memory != VK_NULL_HANDLE)
-      vkFreeMemory(vulkan->device, resource->memory, NULL);
-
-    resource->image = VK_NULL_HANDLE;
-    resource->memory = VK_NULL_HANDLE;
-
-    return -1;
-  }
+  if (result != VK_SUCCESS)
+    goto fail;
 
   VkImageViewCreateInfo view = {
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
       .image = resource->image,
       .viewType = VK_IMAGE_VIEW_TYPE_2D,
       .format = VK_FORMAT_R8_UNORM,
-      .subresourceRange =
-          {
-              .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-              .baseMipLevel = 0,
-              .levelCount = 1,
-              .baseArrayLayer = 0,
-              .layerCount = 1,
-          },
+      .subresourceRange = {
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .baseMipLevel = 0,
+          .levelCount = 1,
+          .baseArrayLayer = 0,
+          .layerCount = 1,
+      },
   };
 
-  if (vkCreateImageView(vulkan->device, &view, NULL, &resource->view) != VK_SUCCESS)
-    return -1;
+  if (vkCreateImageView(
+          vulkan->device,
+          &view,
+          NULL,
+          &resource->view
+      ) != VK_SUCCESS)
+    goto fail;
 
   VkSamplerCreateInfo sampler = {
       .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -218,8 +246,13 @@ static int create_font_texture(VULKAN *vulkan, const Font *font, VULKAN_FontReso
       .mipLodBias = 0.0f,
   };
 
-  if (vkCreateSampler(vulkan->device, &sampler, NULL, &resource->sampler) != VK_SUCCESS)
-    return -1;
+  if (vkCreateSampler(
+          vulkan->device,
+          &sampler,
+          NULL,
+          &resource->sampler
+      ) != VK_SUCCESS)
+    goto fail;
 
   VkDescriptorPoolSize pool_size = {
       .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
@@ -233,8 +266,13 @@ static int create_font_texture(VULKAN *vulkan, const Font *font, VULKAN_FontReso
       .pPoolSizes = &pool_size,
   };
 
-  if (vkCreateDescriptorPool(vulkan->device, &pool, NULL, &resource->descriptor_pool) != VK_SUCCESS)
-    return -1;
+  if (vkCreateDescriptorPool(
+          vulkan->device,
+          &pool,
+          NULL,
+          &resource->descriptor_pool
+      ) != VK_SUCCESS)
+    goto fail;
 
   VkDescriptorSetAllocateInfo allocate = {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -243,8 +281,12 @@ static int create_font_texture(VULKAN *vulkan, const Font *font, VULKAN_FontReso
       .pSetLayouts = &vulkan->text_descriptor_set_layout,
   };
 
-  if (vkAllocateDescriptorSets(vulkan->device, &allocate, &resource->descriptor_set) != VK_SUCCESS)
-    return -1;
+  if (vkAllocateDescriptorSets(
+          vulkan->device,
+          &allocate,
+          &resource->descriptor_set
+      ) != VK_SUCCESS)
+    goto fail;
 
   VkDescriptorImageInfo image = {
       .sampler = resource->sampler,
@@ -262,11 +304,31 @@ static int create_font_texture(VULKAN *vulkan, const Font *font, VULKAN_FontReso
       .pImageInfo = &image,
   };
 
-  vkUpdateDescriptorSets(vulkan->device, 1, &write, 0, NULL);
+  vkUpdateDescriptorSets(
+      vulkan->device,
+      1,
+      &write,
+      0,
+      NULL
+  );
 
   resource->font = font;
 
   return 0;
+
+fail:
+  if (command != VK_NULL_HANDLE)
+    vkFreeCommandBuffers(
+        vulkan->device,
+        vulkan->command_pool,
+        1,
+        &command
+    );
+
+  destroy_buffer(vulkan, &staging);
+  destroy_font_resource(vulkan, resource);
+
+  return -1;
 }
 
 static void destroy_font_resource(VULKAN *vulkan, VULKAN_FontResource *resource) {
@@ -360,8 +422,7 @@ void VULKAN_RendererUnloadFont(VULKAN *vulkan) {
   if (!vulkan || vulkan->device == VK_NULL_HANDLE)
     return;
 
-  if (vkDeviceWaitIdle(vulkan->device) != VK_SUCCESS)
-    return;
+  vkDeviceWaitIdle(vulkan->device);
 
   for (size_t i = 0; i < vulkan->font_count; i++)
     destroy_font_resource(vulkan, &vulkan->fonts[i]);
@@ -663,3 +724,4 @@ void VULKAN_RendererDrawText(VULKAN *vulkan, const Font *font, const char *text,
 
   vkCmdDraw(command, (uint32_t)vertex_count, 1, 0, 0);
 }
+

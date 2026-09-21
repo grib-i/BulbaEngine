@@ -53,58 +53,65 @@ static int create_shadow_render_pass(VULKAN *vulkan) {
       .pDependencies = dependencies,
   };
 
-  return vkCreateRenderPass(vulkan->device, &info, NULL, &vulkan->shadow_render_pass) == VK_SUCCESS ? 0 : -1;
+  VkResult result = vkCreateRenderPass(vulkan->device, &info, NULL, &vulkan->shadow_render_pass);
+
+  return result == VK_SUCCESS ? 0 : -1;
 }
 
 int create_shadow_resources(VULKAN *vulkan) {
-  if (!vulkan || !vulkan->device)
+  if (!vulkan || vulkan->device == VK_NULL_HANDLE)
     return -1;
 
   if (create_shadow_render_pass(vulkan) != 0)
     return -1;
 
-  for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++) {
+  for (uint32_t frame = 0; frame < VULKAN_MAX_FRAMES_IN_FLIGHT; frame++) {
+
     if (create_buffer(vulkan, sizeof(VulkanShadowVertex) * VULKAN_MAX_INDICES, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                      &vulkan->shadow_vertex_buffers[i]) != 0)
+                      &vulkan->shadow_vertex_buffers[frame]) != 0)
       goto fail;
   }
 
-  for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++) {
-    if (create_image(vulkan, VULKAN_SHADOW_MAP_SIZE, VULKAN_SHADOW_MAP_SIZE, VK_FORMAT_D32_SFLOAT,
-                     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &vulkan->shadow_images[i],
-                     &vulkan->shadow_memories[i]) != 0)
-      goto fail;
+  for (uint32_t frame = 0; frame < VULKAN_MAX_FRAMES_IN_FLIGHT; frame++) {
 
-    VkImageViewCreateInfo view = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .image = vulkan->shadow_images[i],
-        .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = VK_FORMAT_D32_SFLOAT,
-        .subresourceRange =
-            {
-                .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1,
-            },
-    };
+    for (uint32_t shadow = 0; shadow < VULKAN_SHADOW_MAP_COUNT; shadow++) {
 
-    if (vkCreateImageView(vulkan->device, &view, NULL, &vulkan->shadow_image_views[i]) != VK_SUCCESS)
-      goto fail;
+      if (create_image(vulkan, VULKAN_SHADOW_MAP_SIZE, VULKAN_SHADOW_MAP_SIZE, VK_FORMAT_D32_SFLOAT,
+                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &vulkan->shadow_images[frame][shadow],
+                       &vulkan->shadow_memories[frame][shadow]) != 0)
+        goto fail;
 
-    VkFramebufferCreateInfo framebuffer = {
-        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass = vulkan->shadow_render_pass,
-        .attachmentCount = 1,
-        .pAttachments = &vulkan->shadow_image_views[i],
-        .width = VULKAN_SHADOW_MAP_SIZE,
-        .height = VULKAN_SHADOW_MAP_SIZE,
-        .layers = 1,
-    };
+      VkImageViewCreateInfo view = {
+          .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+          .image = vulkan->shadow_images[frame][shadow],
+          .viewType = VK_IMAGE_VIEW_TYPE_2D,
+          .format = VK_FORMAT_D32_SFLOAT,
+          .subresourceRange =
+              {
+                  .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                  .baseMipLevel = 0,
+                  .levelCount = 1,
+                  .baseArrayLayer = 0,
+                  .layerCount = 1,
+              },
+      };
 
-    if (vkCreateFramebuffer(vulkan->device, &framebuffer, NULL, &vulkan->shadow_framebuffers[i]) != VK_SUCCESS)
-      goto fail;
+      if (vkCreateImageView(vulkan->device, &view, NULL, &vulkan->shadow_image_views[frame][shadow]) != VK_SUCCESS)
+        goto fail;
+
+      VkFramebufferCreateInfo framebuffer = {
+          .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+          .renderPass = vulkan->shadow_render_pass,
+          .attachmentCount = 1,
+          .pAttachments = &vulkan->shadow_image_views[frame][shadow],
+          .width = VULKAN_SHADOW_MAP_SIZE,
+          .height = VULKAN_SHADOW_MAP_SIZE,
+          .layers = 1,
+      };
+
+      if (vkCreateFramebuffer(vulkan->device, &framebuffer, NULL, &vulkan->shadow_framebuffers[frame][shadow]) != VK_SUCCESS)
+        goto fail;
+    }
   }
 
   VkSamplerCreateInfo sampler = {
@@ -138,45 +145,50 @@ void destroy_shadow_resources(VULKAN *vulkan) {
 
   if (vulkan->shadow_sampler != VK_NULL_HANDLE) {
     vkDestroySampler(vulkan->device, vulkan->shadow_sampler, NULL);
+
     vulkan->shadow_sampler = VK_NULL_HANDLE;
   }
 
-  for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; i++) {
-    if (vulkan->shadow_framebuffers[i] != VK_NULL_HANDLE) {
-      vkDestroyFramebuffer(vulkan->device, vulkan->shadow_framebuffers[i], NULL);
-      vulkan->shadow_framebuffers[i] = VK_NULL_HANDLE;
+  for (uint32_t frame = 0; frame < VULKAN_MAX_FRAMES_IN_FLIGHT; frame++) {
+
+    for (uint32_t shadow = 0; shadow < VULKAN_SHADOW_MAP_COUNT; shadow++) {
+
+      if (vulkan->shadow_framebuffers[frame][shadow] != VK_NULL_HANDLE) {
+        vkDestroyFramebuffer(vulkan->device, vulkan->shadow_framebuffers[frame][shadow], NULL);
+
+        vulkan->shadow_framebuffers[frame][shadow] = VK_NULL_HANDLE;
+      }
+
+      if (vulkan->shadow_image_views[frame][shadow] != VK_NULL_HANDLE) {
+        vkDestroyImageView(vulkan->device, vulkan->shadow_image_views[frame][shadow], NULL);
+
+        vulkan->shadow_image_views[frame][shadow] = VK_NULL_HANDLE;
+      }
+
+      if (vulkan->shadow_images[frame][shadow] != VK_NULL_HANDLE) {
+        vkDestroyImage(vulkan->device, vulkan->shadow_images[frame][shadow], NULL);
+
+        vulkan->shadow_images[frame][shadow] = VK_NULL_HANDLE;
+      }
+
+      if (vulkan->shadow_memories[frame][shadow] != VK_NULL_HANDLE) {
+        vkFreeMemory(vulkan->device, vulkan->shadow_memories[frame][shadow], NULL);
+
+        vulkan->shadow_memories[frame][shadow] = VK_NULL_HANDLE;
+      }
     }
 
-    if (vulkan->shadow_image_views[i] != VK_NULL_HANDLE) {
-      vkDestroyImageView(vulkan->device, vulkan->shadow_image_views[i], NULL);
-      vulkan->shadow_image_views[i] = VK_NULL_HANDLE;
-    }
-
-    if (vulkan->shadow_images[i] != VK_NULL_HANDLE) {
-      vkDestroyImage(vulkan->device, vulkan->shadow_images[i], NULL);
-      vulkan->shadow_images[i] = VK_NULL_HANDLE;
-    }
-
-    if (vulkan->shadow_memories[i] != VK_NULL_HANDLE) {
-      vkFreeMemory(vulkan->device, vulkan->shadow_memories[i], NULL);
-      vulkan->shadow_memories[i] = VK_NULL_HANDLE;
-    }
-
-    destroy_buffer(vulkan, &vulkan->shadow_vertex_buffers[i]);
-  }
-
-  if (vulkan->shadow_pipeline != VK_NULL_HANDLE) {
-    vkDestroyPipeline(vulkan->device, vulkan->shadow_pipeline, NULL);
-    vulkan->shadow_pipeline = VK_NULL_HANDLE;
-  }
-
-  if (vulkan->shadow_pipeline_layout != VK_NULL_HANDLE) {
-    vkDestroyPipelineLayout(vulkan->device, vulkan->shadow_pipeline_layout, NULL);
-    vulkan->shadow_pipeline_layout = VK_NULL_HANDLE;
+    destroy_buffer(vulkan, &vulkan->shadow_vertex_buffers[frame]);
   }
 
   if (vulkan->shadow_render_pass != VK_NULL_HANDLE) {
     vkDestroyRenderPass(vulkan->device, vulkan->shadow_render_pass, NULL);
+
     vulkan->shadow_render_pass = VK_NULL_HANDLE;
   }
+
+  vulkan->shadow_enabled = false;
+  vulkan->shadow_mode = 0;
+  vulkan->shadow_pass_begun = false;
 }
+
