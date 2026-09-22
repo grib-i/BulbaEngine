@@ -53,6 +53,12 @@ typedef struct BLB_Scene {
 
   int main_count;
 
+  uint64_t sort_signature3d;
+  uint64_t sort_signature2d;
+  uint64_t sort_signature_text2d;
+  uint64_t sort_signature_light3d;
+  uint64_t sort_signature_light2d;
+
 } BLB_Scene;
 
 BLB_Scene *BLB_CreateScene(const char *name);

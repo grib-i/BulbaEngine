@@ -1,0 +1,21 @@
+===== CURRENT STATUS =====
+Tue Sep 22 23:25:25 +04 2026
+
+CPU: 82.4%
+RSS: 85.20 MB
+HWM: 85.20 MB
+VSZ: 618.97 MB
+DATA: 50.02 MB
+ANON: 27.70 MB
+FILE: 57.39 MB
+PSS: 45.22 MB
+PSS ANON: 27.70 MB
+THREADS: 5
+FD: 29
+STATE: R (running)
+WCHAN: drm_syncobj_array_wait_timeout.constprop.0
+LOAD: 3.39 2.74 2.08
+
+EXE: /home/grib/projects/BulbaEngine/engine/build/debug/bulba
+CWD: /home/grib/projects/BulbaEngine/engine
+CMD: ./build/debug/bulba

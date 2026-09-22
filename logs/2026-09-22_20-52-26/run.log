@@ -1,0 +1,58 @@
+============================================================
+BulbaEngine diagnostic session
+Date: Tue Sep 22 20:52:26 +04 2026
+Project: bulba
+Build type: Debug
+Live monitor: 1
+Valgrind: 0
+============================================================
+
+============================================================
+CMAKE DEBUG CONFIGURE
+============================================================
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/grib/projects/BulbaEngine/engine/build/debug
+
+============================================================
+CMAKE DEBUG BUILD
+============================================================
+[0/2] Re-checking globbed directories...
+[1/2] Building C object CMakeFiles/bulba.dir/src/main.c.o
+[2/2] Linking C executable bulba
+[2026-09-22 20:52:26] APPLICATION LOG: logs/2026-09-22_20-52-26/application.log
+[2026-09-22 20:52:26] ASAN: ON
+[2026-09-22 20:52:26] Application started
+[2026-09-22 20:52:26] PID: 453926
+[2026-09-22 20:52:26] Application output redirected to: logs/2026-09-22_20-52-26/application.log
+[2026-09-22 20:52:26] MONITOR START
+[2026-09-22 20:52:26] PID: 453926
+[2026-09-22 20:52:26] EXE: /home/grib/projects/BulbaEngine/engine/build/debug/bulba
+[2026-09-22 20:52:26] APPLICATION LOG: logs/2026-09-22_20-52-26/application.log
+[2026-09-22 20:52:26] CPU=60.0% RSS=5.11 MB HWM=5.11 MB VSZ=14.75 MB DATA=0.61 MB ANON=0.75 MB PSS=1.70 MB THREADS=1 FD=14 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:27] CPU=97.4% RSS=86.14 MB HWM=86.14 MB VSZ=638.00 MB DATA=51.00 MB ANON=28.67 MB PSS=54.91 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:28] CPU=98.2% RSS=86.14 MB HWM=86.14 MB VSZ=636.12 MB DATA=51.00 MB ANON=28.67 MB PSS=54.91 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:29] CPU=98.3% RSS=86.14 MB HWM=86.14 MB VSZ=637.00 MB DATA=51.00 MB ANON=28.67 MB PSS=54.91 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:30] CPU=98.6% RSS=86.14 MB HWM=86.14 MB VSZ=637.00 MB DATA=51.00 MB ANON=28.67 MB PSS=54.91 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:30] EVENT: HIGH CPU / POSSIBLE HANG
+[2026-09-22 20:52:30] CPU=98.8 STATE=R (running) WCHAN=- THREADS=5
+[2026-09-22 20:52:30] ============================================================
+[2026-09-22 20:52:30] DIAGNOSTIC EVENT: high_cpu
+[2026-09-22 20:52:30] PID: 453926
+[2026-09-22 20:52:30] EVENT DIR: logs/2026-09-22_20-52-26/events/2026-09-22_20-52-30_high_cpu
+[2026-09-22 20:52:30] ============================================================
+[2026-09-22 20:52:31] Diagnostic snapshot saved: logs/2026-09-22_20-52-26/events/2026-09-22_20-52-30_high_cpu
+[2026-09-22 20:52:32] CPU=99.0% RSS=86.14 MB HWM=86.14 MB VSZ=638.00 MB DATA=51.00 MB ANON=28.67 MB PSS=54.91 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:32] CPU=99.1% RSS=86.14 MB HWM=86.14 MB VSZ=636.12 MB DATA=51.00 MB ANON=28.67 MB PSS=54.91 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:33] CPU=99.1% RSS=86.34 MB HWM=86.34 MB VSZ=638.00 MB DATA=51.00 MB ANON=28.73 MB PSS=54.98 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:34] CPU=99.1% RSS=86.34 MB HWM=86.34 MB VSZ=638.00 MB DATA=51.00 MB ANON=28.73 MB PSS=54.98 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:35] CPU=99.2% RSS=86.34 MB HWM=86.34 MB VSZ=638.00 MB DATA=51.00 MB ANON=28.73 MB PSS=54.98 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:36] CPU=99.1% RSS=86.34 MB HWM=86.34 MB VSZ=636.06 MB DATA=51.00 MB ANON=28.73 MB PSS=54.98 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:37] CPU=99.1% RSS=86.34 MB HWM=86.34 MB VSZ=636.25 MB DATA=51.00 MB ANON=28.74 MB PSS=55.06 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:38] CPU=99.2% RSS=86.34 MB HWM=86.34 MB VSZ=638.00 MB DATA=51.00 MB ANON=28.74 MB PSS=55.06 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:39] CPU=98.0% RSS=86.34 MB HWM=86.34 MB VSZ=636.03 MB DATA=51.00 MB ANON=28.74 MB PSS=55.06 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:40] CPU=97.4% RSS=86.34 MB HWM=86.34 MB VSZ=637.00 MB DATA=51.00 MB ANON=28.74 MB PSS=55.06 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:41] CPU=97.7% RSS=86.34 MB HWM=86.34 MB VSZ=637.00 MB DATA=51.00 MB ANON=28.74 MB PSS=55.06 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:42] CPU=97.8% RSS=86.34 MB HWM=86.34 MB VSZ=636.06 MB DATA=51.00 MB ANON=28.74 MB PSS=55.06 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 20:52:42] MONITOR END
+[2026-09-22 20:52:42] PROCESS EXIT CODE: 0

@@ -1,0 +1,423 @@
+453926:   ./build/debug/bulba
+Address           Kbytes     RSS   Dirty Mode  Mapping
+0000563bb7636000      16      16      16 r---- bulba
+0000563bb763a000     236     236     236 r-x-- bulba
+0000563bb7675000     692     684     684 r---- bulba
+0000563bb7722000       4       4       4 r---- bulba
+0000563bb7723000       4       4       4 rw--- bulba
+0000563bbbe80000   15040   14816   14816 rw---   [ anon ]
+00007bc4ff080000    1024       0       0 rw-s-   [ anon ]
+00007bc4ff800000    8192       0       0 rw-s-   [ anon ]
+00007bc500000000     132       4       4 rw---   [ anon ]
+00007bc500021000   65404       0       0 -----   [ anon ]
+00007bc504000000     132       4       4 rw---   [ anon ]
+00007bc504021000   65404       0       0 -----   [ anon ]
+00007bc508000000     132       4       4 rw---   [ anon ]
+00007bc508021000   65404       0       0 -----   [ anon ]
+00007bc50c469000     256       0       0 rw-s-   [ anon ]
+00007bc50c4a9000     512       0       0 rw-s-   [ anon ]
+00007bc50c529000     256       0       0 rw-s-   [ anon ]
+00007bc50c5a9000    4096       0       0 rw-s-   [ anon ]
+00007bc50c9a9000    2048       0       0 rw-s-   [ anon ]
+00007bc50cba9000     848     688     688 rw---   [ anon ]
+00007bc50cc7d000    2304       0       0 rw-s-   [ anon ]
+00007bc50cebd000    2304       0       0 rw-s-   [ anon ]
+00007bc50d0fd000    1536       0       0 rw-s-   [ anon ]
+00007bc50d27d000    1536       0       0 rw-s-   [ anon ]
+00007bc50d3fd000    3072       0       0 rw-s-   [ anon ]
+00007bc50d6fd000    3072       0       0 rw-s-   [ anon ]
+00007bc50d9fd000       4       0       0 -----   [ anon ]
+00007bc50d9fe000    8192       8       8 rw---   [ anon ]
+00007bc50e1fe000       4       0       0 -----   [ anon ]
+00007bc50e1ff000    8192      12      12 rw---   [ anon ]
+00007bc50e9ff000       4       0       0 -----   [ anon ]
+00007bc50ea00000    8192       8       8 rw---   [ anon ]
+00007bc50f200000    2048       0       0 rw-s-   [ anon ]
+00007bc50f400000    2048       0       0 rw-s-   [ anon ]
+00007bc50f600000    2048       0       0 rw-s-   [ anon ]
+00007bc50f800000    2048       0       0 rw-s-   [ anon ]
+00007bc50fa00000    2048       0       0 rw-s-   [ anon ]
+00007bc50fc00000    2048       0       0 rw-s-   [ anon ]
+00007bc50fe00000    2048       0       0 rw-s-   [ anon ]
+00007bc510000000     132       8       8 rw---   [ anon ]
+00007bc510021000   65404       0       0 -----   [ anon ]
+00007bc51411f000     128       0       0 rw-s-   [ anon ]
+00007bc51413f000     128       0       0 rw-s-   [ anon ]
+00007bc51417f000     512       0       0 rw-s-   [ anon ]
+00007bc5141ff000    2048       0       0 rw-s-   [ anon ]
+00007bc5143ff000       4       0       0 -----   [ anon ]
+00007bc514400000    8192      16      16 rw---   [ anon ]
+00007bc514c00000     364     364       0 r---- libvulkan_lvp.so
+00007bc514c5b000    4160    1124       0 r-x-- libvulkan_lvp.so
+00007bc51506b000    6508     516       0 r---- libvulkan_lvp.so
+00007bc5156c6000     600     600     600 r---- libvulkan_lvp.so
+00007bc51575c000      20      20      20 rw--- libvulkan_lvp.so
+00007bc515761000     176      20      20 rw---   [ anon ]
+00007bc5157f0000      64       0       0 rw-s-   [ anon ]
+00007bc515800000     804     800       0 r---- libvulkan_nouveau.so
+00007bc5158c9000    5916     640       0 r-x-- libvulkan_nouveau.so
+00007bc515e90000    8076     612       0 r---- libvulkan_nouveau.so
+00007bc516673000     760     760     760 r---- libvulkan_nouveau.so
+00007bc516731000      12      12      12 rw--- libvulkan_nouveau.so
+00007bc516734000      12       8       8 rw---   [ anon ]
+00007bc516773000     564     564     564 rw---   [ anon ]
+00007bc516800000     360     360       0 r---- libvulkan_asahi.so
+00007bc51685a000    3544     716       0 r-x-- libvulkan_asahi.so
+00007bc516bd0000    6892     668       0 r---- libvulkan_asahi.so
+00007bc51728b000     732     712     712 r---- libvulkan_asahi.so
+00007bc517342000      32      32      32 rw--- libvulkan_asahi.so
+00007bc51734a000      28       8       8 rw---   [ anon ]
+00007bc517380000     512     512     512 rw---   [ anon ]
+00007bc517400000       4       4       0 r---- libicudata.so.74.2
+00007bc517401000       4       4       0 r-x-- libicudata.so.74.2
+00007bc517402000   30064       0       0 r---- libicudata.so.74.2
+00007bc51915e000       4       4       4 r---- libicudata.so.74.2
+00007bc51915f000       4       4       4 rw--- libicudata.so.74.2
+00007bc519180000     512       0       0 rw-s-   [ anon ]
+00007bc519200000     416     416       0 r---- libicuuc.so.74.2
+00007bc519268000    1044      64       0 r-x-- libicuuc.so.74.2
+00007bc51936d000     552       0       0 r---- libicuuc.so.74.2
+00007bc5193f7000      76      76      76 r---- libicuuc.so.74.2
+00007bc51940a000       4       4       4 rw--- libicuuc.so.74.2
+00007bc51940b000       8       0       0 rw---   [ anon ]
+00007bc51941e000     188     188       0 r---- libxml2.so.2.9.14
+00007bc51944d000    1432      64       0 r-x-- libxml2.so.2.9.14
+00007bc5195b3000     264       0       0 r---- libxml2.so.2.9.14
+00007bc5195f5000      36      36      36 r---- libxml2.so.2.9.14
+00007bc5195fe000       4       4       4 rw--- libxml2.so.2.9.14
+00007bc5195ff000       4       0       0 rw---   [ anon ]
+00007bc519600000  133152   34700       0 r-x-- libLLVM.so.20.1
+00007bc521808000       4       0       0 ----- libLLVM.so.20.1
+00007bc521809000    6740    6716    6716 r---- libLLVM.so.20.1
+00007bc521e9e000     288      48      44 rw--- libLLVM.so.20.1
+00007bc521ee6000     672     648     648 rw---   [ anon ]
+00007bc521fe8000      64       0       0 rw-s-   [ anon ]
+00007bc521ff8000      32       0       0 rw-s-   [ anon ]
+00007bc522000000     372     372       0 r---- libvulkan_radeon.so
+00007bc52205d000    5620     552       0 r-x-- libvulkan_radeon.so
+00007bc5225da000    8164     584       0 r---- libvulkan_radeon.so
+00007bc522dd3000     604     592     592 r---- libvulkan_radeon.so
+00007bc522e6a000      96      48      48 rw--- libvulkan_radeon.so
+00007bc522e82000      20       4       4 rw---   [ anon ]
+00007bc522e97000      64      64      32 rw-s- memfd:state table (deleted)
+00007bc522ec5000    1284       0       0 rw-s- index
+00007bc523006000     100     100       0 r---- libvulkan_gfxstream.so
+00007bc52301f000    1296     264       0 r-x-- libvulkan_gfxstream.so
+00007bc523163000     548     232       0 r---- libvulkan_gfxstream.so
+00007bc5231ec000      68      68      68 r---- libvulkan_gfxstream.so
+00007bc5231fd000      12      12      12 rw--- libvulkan_gfxstream.so
+00007bc523200000     300     300       0 r---- libvulkan_intel.so
+00007bc52324b000    8956    2272       0 r-x-- libvulkan_intel.so
+00007bc523b0a000   10728     872       0 r---- libvulkan_intel.so
+00007bc524584000     684     676     672 r---- libvulkan_intel.so
+00007bc52462f000      16      16      16 rw--- libvulkan_intel.so
+00007bc524633000      24      12      12 rw---   [ anon ]
+00007bc52463f000       4       0       0 rw-s-   [ anon ]
+00007bc524640000      32      32      12 rw-s- memfd:state table (deleted)
+00007bc524648000       8       0       0 rw-s-   [ anon ]
+00007bc52464a000     248       0       0 rw-s-   [ anon ]
+00007bc524688000      88      88       0 r---- libvulkan_virtio.so
+00007bc52469e000     948     620       0 r-x-- libvulkan_virtio.so
+00007bc52478b000     384     308       0 r---- libvulkan_virtio.so
+00007bc5247eb000      68      68      68 r---- libvulkan_virtio.so
+00007bc5247fc000      12      12      12 rw--- libvulkan_virtio.so
+00007bc5247ff000       4       0       0 rw---   [ anon ]
+00007bc524800000     628     628       0 r---- libstdc++.so.6.0.33
+00007bc52489d000    1312     712       0 r-x-- libstdc++.so.6.0.33
+00007bc5249e5000     540      60       0 r---- libstdc++.so.6.0.33
+00007bc524a6c000      44      44      44 r---- libstdc++.so.6.0.33
+00007bc524a77000      12      12      12 rw--- libstdc++.so.6.0.33
+00007bc524a7a000      16      12      12 rw---   [ anon ]
+00007bc524a98000      16       0       0 rw-s-   [ anon ]
+00007bc524a9c000       8       0       0 rw-s-   [ anon ]
+00007bc524a9e000      32       0       0 rw-s-   [ anon ]
+00007bc524aa6000      16       0       0 rw-s-   [ anon ]
+00007bc524aaa000       8       0       0 rw-s-   [ anon ]
+00007bc524ab6000     104       0       0 rw-s-   [ anon ]
+00007bc524ad0000      88       0       0 rw-s-   [ anon ]
+00007bc524ae6000       8       0       0 rw-s-   [ anon ]
+00007bc524ae8000       8       0       0 rw-s-   [ anon ]
+00007bc524aea000       8       0       0 rw-s-   [ anon ]
+00007bc524aec000      12      12       0 r---- libVkLayer_MESA_device_select.so
+00007bc524aef000      60      60       0 r-x-- libVkLayer_MESA_device_select.so
+00007bc524afe000      16      16       0 r---- libVkLayer_MESA_device_select.so
+00007bc524b02000       4       4       4 r---- libVkLayer_MESA_device_select.so
+00007bc524b03000       4       4       4 rw--- libVkLayer_MESA_device_select.so
+00007bc524b04000       8       0       0 rw---   [ anon ]
+00007bc524b06000      12      12       0 r---- liblzma.so.5.4.5
+00007bc524b09000     136      64       0 r-x-- liblzma.so.5.4.5
+00007bc524b2b000      44       0       0 r---- liblzma.so.5.4.5
+00007bc524b36000       4       4       4 r---- liblzma.so.5.4.5
+00007bc524b37000       4       4       4 rw--- liblzma.so.5.4.5
+00007bc524b38000      56      56       0 r---- libtinfo.so.6.4
+00007bc524b46000      76      64       0 r-x-- libtinfo.so.6.4
+00007bc524b59000      56       0       0 r---- libtinfo.so.6.4
+00007bc524b67000      16      16      16 r---- libtinfo.so.6.4
+00007bc524b6b000       4       4       4 rw--- libtinfo.so.6.4
+00007bc524b6c000      32      32       0 r---- libedit.so.2.0.72
+00007bc524b74000     124      64       0 r-x-- libedit.so.2.0.72
+00007bc524b93000      48       0       0 r---- libedit.so.2.0.72
+00007bc524b9f000       8       8       8 r---- libedit.so.2.0.72
+00007bc524ba1000       4       4       4 rw--- libedit.so.2.0.72
+00007bc524ba2000      16       0       0 rw---   [ anon ]
+00007bc524ba6000      12      12       0 r---- libdrm_amdgpu.so.1.125.0
+00007bc524ba9000      24      24       0 r-x-- libdrm_amdgpu.so.1.125.0
+00007bc524baf000       8       0       0 r---- libdrm_amdgpu.so.1.125.0
+00007bc524bb1000       4       4       4 r---- libdrm_amdgpu.so.1.125.0
+00007bc524bb2000       4       4       4 rw--- libdrm_amdgpu.so.1.125.0
+00007bc524bb3000      12      12       0 r---- libelf-0.190.so
+00007bc524bb6000      88      64       0 r-x-- libelf-0.190.so
+00007bc524bcc000      16       0       0 r---- libelf-0.190.so
+00007bc524bd0000       4       4       4 r---- libelf-0.190.so
+00007bc524bd1000       4       4       4 rw--- libelf-0.190.so
+00007bc524bd2000      16      16       0 r---- libgcc_s.so.1
+00007bc524bd6000     144      64       0 r-x-- libgcc_s.so.1
+00007bc524bfa000      16      16       0 r---- libgcc_s.so.1
+00007bc524bfe000       4       4       4 r---- libgcc_s.so.1
+00007bc524bff000       4       4       4 rw--- libgcc_s.so.1
+00007bc524c00000     288     288       0 r---- libvulkan_intel_hasvk.so
+00007bc524c48000    6212     624       0 r-x-- libvulkan_intel_hasvk.so
+00007bc525259000    9696     492       0 r---- libvulkan_intel_hasvk.so
+00007bc525bd1000     612     604     604 r---- libvulkan_intel_hasvk.so
+00007bc525c6a000      12      12      12 rw--- libvulkan_intel_hasvk.so
+00007bc525c6d000      12       8       8 rw---   [ anon ]
+00007bc525c70000      16      16       8 rw-s- memfd:state table (deleted)
+00007bc525c74000       8       8       0 r---- libffi.so.8.1.4
+00007bc525c76000      28      28       0 r-x-- libffi.so.8.1.4
+00007bc525c7d000       4       0       0 r---- libffi.so.8.1.4
+00007bc525c7e000       4       4       4 r---- libffi.so.8.1.4
+00007bc525c7f000       4       4       4 rw--- libffi.so.8.1.4
+00007bc525c80000      16      16       0 r---- libexpat.so.1.9.1
+00007bc525c84000     124     124       0 r-x-- libexpat.so.1.9.1
+00007bc525ca3000      32      32       0 r---- libexpat.so.1.9.1
+00007bc525cab000       8       8       8 r---- libexpat.so.1.9.1
+00007bc525cad000       4       4       4 rw--- libexpat.so.1.9.1
+00007bc525cae000      20      20       0 r---- libwayland-client.so.0.22.0
+00007bc525cb3000      24      24       0 r-x-- libwayland-client.so.0.22.0
+00007bc525cb9000       8       0       0 r---- libwayland-client.so.0.22.0
+00007bc525cbb000       8       8       8 r---- libwayland-client.so.0.22.0
+00007bc525cbd000       4       4       4 rw--- libwayland-client.so.0.22.0
+00007bc525cbe000       4       4       0 r---- libxshmfence.so.1.0.0
+00007bc525cbf000       4       4       0 r-x-- libxshmfence.so.1.0.0
+00007bc525cc0000       4       4       0 r---- libxshmfence.so.1.0.0
+00007bc525cc1000       4       4       4 r---- libxshmfence.so.1.0.0
+00007bc525cc2000       4       4       4 rw--- libxshmfence.so.1.0.0
+00007bc525cc3000       4       4       0 r---- libxcb-shm.so.0.0.0
+00007bc525cc4000       4       4       0 r-x-- libxcb-shm.so.0.0.0
+00007bc525cc5000       4       0       0 r---- libxcb-shm.so.0.0.0
+00007bc525cc6000       4       4       4 r---- libxcb-shm.so.0.0.0
+00007bc525cc7000       4       4       4 rw--- libxcb-shm.so.0.0.0
+00007bc525cc8000      28      28       0 r---- libxcb-randr.so.0.1.0
+00007bc525ccf000      20      20       0 r-x-- libxcb-randr.so.0.1.0
+00007bc525cd4000      12      12       0 r---- libxcb-randr.so.0.1.0
+00007bc525cd7000       4       4       4 r---- libxcb-randr.so.0.1.0
+00007bc525cd8000       4       4       4 rw--- libxcb-randr.so.0.1.0
+00007bc525cd9000      12      12       0 r---- libxcb-sync.so.1.0.0
+00007bc525cdc000      12      12       0 r-x-- libxcb-sync.so.1.0.0
+00007bc525cdf000       4       0       0 r---- libxcb-sync.so.1.0.0
+00007bc525ce0000       4       4       4 r---- libxcb-sync.so.1.0.0
+00007bc525ce1000       4       4       4 rw--- libxcb-sync.so.1.0.0
+00007bc525ce2000      12      12       0 r---- libxcb-xfixes.so.0.0.0
+00007bc525ce5000      12      12       0 r-x-- libxcb-xfixes.so.0.0.0
+00007bc525ce8000       8       8       0 r---- libxcb-xfixes.so.0.0.0
+00007bc525cea000       4       4       4 r---- libxcb-xfixes.so.0.0.0
+00007bc525ceb000       4       4       4 rw--- libxcb-xfixes.so.0.0.0
+00007bc525cec000       4       4       0 r---- libxcb-present.so.0.0.0
+00007bc525ced000       4       4       0 r-x-- libxcb-present.so.0.0.0
+00007bc525cee000       4       4       0 r---- libxcb-present.so.0.0.0
+00007bc525cef000       4       4       4 r---- libxcb-present.so.0.0.0
+00007bc525cf0000       4       4       4 rw--- libxcb-present.so.0.0.0
+00007bc525cf1000       8       8       0 r---- libxcb-dri3.so.0.1.0
+00007bc525cf3000       8       8       0 r-x-- libxcb-dri3.so.0.1.0
+00007bc525cf5000       4       4       0 r---- libxcb-dri3.so.0.1.0
+00007bc525cf6000       4       4       4 r---- libxcb-dri3.so.0.1.0
+00007bc525cf7000       4       4       4 rw--- libxcb-dri3.so.0.1.0
+00007bc525cf8000      16      16       0 r---- libzstd.so.1.5.5
+00007bc525cfc000     668     356       0 r-x-- libzstd.so.1.5.5
+00007bc525da3000      52      48       0 r---- libzstd.so.1.5.5
+00007bc525db0000       4       4       4 r---- libzstd.so.1.5.5
+00007bc525db1000       4       4       4 rw--- libzstd.so.1.5.5
+00007bc525db2000      20      20       0 r---- libdrm.so.2.125.0
+00007bc525db7000      48      48       0 r-x-- libdrm.so.2.125.0
+00007bc525dc3000      16      16       0 r---- libdrm.so.2.125.0
+00007bc525dc7000       4       4       4 r---- libdrm.so.2.125.0
+00007bc525dc8000       4       4       4 rw--- libdrm.so.2.125.0
+00007bc525dc9000       4       4       0 r---- libX11-xcb.so.1.0.0
+00007bc525dca000       4       4       0 r-x-- libX11-xcb.so.1.0.0
+00007bc525dcb000       4       0       0 r---- libX11-xcb.so.1.0.0
+00007bc525dcc000       4       4       4 r---- libX11-xcb.so.1.0.0
+00007bc525dcd000       4       4       4 rw--- libX11-xcb.so.1.0.0
+00007bc525dce000       4       4       0 r---- libXinerama.so.1.0.0
+00007bc525dcf000       4       4       0 r-x-- libXinerama.so.1.0.0
+00007bc525dd0000       4       4       0 r---- libXinerama.so.1.0.0
+00007bc525dd1000       4       4       4 r---- libXinerama.so.1.0.0
+00007bc525dd2000       4       4       4 rw--- libXinerama.so.1.0.0
+00007bc525dd3000       8       8       0 r---- libXfixes.so.3.1.0
+00007bc525dd5000      12      12       0 r-x-- libXfixes.so.3.1.0
+00007bc525dd8000       4       0       0 r---- libXfixes.so.3.1.0
+00007bc525dd9000       4       4       4 r---- libXfixes.so.3.1.0
+00007bc525dda000       4       4       4 rw--- libXfixes.so.3.1.0
+00007bc525ddb000       8       8       0 r---- libXcursor.so.1.0.2
+00007bc525ddd000      24      24       0 r-x-- libXcursor.so.1.0.2
+00007bc525de3000       8       8       0 r---- libXcursor.so.1.0.2
+00007bc525de5000       4       4       4 r---- libXcursor.so.1.0.2
+00007bc525de6000       4       4       4 rw--- libXcursor.so.1.0.2
+00007bc525de7000       8       8       0 r---- libXrender.so.1.3.0
+00007bc525de9000      28      28       0 r-x-- libXrender.so.1.3.0
+00007bc525df0000       4       4       0 r---- libXrender.so.1.3.0
+00007bc525df1000       4       4       4 r---- libXrender.so.1.3.0
+00007bc525df2000       4       4       4 rw--- libXrender.so.1.3.0
+00007bc525df3000       8       8       0 r---- libXrandr.so.2.2.0
+00007bc525df5000      28      28       0 r-x-- libXrandr.so.2.2.0
+00007bc525dfc000       8       8       0 r---- libXrandr.so.2.2.0
+00007bc525dfe000       4       4       4 r---- libXrandr.so.2.2.0
+00007bc525dff000       4       4       4 rw--- libXrandr.so.2.2.0
+00007bc525e00000    5596      64       0 r---- locale-archive
+00007bc526379000      12      12       0 r---- libXi.so.6.1.0
+00007bc52637c000      48      44       0 r-x-- libXi.so.6.1.0
+00007bc526388000       8       8       0 r---- libXi.so.6.1.0
+00007bc52638a000       4       4       4 r---- libXi.so.6.1.0
+00007bc52638b000       4       4       4 rw--- libXi.so.6.1.0
+00007bc52638e000       8       8       4 rw-s- memfd:state table (deleted)
+00007bc526396000       4       4       4 rw-s- memfd:state table (deleted)
+00007bc526397000       4       4       4 rw-s- memfd:state table (deleted)
+00007bc526398000       4       0       0 rw-s-   [ anon ]
+00007bc526399000       4       4       4 rw-s- memfd:state table (deleted)
+00007bc52639a000       4       0       0 rw-s-   [ anon ]
+00007bc52639b000       8       0       0 rw-s-   [ anon ]
+00007bc52639d000       8       0       0 rw-s-   [ anon ]
+00007bc52639f000       8       0       0 rw-s-   [ anon ]
+00007bc5263a1000       4       4       4 rw-s- memfd:xshmfence (deleted)
+00007bc5263a2000       4       4       4 rw-s- memfd:xshmfence (deleted)
+00007bc5263a3000       4       4       4 rw-s- memfd:xshmfence (deleted)
+00007bc5263a4000       4       4       4 rw-s- memfd:xshmfence (deleted)
+00007bc5263a7000       4       4       4 rw-s- memfd:state table (deleted)
+00007bc5263a8000       4       0       0 rw-s-   [ anon ]
+00007bc5263a9000       8       0       0 rw-s-   [ anon ]
+00007bc5263ab000       4       4       4 rw-s- memfd:state table (deleted)
+00007bc5263ac000       4       4       0 rw-s- memfd:state table (deleted)
+00007bc5263ad000       4       4       0 rw-s- memfd:state table (deleted)
+00007bc5263ae000       4       4       0 rw-s- memfd:state table (deleted)
+00007bc5263af000       4       4       0 rw-s- memfd:state table (deleted)
+00007bc5263b0000       4       4       0 rw-s- memfd:state table (deleted)
+00007bc5263b1000     356     128       0 r---- LC_CTYPE
+00007bc52640a000       8       8       8 rw---   [ anon ]
+00007bc52640c000       8       8       0 r---- libmd.so.0.1.0
+00007bc52640e000      36      32       0 r-x-- libmd.so.0.1.0
+00007bc526417000       8       0       0 r---- libmd.so.0.1.0
+00007bc526419000       4       4       4 r---- libmd.so.0.1.0
+00007bc52641a000       4       4       4 rw--- libmd.so.0.1.0
+00007bc52641b000      16      16       0 r---- libbsd.so.0.12.1
+00007bc52641f000      48      44       0 r-x-- libbsd.so.0.12.1
+00007bc52642b000      12       0       0 r---- libbsd.so.0.12.1
+00007bc52642e000       4       4       4 r---- libbsd.so.0.12.1
+00007bc52642f000       4       4       4 rw--- libbsd.so.0.12.1
+00007bc526430000       4       0       0 rw---   [ anon ]
+00007bc526431000       8       8       0 r---- libXdmcp.so.6.0.0
+00007bc526433000       8       8       0 r-x-- libXdmcp.so.6.0.0
+00007bc526435000       8       0       0 r---- libXdmcp.so.6.0.0
+00007bc526437000       4       4       4 r---- libXdmcp.so.6.0.0
+00007bc526438000       4       4       4 rw--- libXdmcp.so.6.0.0
+00007bc526439000       4       4       0 r---- libbrotlicommon.so.1.1.0
+00007bc52643a000       4       4       0 r-x-- libbrotlicommon.so.1.1.0
+00007bc52643b000     124       0       0 r---- libbrotlicommon.so.1.1.0
+00007bc52645a000       4       4       4 r---- libbrotlicommon.so.1.1.0
+00007bc52645b000       4       4       4 rw--- libbrotlicommon.so.1.1.0
+00007bc52645c000      44      44       0 r---- libxcb.so.1.1.0
+00007bc526467000      76      76       0 r-x-- libxcb.so.1.1.0
+00007bc52647a000      36      36       0 r---- libxcb.so.1.1.0
+00007bc526483000       4       4       4 r---- libxcb.so.1.1.0
+00007bc526484000       4       4       4 rw--- libxcb.so.1.1.0
+00007bc526485000       4       4       0 r---- libbrotlidec.so.1.1.0
+00007bc526486000      32      32       0 r-x-- libbrotlidec.so.1.1.0
+00007bc52648e000      12       0       0 r---- libbrotlidec.so.1.1.0
+00007bc526491000       4       4       4 r---- libbrotlidec.so.1.1.0
+00007bc526492000       4       4       4 rw--- libbrotlidec.so.1.1.0
+00007bc526493000       8       8       0 r---- libbz2.so.1.0.4
+00007bc526495000      56      56       0 r-x-- libbz2.so.1.0.4
+00007bc5264a3000       8       0       0 r---- libbz2.so.1.0.4
+00007bc5264a5000       4       4       4 r---- libbz2.so.1.0.4
+00007bc5264a6000       4       4       4 rw--- libbz2.so.1.0.4
+00007bc5264a7000       8       8       0 r---- libz.so.1.3
+00007bc5264a9000      72      64       0 r-x-- libz.so.1.3
+00007bc5264bb000      24      24       0 r---- libz.so.1.3
+00007bc5264c1000       4       4       4 r---- libz.so.1.3
+00007bc5264c2000       4       4       4 rw--- libz.so.1.3
+00007bc5264c3000     100     100       0 r---- libX11.so.6.4.0
+00007bc5264dc000     576     576       0 r-x-- libX11.so.6.4.0
+00007bc52656c000     572     140       0 r---- libX11.so.6.4.0
+00007bc5265fb000       4       4       4 r---- libX11.so.6.4.0
+00007bc5265fc000      16      16      16 rw--- libX11.so.6.4.0
+00007bc526600000     160     160       0 r---- libc.so.6
+00007bc526628000    1572    1200       0 r-x-- libc.so.6
+00007bc5267b1000     316     184       0 r---- libc.so.6
+00007bc526800000      16      16      16 r---- libc.so.6
+00007bc526804000       8       8       8 rw--- libc.so.6
+00007bc526806000      52      20      20 rw---   [ anon ]
+00007bc526813000       4       4       0 rw-s- memfd:state table (deleted)
+00007bc526814000       8       8       8 rw---   [ anon ]
+00007bc526816000       4       4       0 r---- libXau.so.6.0.0
+00007bc526817000       8       8       0 r-x-- libXau.so.6.0.0
+00007bc526819000       4       4       0 r---- libXau.so.6.0.0
+00007bc52681a000       4       4       4 r---- libXau.so.6.0.0
+00007bc52681b000       4       4       4 rw--- libXau.so.6.0.0
+00007bc52681c000       8       8       8 rw---   [ anon ]
+00007bc52681e000      64      64       0 r---- libm.so.6
+00007bc52682e000     508     276       0 r-x-- libm.so.6
+00007bc5268ad000     352     124       0 r---- libm.so.6
+00007bc526905000       4       4       4 r---- libm.so.6
+00007bc526906000       4       4       4 rw--- libm.so.6
+00007bc526907000       8       8       8 rw---   [ anon ]
+00007bc526909000      20      20       0 r---- libpng16.so.16.43.0
+00007bc52690e000     160      64       0 r-x-- libpng16.so.16.43.0
+00007bc526936000      36       0       0 r---- libpng16.so.16.43.0
+00007bc52693f000       4       4       4 r---- libpng16.so.16.43.0
+00007bc526940000       4       4       4 rw--- libpng16.so.16.43.0
+00007bc526941000      52      52       0 r---- libfreetype.so.6.20.1
+00007bc52694e000     580     560       0 r-x-- libfreetype.so.6.20.1
+00007bc5269df000     152      60       0 r---- libfreetype.so.6.20.1
+00007bc526a05000      28      28      28 r---- libfreetype.so.6.20.1
+00007bc526a0c000       4       4       4 rw--- libfreetype.so.6.20.1
+00007bc526a0d000      32      32       0 r---- libglfw.so.3.3
+00007bc526a15000      92      88       0 r-x-- libglfw.so.3.3
+00007bc526a2c000     144     144       0 r---- libglfw.so.3.3
+00007bc526a50000       8       8       8 r---- libglfw.so.3.3
+00007bc526a52000       4       4       4 rw--- libglfw.so.3.3
+00007bc526a53000     136     132     132 rw---   [ anon ]
+00007bc526a75000      24      24       0 r---- libvulkan.so.1.3.275
+00007bc526a7b000     304     304       0 r-x-- libvulkan.so.1.3.275
+00007bc526ac7000     168     160       0 r---- libvulkan.so.1.3.275
+00007bc526af1000       4       4       4 r---- libvulkan.so.1.3.275
+00007bc526af2000       4       4       4 rw--- libvulkan.so.1.3.275
+00007bc526af3000       4       4       4 rw-s- memfd:state table (deleted)
+00007bc526af4000       4       4       0 rw-s- memfd:state table (deleted)
+00007bc526af5000       4       4       0 rw-s- memfd:state table (deleted)
+00007bc526af6000      16      16       0 r---- libXext.so.6.4.0
+00007bc526afa000      44      44       0 r-x-- libXext.so.6.4.0
+00007bc526b05000      12      12       0 r---- libXext.so.6.4.0
+00007bc526b08000       4       4       4 r---- libXext.so.6.4.0
+00007bc526b09000       4       4       4 rw--- libXext.so.6.4.0
+00007bc526b0a000       4       4       0 r---- libXxf86vm.so.1.0.0
+00007bc526b0b000      12      12       0 r-x-- libXxf86vm.so.1.0.0
+00007bc526b0e000       4       4       0 r---- libXxf86vm.so.1.0.0
+00007bc526b0f000       4       4       4 r---- libXxf86vm.so.1.0.0
+00007bc526b10000       4       4       4 rw--- libXxf86vm.so.1.0.0
+00007bc526b11000      28      28       0 r--s- gconv-modules.cache
+00007bc526b18000       4       4       0 r---- libstdbuf.so
+00007bc526b19000       4       4       0 r-x-- libstdbuf.so
+00007bc526b1a000       4       4       0 r---- libstdbuf.so
+00007bc526b1b000       4       4       4 r---- libstdbuf.so
+00007bc526b1c000       4       4       4 rw--- libstdbuf.so
+00007bc526b1d000       8       8       8 rw---   [ anon ]
+00007bc526b1f000      16       0       0 r----   [ anon ]
+00007bc526b23000       8       0       0 r----   [ anon ]
+00007bc526b25000       8       8       0 r-x--   [ anon ]
+00007bc526b27000       4       4       0 r---- ld-linux-x86-64.so.2
+00007bc526b28000     172     172       0 r-x-- ld-linux-x86-64.so.2
+00007bc526b53000      40      40       0 r---- ld-linux-x86-64.so.2
+00007bc526b5d000       8       8       8 r---- ld-linux-x86-64.so.2
+00007bc526b5f000       8       8       8 rw--- ld-linux-x86-64.so.2
+00007ffebbcbd000     152     152     152 rw---   [ stack ]
+ffffffffff600000       4       0       0 --x--   [ anon ]
+---------------- ------- ------- ------- 
+total kB          651780   88212   30388

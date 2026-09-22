@@ -5,6 +5,62 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+typedef struct {
+  BLB_Texture *texture;
+  char *path;
+} BLB_TextureCacheEntry;
+
+static BLB_TextureCacheEntry *texture_cache = NULL;
+static size_t texture_cache_count = 0;
+static size_t texture_cache_capacity = 0;
+
+static char *duplicate_string(const char *value) {
+  if (!value) return NULL;
+  size_t n = strlen(value) + 1u;
+  char *copy = malloc(n);
+  if (!copy) return NULL;
+  memcpy(copy, value, n);
+  return copy;
+}
+
+static BLB_Texture *texture_cache_find(const char *path) {
+  if (!path) return NULL;
+  BLB_Texture *result = NULL;
+  for (size_t i = 0; i < texture_cache_count; ++i) {
+    if (texture_cache[i].texture && strcmp(texture_cache[i].path, path) == 0) {
+      result = texture_cache[i].texture;
+      break;
+    }
+  }
+  return result;
+}
+
+static void texture_cache_insert(BLB_Texture *texture, const char *path) {
+  if (!texture || !path) return;
+  char *key = duplicate_string(path);
+  if (!key) return;
+  if (texture_cache_count == texture_cache_capacity) {
+    size_t new_capacity = texture_cache_capacity ? texture_cache_capacity * 2u : 32u;
+    BLB_TextureCacheEntry *next = realloc(texture_cache, new_capacity * sizeof(*next));
+    if (!next) { free(key); return; }
+    texture_cache = next;
+    texture_cache_capacity = new_capacity;
+  }
+  texture_cache[texture_cache_count++] = (BLB_TextureCacheEntry){.texture = texture, .path = key};
+}
+
+static void texture_cache_remove(BLB_Texture *texture) {
+  if (!texture) return;
+  for (size_t i = 0; i < texture_cache_count; ++i) {
+    if (texture_cache[i].texture != texture) continue;
+    free(texture_cache[i].path);
+    texture_cache[i] = texture_cache[texture_cache_count - 1u];
+    --texture_cache_count;
+    return;
+  }
+}
+
 BLB_Texture *BLB_Texture_Create2D(uint32_t width, uint32_t height, const void *pixels, size_t pixel_size) {
   if (!width || !height || !pixels)
     return NULL;
@@ -44,6 +100,12 @@ BLB_Texture *BLB_Texture_Load2D(const char *path) {
   if (!path)
     return NULL;
 
+  BLB_Texture *cached = texture_cache_find(path);
+  if (cached) {
+    BLB_Texture_Retain(cached);
+    return cached;
+  }
+
   png_image image;
   memset(&image, 0, sizeof(image));
 
@@ -70,6 +132,8 @@ BLB_Texture *BLB_Texture_Load2D(const char *path) {
   }
 
   BLB_Texture *texture = BLB_Texture_Create2D(image.width, image.height, pixels, size);
+  if (texture)
+    texture_cache_insert(texture, path);
 
   free(pixels);
   png_image_free(&image);
@@ -404,6 +468,8 @@ void BLB_Texture_Release(BLB_Texture *texture) {
     texture->ref_count--;
     return;
   }
+
+  texture_cache_remove(texture);
 
   if (texture->backend_destroy && texture->backend_data) {
     texture->backend_destroy(texture->backend_data);

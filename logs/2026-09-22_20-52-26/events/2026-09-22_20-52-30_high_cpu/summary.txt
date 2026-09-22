@@ -1,0 +1,21 @@
+===== CURRENT STATUS =====
+Tue Sep 22 20:52:31 +04 2026
+
+CPU: 98.8%
+RSS: 86.14 MB
+HWM: 86.14 MB
+VSZ: 638.00 MB
+DATA: 51.00 MB
+ANON: 28.67 MB
+FILE: 57.29 MB
+PSS: 54.91 MB
+PSS ANON: 28.67 MB
+THREADS: 5
+FD: 29
+STATE: R (running)
+WCHAN: -
+LOAD: 2.36 1.97 1.72
+
+EXE: /home/grib/projects/BulbaEngine/engine/build/debug/bulba
+CWD: /home/grib/projects/BulbaEngine/engine
+CMD: ./build/debug/bulba

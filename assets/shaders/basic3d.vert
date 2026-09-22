@@ -25,10 +25,10 @@ void main() {
   vec4 local_position = vec4(in_position, 1.0);
 
   vec3 world_position = vec3(
-    dot(push_constants.model_rows[0], local_position),
-    dot(push_constants.model_rows[1], local_position),
-    dot(push_constants.model_rows[2], local_position)
-  );
+      dot(push_constants.model_rows[0], local_position),
+      dot(push_constants.model_rows[1], local_position),
+      dot(push_constants.model_rows[2], local_position)
+    );
 
   vec3 r0 = push_constants.model_rows[0].xyz;
   vec3 r1 = push_constants.model_rows[1].xyz;
@@ -41,10 +41,10 @@ void main() {
     vec3 n1 = cross(r2, r0) / det;
     vec3 n2 = cross(r0, r1) / det;
     world_normal = normalize(vec3(
-      dot(n0, in_normal),
-      dot(n1, in_normal),
-      dot(n2, in_normal)
-    ));
+          dot(n0, in_normal),
+          dot(n1, in_normal),
+          dot(n2, in_normal)
+        ));
   } else {
     world_normal = normalize(in_normal);
   }

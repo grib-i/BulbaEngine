@@ -1,0 +1,70 @@
+============================================================
+BulbaEngine diagnostic session
+Date: Tue Sep 22 07:16:25 +04 2026
+Project: bulba
+Build type: Debug
+Live monitor: 1
+Valgrind: 0
+============================================================
+
+============================================================
+CMAKE DEBUG CONFIGURE
+============================================================
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/grib/projects/BulbaEngine/engine/build/debug
+
+============================================================
+CMAKE DEBUG BUILD
+============================================================
+[0/2] Re-checking globbed directories...
+[1/2] Building C object CMakeFiles/bulba.dir/tests/supernova.c.o
+[2/2] Linking C executable bulba
+[2026-09-22 07:16:25] APPLICATION LOG: logs/2026-09-22_07-16-25/application.log
+[2026-09-22 07:16:25] ASAN: ON
+[2026-09-22 07:16:25] Application started
+[2026-09-22 07:16:25] PID: 433303
+[2026-09-22 07:16:25] Application output redirected to: logs/2026-09-22_07-16-25/application.log
+[2026-09-22 07:16:25] MONITOR START
+[2026-09-22 07:16:25] PID: 433303
+[2026-09-22 07:16:25] EXE: /home/grib/projects/BulbaEngine/engine/build/debug/bulba
+[2026-09-22 07:16:25] APPLICATION LOG: logs/2026-09-22_07-16-25/application.log
+[2026-09-22 07:16:25] CPU=75.0% RSS=5.63 MB HWM=5.63 MB VSZ=14.93 MB DATA=0.80 MB ANON=0.87 MB PSS=1.90 MB THREADS=1 FD=14 STATE=R (running) WCHAN=-
+[2026-09-22 07:16:26] CPU=45.3% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.48 MB THREADS=5 FD=29 STATE=R (running) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:27] CPU=43.9% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.48 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:28] CPU=42.9% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.48 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:29] CPU=41.5% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.48 MB THREADS=5 FD=29 STATE=R (running) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:30] CPU=41.0% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.48 MB THREADS=5 FD=29 STATE=R (running) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:31] CPU=40.2% RSS=85.57 MB HWM=85.57 MB VSZ=0.00 MB DATA=50.52 MB ANON=28.19 MB PSS=54.48 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=-
+[2026-09-22 07:16:32] CPU=40.1% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.48 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=-
+[2026-09-22 07:16:33] CPU=40.2% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.48 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:34] CPU=40.3% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.48 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=-
+[2026-09-22 07:16:35] CPU=40.5% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.48 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 07:16:36] CPU=40.5% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.56 MB THREADS=5 FD=29 STATE=R (running) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:37] CPU=40.6% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.56 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 07:16:38] CPU=40.8% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.56 MB THREADS=5 FD=29 STATE=R (running) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:39] CPU=40.9% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.56 MB THREADS=5 FD=29 STATE=R (running) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:40] CPU=41.0% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.56 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 07:16:41] CPU=41.2% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.56 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 07:16:42] CPU=41.3% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.56 MB THREADS=5 FD=29 STATE=R (running) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:43] CPU=41.5% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.56 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:44] CPU=41.6% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.56 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:45] EVENT: RAPID MEMORY GROWTH
+[2026-09-22 07:16:45] RSS BEFORE: 5.63 MB
+[2026-09-22 07:16:45] RSS NOW: 85.57 MB
+[2026-09-22 07:16:45] DELTA: 79.94 MB
+[2026-09-22 07:16:45] ============================================================
+[2026-09-22 07:16:45] DIAGNOSTIC EVENT: memory_growth
+[2026-09-22 07:16:45] PID: 433303
+[2026-09-22 07:16:45] EVENT DIR: logs/2026-09-22_07-16-25/events/2026-09-22_07-16-45_memory_growth
+[2026-09-22 07:16:45] ============================================================
+[2026-09-22 07:16:46] Diagnostic snapshot saved: logs/2026-09-22_07-16-25/events/2026-09-22_07-16-45_memory_growth
+[2026-09-22 07:16:46] CPU=41.7% RSS=85.57 MB HWM=85.57 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.19 MB PSS=54.56 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:46] CPU=41.5% RSS=85.57 MB HWM=85.57 MB VSZ=619.46 MB DATA=50.52 MB ANON=28.19 MB PSS=54.56 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:47] CPU=41.5% RSS=85.77 MB HWM=85.77 MB VSZ=619.46 MB DATA=50.52 MB ANON=28.26 MB PSS=54.63 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:48] CPU=41.3% RSS=85.77 MB HWM=85.77 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.26 MB PSS=54.63 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=-
+[2026-09-22 07:16:49] CPU=40.9% RSS=85.77 MB HWM=85.77 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.26 MB PSS=54.63 MB THREADS=5 FD=29 STATE=R (running) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:50] CPU=40.7% RSS=85.77 MB HWM=85.77 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.26 MB PSS=54.63 MB THREADS=5 FD=29 STATE=R (running) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:51] CPU=40.4% RSS=85.77 MB HWM=85.77 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.26 MB PSS=54.63 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:16:52] MONITOR END
+[2026-09-22 07:16:52] PROCESS EXIT CODE: 0

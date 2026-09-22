@@ -128,6 +128,9 @@ int VULKAN_CreateRenderer(VULKAN *vulkan) {
   vulkan->shadow_enabled = false;
   vulkan->shadow_mode = 0;
   vulkan->shadow_bias = 0.002f;
+  vulkan->light_buffer_dirty_3d = true;
+  vulkan->light_buffer_dirty_2d = true;
+  vulkan->frame_serial = 0;
 
   vulkan->clear_color[0] = 0.0f;
   vulkan->clear_color[1] = 0.0f;
@@ -214,6 +217,7 @@ void VULKAN_DestroyRenderer(VULKAN *vulkan) {
   VULKAN_RendererUnloadFont(vulkan);
 
   destroy_pipeline_array(vulkan);
+  VULKAN_DestroyCustomPipelines(vulkan);
 
   destroy_shadow_resources(vulkan);
 

@@ -60,6 +60,19 @@ void BLB_Object2D_Transform(BLB_Object2D *object, HMM_Vec2 position, float rotat
   object->scale = scale;
 }
 
+void BLB_Object2D_SetMaterial(BLB_Object2D *object, BLB_Material *material) {
+  if (!object || object->material == material)
+    return;
+
+  if (material)
+    BLB_Material_Retain(material);
+
+  if (object->material)
+    BLB_Material_Release(object->material);
+
+  object->material = material;
+}
+
 void BLB_Object2D_SetTexture(BLB_Object2D *object, BLB_Texture *texture) {
   if (!object)
     return;

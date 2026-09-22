@@ -4,3 +4,4 @@ CompileFlags:
     - -I/home/grib/projects/BulbaEngine/engine/build/debug/generated/shaders
     - -I/home/grib/projects/BulbaEngine/engine/build/debug/generated/textures
     - -I/home/grib/projects/BulbaEngine/engine/src
+    - -I/home/grib/projects/BulbaEngine/engine/tests

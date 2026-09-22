@@ -192,6 +192,9 @@ void push_lighting(VULKAN *vulkan, VkPipelineLayout layout, const float *mvp, co
 void update_light_buffer_3d(VULKAN *vulkan);
 void update_light_buffer_2d(VULKAN *vulkan);
 int VULKAN_TextureEnsureUploaded(VULKAN *vulkan, BLB_Texture *texture);
+int VULKAN_GetOrCreateCustomPipeline(VULKAN *vulkan, const BLB_ShaderProgram *shader, bool is_2d, BLB_RenderMode mode,
+                                     uint32_t depth_variant, VkPipeline *pipeline, VkPipelineLayout *layout);
+void VULKAN_DestroyCustomPipelines(VULKAN *vulkan);
 void VULKAN_RendererBindTexture(VULKAN *vulkan, VkPipelineLayout layout, BLB_Texture *texture);
 void VULKAN_RendererBindMaterial(VULKAN *vulkan, VkPipelineLayout layout, const VulkanMaterial *material);
 void VULKAN_RendererInvalidateMaterialCache(VULKAN *vulkan, BLB_Material *material);

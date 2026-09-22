@@ -241,6 +241,9 @@ void update_light_buffer_3d(VULKAN *vulkan) {
   if (!vulkan)
     return;
 
+  if (!vulkan->light_buffer_dirty_3d)
+    return;
+
   if (vulkan->current_frame >= VULKAN_MAX_FRAMES_IN_FLIGHT)
     return;
 
@@ -318,10 +321,15 @@ void update_light_buffer_3d(VULKAN *vulkan) {
     buffer->shadow_params[2] = -1.0f;
     buffer->shadow_params[3] = 0.0f;
   }
+
+  vulkan->light_buffer_dirty_3d = false;
 }
 
 void update_light_buffer_2d(VULKAN *vulkan) {
   if (!vulkan)
+    return;
+
+  if (!vulkan->light_buffer_dirty_2d)
     return;
 
   if (vulkan->current_frame >= VULKAN_MAX_FRAMES_IN_FLIGHT)
@@ -377,6 +385,8 @@ void update_light_buffer_2d(VULKAN *vulkan) {
     size_t written = write_emissive_lights_2d(&buffer->lights[buffer->light_count], capacity, object);
     buffer->light_count += written;
   }
+
+  vulkan->light_buffer_dirty_2d = false;
 }
 
 int create_light_descriptor_layout(VULKAN *vulkan, VkDescriptorSetLayout *layout) {
@@ -592,10 +602,10 @@ void VULKAN_RendererSetCameraPosition(VULKAN *vulkan, HMM_Vec3 position) {
   if (!vulkan)
     return;
 
-  vulkan->camera_position = position;
-
-  update_light_buffer_3d(vulkan);
-  update_light_buffer_2d(vulkan);
+  if (vulkan->camera_position.x != position.x || vulkan->camera_position.y != position.y || vulkan->camera_position.z != position.z)
+    vulkan->camera_position = position;
+  vulkan->light_buffer_dirty_3d = true;
+  vulkan->light_buffer_dirty_2d = true;
 }
 
 void VULKAN_RendererSetLights3D(VULKAN *vulkan, BLB_Light3D **lights, size_t light_count) {
@@ -613,7 +623,7 @@ void VULKAN_RendererSetLights3D(VULKAN *vulkan, BLB_Light3D **lights, size_t lig
   for (size_t i = 0; i < light_count; i++)
     vulkan->lights3d[i] = lights ? lights[i] : NULL;
 
-  update_light_buffer_3d(vulkan);
+  vulkan->light_buffer_dirty_3d = true;
 }
 
 void VULKAN_RendererSetLightingObjects3D(VULKAN *vulkan, BLB_Object3D **objects, size_t object_count) {
@@ -631,7 +641,7 @@ void VULKAN_RendererSetLightingObjects3D(VULKAN *vulkan, BLB_Object3D **objects,
   for (size_t i = 0; i < object_count; i++)
     vulkan->lighting_objects3d[i] = objects ? objects[i] : NULL;
 
-  update_light_buffer_3d(vulkan);
+  vulkan->light_buffer_dirty_3d = true;
 }
 
 void VULKAN_RendererClearLights3D(VULKAN *vulkan) {
@@ -648,7 +658,7 @@ void VULKAN_RendererClearLights3D(VULKAN *vulkan) {
   for (size_t i = 0; i < VULKAN_MAX_LIGHTS; i++)
     vulkan->lighting_objects3d[i] = NULL;
 
-  update_light_buffer_3d(vulkan);
+  vulkan->light_buffer_dirty_3d = true;
 }
 
 void VULKAN_RendererSetLights2D(VULKAN *vulkan, BLB_Light2D **lights, size_t light_count) {
@@ -666,7 +676,7 @@ void VULKAN_RendererSetLights2D(VULKAN *vulkan, BLB_Light2D **lights, size_t lig
   for (size_t i = 0; i < light_count; i++)
     vulkan->lights2d[i] = lights ? lights[i] : NULL;
 
-  update_light_buffer_2d(vulkan);
+  vulkan->light_buffer_dirty_2d = true;
 }
 
 void VULKAN_RendererSetLightingObjects2D(VULKAN *vulkan, BLB_Object2D **objects, size_t object_count) {
@@ -684,7 +694,7 @@ void VULKAN_RendererSetLightingObjects2D(VULKAN *vulkan, BLB_Object2D **objects,
   for (size_t i = 0; i < object_count; i++)
     vulkan->lighting_objects2d[i] = objects ? objects[i] : NULL;
 
-  update_light_buffer_2d(vulkan);
+  vulkan->light_buffer_dirty_2d = true;
 }
 
 void VULKAN_RendererClearLights2D(VULKAN *vulkan) {
@@ -701,6 +711,6 @@ void VULKAN_RendererClearLights2D(VULKAN *vulkan) {
   for (size_t i = 0; i < VULKAN_MAX_LIGHTS; i++)
     vulkan->lighting_objects2d[i] = NULL;
 
-  update_light_buffer_2d(vulkan);
+  vulkan->light_buffer_dirty_2d = true;
 }
 

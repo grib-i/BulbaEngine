@@ -28,11 +28,16 @@
 #define VULKAN_MATERIAL_TEXTURE_SLOTS 17
 #define VULKAN_MAX_MATERIAL_SAMPLERS 36
 #define VULKAN_DEPTH_VARIANTS 4
-#define VULKAN_SHADOW_MAP_SIZE 2048
+#ifndef VULKAN_SHADOW_MAP_SIZE
+/* 1024 is a much better default for integrated GPUs; override to 2048 for high-end hardware. */
+#define VULKAN_SHADOW_MAP_SIZE 1024
+#endif
 #define VULKAN_MAX_FONTS 64
 
 #define VULKAN_POINT_SHADOW_FACES 6
 #define VULKAN_SHADOW_MAP_COUNT 7
+
+typedef struct BLB_ShaderProgram BLB_ShaderProgram;
 
 typedef struct VULKAN_Buffer {
   VkBuffer buffer;
@@ -49,6 +54,37 @@ typedef struct {
   VkDescriptorPool descriptor_pool;
   VkDescriptorSet descriptor_set;
 } VULKAN_FontResource;
+
+typedef struct {
+  bool used;
+  const BLB_ShaderProgram *shader;
+  uint64_t shader_revision;
+  uint64_t last_used_frame;
+  VkPipeline pipeline;
+  VkPipelineLayout layout;
+  bool is_2d;
+  BLB_RenderMode render_mode;
+  uint32_t depth_variant;
+} VULKAN_CustomPipeline;
+
+#define VULKAN_MAX_CUSTOM_PIPELINES 128
+
+typedef struct {
+  const BLB_Polygon3D *polygon;
+  size_t vertex_start;
+  size_t index_start;
+  size_t vertex_count;
+  size_t index_count;
+} VULKAN_GeometryCacheEntry;
+
+typedef struct {
+  const BLB_Polygon3D *polygon;
+  size_t vertex_start;
+  size_t vertex_count;
+} VULKAN_ShadowGeometryCacheEntry;
+
+#define VULKAN_MAX_GEOMETRY_CACHE_ENTRIES 512
+#define VULKAN_MAX_SHADOW_GEOMETRY_CACHE_ENTRIES 512
 
 typedef struct VULKAN {
   GLFWwindow *window;
@@ -105,6 +141,23 @@ typedef struct VULKAN {
   size_t lighting_object2d_count;
   HMM_Vec3 camera_position;
   float clear_color[4];
+  bool light_buffer_dirty_3d;
+  bool light_buffer_dirty_2d;
+  uint64_t frame_serial;
+  VULKAN_CustomPipeline custom_pipelines[VULKAN_MAX_CUSTOM_PIPELINES];
+  VULKAN_GeometryCacheEntry geometry_cache[VULKAN_MAX_GEOMETRY_CACHE_ENTRIES];
+  size_t geometry_cache_count;
+  VULKAN_ShadowGeometryCacheEntry shadow_geometry_cache[VULKAN_MAX_SHADOW_GEOMETRY_CACHE_ENTRIES];
+  size_t shadow_geometry_cache_count;
+  VkDescriptorSet bound_material_set;
+  VkPipelineLayout bound_material_layout;
+  uint32_t bound_material_offset;
+  VkDescriptorSet bound_light_set;
+  VkPipelineLayout bound_light_layout;
+  VkPipeline bound_pipeline;
+  VkBuffer bound_vertex_buffer;
+  VkDeviceSize bound_vertex_offset;
+  VkBuffer bound_index_buffer;
   VkDescriptorSetLayout texture_descriptor_set_layout;
   VkDescriptorPool texture_descriptor_pool;
   VkDescriptorSetLayout material_descriptor_set_layout;
@@ -121,6 +174,7 @@ typedef struct VULKAN {
   VULKAN_Buffer shadow_vertex_buffers[VULKAN_MAX_FRAMES_IN_FLIGHT];
   size_t vertex_cursor;
   size_t index_cursor;
+  size_t shadow_vertex_cursor;
   size_t text_vertex_cursor;
   VkDescriptorSetLayout text_descriptor_set_layout;
   VULKAN_FontResource fonts[VULKAN_MAX_FONTS];

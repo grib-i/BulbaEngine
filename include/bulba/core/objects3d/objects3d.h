@@ -10,6 +10,7 @@
 #include "bulba/core/utils/object.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct BLB_RigidBody BLB_RigidBody;
 typedef struct BLB_Collider BLB_Collider;
@@ -23,6 +24,7 @@ typedef struct {
 
   BLB_ObjectType type;
   BLB_ObjectID *id;
+  uint64_t geometry_id;
 
   BLB_RigidBody *rigid_body;
   BLB_Collider *collider;
@@ -65,5 +67,6 @@ void BLB_Object3D_SetScale(BLB_Object3D *object, HMM_Vec3 scale);
 void BLB_Object3D_Transform(BLB_Object3D *object, HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale);
 
 void BLB_Object3D_SetTexture(BLB_Object3D *object, BLB_Texture *texture);
+void BLB_Object3D_SetMaterial(BLB_Object3D *object, BLB_Material *material);
 
 #endif

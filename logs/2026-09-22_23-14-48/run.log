@@ -1,0 +1,36 @@
+============================================================
+BulbaEngine diagnostic session
+Date: Tue Sep 22 23:14:48 +04 2026
+Project: bulba
+Build type: Debug
+Live monitor: 1
+Valgrind: 0
+============================================================
+
+============================================================
+CMAKE DEBUG CONFIGURE
+============================================================
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/grib/projects/BulbaEngine/engine/build/debug
+
+============================================================
+CMAKE DEBUG BUILD
+============================================================
+[0/2] Re-checking globbed directories...
+[1/2] Building C object CMakeFiles/bulba.dir/tests/supernova.c.o
+[2/2] Linking C executable bulba
+[2026-09-22 23:14:48] APPLICATION LOG: logs/2026-09-22_23-14-48/application.log
+[2026-09-22 23:14:48] ASAN: ON
+[2026-09-22 23:14:48] Application started
+[2026-09-22 23:14:48] PID: 471723
+[2026-09-22 23:14:48] Application output redirected to: logs/2026-09-22_23-14-48/application.log
+[2026-09-22 23:14:48] MONITOR START
+[2026-09-22 23:14:48] PID: 471723
+[2026-09-22 23:14:48] EXE: /home/grib/projects/BulbaEngine/engine/build/debug/bulba
+[2026-09-22 23:14:48] APPLICATION LOG: logs/2026-09-22_23-14-48/application.log
+[2026-09-22 23:14:48] CPU=100% RSS=5.73 MB HWM=5.73 MB VSZ=14.93 MB DATA=0.80 MB ANON=0.87 MB PSS=1.78 MB THREADS=1 FD=14 STATE=R (running) WCHAN=-
+[2026-09-22 23:14:49] CPU=79.0% RSS=85.87 MB HWM=85.87 MB VSZ=627.73 MB DATA=50.73 MB ANON=28.39 MB PSS=45.88 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=-
+[2026-09-22 23:14:50] CPU=80.9% RSS=85.87 MB HWM=85.87 MB VSZ=627.73 MB DATA=50.73 MB ANON=28.39 MB PSS=45.88 MB THREADS=5 FD=29 STATE=R (running) WCHAN=-
+[2026-09-22 23:14:51] MONITOR END
+[2026-09-22 23:14:51] PROCESS EXIT CODE: 0

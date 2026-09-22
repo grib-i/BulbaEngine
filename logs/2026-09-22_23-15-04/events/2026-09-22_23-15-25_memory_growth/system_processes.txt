@@ -1,0 +1,40 @@
+    PID    PPID %CPU %MEM   RSS    VSZ STAT WCHAN  COMMAND
+ 472214  472173 82.0  1.1 87132 633836 Sl+  drm_sy bulba
+ 469006    2081 14.3  6.9 549340 12112712 Sl poll_s firefox
+ 472173  420300 10.3  0.0  5176  11636 S+   do_wai install
+ 471175  469180 10.1  6.6 518952 3224376 Sl poll_s Isolated Web Co
+   2150    2145  3.9  0.5 46904 775232 Sl+  ep_pol Xorg
+   2420    2081  3.7  3.8 304476 4972256 Ssl poll_s gnome-shell
+ 292697    2081  3.6  5.3 418836 2177100 RLl poll_s telegram-deskto
+ 469205  469180  3.1  5.0 398672 3192644 Sl poll_s Isolated Web Co
+ 469430  469180  1.0  2.0 162536 19799756 Sl poll_s WebExtensions
+   2110    2081  0.5  0.4 38832 154676 S<sl ep_pol pipewire-pulse
+ 469090       2  0.5  0.0     0      0 I    -      kworker/u48:1-i915
+   2109    2081  0.5  0.1 15412 408760 S<sl poll_s wireplumber
+ 468900       2  0.4  0.0     0      0 D<   -      kworker/u49:2+i915_flip
+ 471328       2  0.4  0.0     0      0 I<   -      kworker/u49:1-rb_allocator
+ 470042  469180  0.3  2.0 162384 2733376 Sl poll_s Privileged Cont
+ 470136       2  0.3  0.0     0      0 I    -      kworker/u48:2-flush-259:0
+ 419178    2081  0.3  5.0 399528 40471668 Rsl -    zed-editor
+    279       2  0.2  0.0     0      0 S    -      irq/140-GXTP7863:00
+ 393578    1926  0.2  0.2 23444 1273704 Sl  -      sing-box
+ 468819       2  0.2  0.0     0      0 I    -      kworker/u48:0-i915
+   2106    2081  0.1  0.2 21532 199980 S<sl ep_pol pipewire
+   2543    2081  0.1  0.2 21608 473108 Ssl  poll_s ibus-daemon
+   7391    2420  0.1  0.8 66788 4584220 Sl  poll_s Happ
+ 468489       2  0.1  0.0     0      0 I    -      kworker/u48:37-events_power_efficient
+     15       2  0.1  0.0     0      0 I    -      rcu_preempt
+ 467941       2  0.0  0.0     0      0 I    -      kworker/6:2-i915-unordered
+    708       2  0.0  0.0     0      0 S    -      irq/151-iwlwifi:default_queue
+   2679    2394  0.0  7.5 594008 2723896 Sl poll_s gnome-software
+ 468934    2420  0.0  0.8 65788 3216008 Sl  poll_s gjs
+   1937       1  0.0  0.1 14848 2385380 Ssl -      containerd
+ 458377    2081  0.0  2.3 186688 2041472 Sl poll_s nautilus
+   3153       1  0.0  0.1  8384 527588 Ssl  -      zerotier-one
+ 471521       2  0.0  0.0     0      0 I    -      kworker/9:0-events
+ 419207  419178  0.0  0.3 28772 400116 S    ep_pol zed-editor
+   1926       1  0.0  0.1 14652 227940 Ssl  -      happd
+   2883    2543  0.0  0.1  8356 239536 Sl   poll_s ibus-engine-sim
+    713       2  0.0  0.0     0      0 S    -      irq/156-iwlwifi:queue_5
+ 393562    7391  0.0  0.3 24724 1299544 Sl  futex_ xray
+     41       2  0.0  0.0     0      0 S    -      migration/8

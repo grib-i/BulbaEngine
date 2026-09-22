@@ -95,6 +95,37 @@ static void identity_rows(float rows[12]) {
   memcpy(rows, value, sizeof(value));
 }
 
+
+static bool find_cached_geometry_3d(VULKAN *vulkan, const BLB_Polygon3D *polygon, size_t *vertex_start, size_t *index_start) {
+  if (!vulkan || !polygon || !vertex_start || !index_start)
+    return false;
+
+  for (size_t i = 0; i < vulkan->geometry_cache_count; ++i) {
+    const VULKAN_GeometryCacheEntry *entry = &vulkan->geometry_cache[i];
+    if (entry->polygon != polygon)
+      continue;
+    if (entry->vertex_count != polygon->vertex_count || entry->index_count != polygon->index_count)
+      continue;
+    *vertex_start = entry->vertex_start;
+    *index_start = entry->index_start;
+    return true;
+  }
+  return false;
+}
+
+static void cache_geometry_3d(VULKAN *vulkan, const BLB_Polygon3D *polygon, size_t vertex_start, size_t index_start) {
+  if (!vulkan || !polygon || vulkan->geometry_cache_count >= VULKAN_MAX_GEOMETRY_CACHE_ENTRIES)
+    return;
+
+  vulkan->geometry_cache[vulkan->geometry_cache_count++] = (VULKAN_GeometryCacheEntry){
+      .polygon = polygon,
+      .vertex_start = vertex_start,
+      .index_start = index_start,
+      .vertex_count = polygon->vertex_count,
+      .index_count = polygon->index_count,
+  };
+}
+
 static bool ensure_polygon_normals(BLB_Polygon3D *polygon) {
   if (!polygon || !polygon->vertices || !polygon->indices || polygon->vertex_count == 0 || polygon->index_count < 3 || polygon->index_count % 3 != 0)
     return false;
@@ -425,11 +456,22 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
 
   VkPipelineLayout layout = select_3d_layout(vulkan, material.render_mode, material.depth_enabled, material.depth_write);
 
-  vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  if (vulkan->bound_pipeline != pipeline) {
+    vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    vulkan->bound_pipeline = pipeline;
+  }
 
-  vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &offset);
+  if (vulkan->bound_vertex_buffer != vertex_buffer || vulkan->bound_vertex_offset != offset) {
+    vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &offset);
+    vulkan->bound_vertex_buffer = vertex_buffer;
+    vulkan->bound_vertex_offset = offset;
+  }
 
-  vkCmdBindIndexBuffer(command, vulkan->index_buffers[vulkan->current_frame].buffer, 0, VK_INDEX_TYPE_UINT32);
+  VkBuffer index_buffer = vulkan->index_buffers[vulkan->current_frame].buffer;
+  if (vulkan->bound_index_buffer != index_buffer) {
+    vkCmdBindIndexBuffer(command, index_buffer, 0, VK_INDEX_TYPE_UINT32);
+    vulkan->bound_index_buffer = index_buffer;
+  }
 
   VULKAN_RendererBindMaterial(vulkan, layout, &material);
 
@@ -448,9 +490,6 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
     return;
 
   if (polygon->vertex_count == 0 || polygon->index_count < 3 || polygon->index_count % 3 != 0)
-    return;
-
-  if (vulkan->vertex_cursor + polygon->vertex_count > VULKAN_MAX_VERTICES || vulkan->index_cursor + polygon->index_count > VULKAN_MAX_INDICES)
     return;
 
   for (size_t i = 0; i < polygon->index_count; i++) {
@@ -473,20 +512,30 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
   if (!vertices || !indices)
     return;
 
-  size_t vertex_start = vulkan->vertex_cursor;
+  size_t vertex_start = 0;
+  size_t index_start = 0;
+  bool cached_geometry = find_cached_geometry_3d(vulkan, polygon, &vertex_start, &index_start);
 
-  size_t index_start = vulkan->index_cursor;
+  if (!cached_geometry) {
+    if (vulkan->vertex_cursor + polygon->vertex_count > VULKAN_MAX_VERTICES || vulkan->index_cursor + polygon->index_count > VULKAN_MAX_INDICES)
+      return;
 
-  for (size_t i = 0; i < polygon->vertex_count; i++) {
-    HMM_Vec3 normal = safe_normalize(polygon->normals[i], HMM_V3(0.0f, 1.0f, 0.0f));
+    vertex_start = vulkan->vertex_cursor;
+    index_start = vulkan->index_cursor;
 
-    HMM_Vec2 uv = polygon->uvs ? polygon->uvs[i] : HMM_V2(0.0f, 0.0f);
+    for (size_t i = 0; i < polygon->vertex_count; i++) {
+      HMM_Vec3 normal = safe_normalize(polygon->normals[i], HMM_V3(0.0f, 1.0f, 0.0f));
+      HMM_Vec2 uv = polygon->uvs ? polygon->uvs[i] : HMM_V2(0.0f, 0.0f);
+      upload_vertex(vertices, vertex_start + i, polygon->vertices[i], normal, r, g, b, a, uv);
+    }
 
-    upload_vertex(vertices, vertex_start + i, polygon->vertices[i], normal, r, g, b, a, uv);
-  }
+    for (size_t i = 0; i < polygon->index_count; i++)
+      indices[index_start + i] = (uint32_t)polygon->indices[i];
 
-  for (size_t i = 0; i < polygon->index_count; i++) {
-    indices[index_start + i] = (uint32_t)polygon->indices[i];
+    cache_geometry_3d(vulkan, polygon, vertex_start, index_start);
+
+    vulkan->vertex_cursor += polygon->vertex_count;
+    vulkan->index_cursor += polygon->index_count;
   }
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
@@ -495,15 +544,33 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
 
   VkDeviceSize offset = vertex_start * sizeof(VulkanVertex);
 
+  uint32_t variant = depth_variant(material->depth_enabled, material->depth_write);
   VkPipeline pipeline = select_3d_pipeline(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
-
   VkPipelineLayout layout = select_3d_layout(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
 
-  vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  if (material->source_material && material->source_material->shader_program &&
+      material->source_material->shader_program->asset.is_2d == false &&
+      VULKAN_GetOrCreateCustomPipeline(vulkan, material->source_material->shader_program, false, material->render_mode, variant, &pipeline, &layout) != 0) {
+    pipeline = select_3d_pipeline(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
+    layout = select_3d_layout(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
+  }
 
-  vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &offset);
+  if (vulkan->bound_pipeline != pipeline) {
+    vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    vulkan->bound_pipeline = pipeline;
+  }
 
-  vkCmdBindIndexBuffer(command, vulkan->index_buffers[vulkan->current_frame].buffer, 0, VK_INDEX_TYPE_UINT32);
+  if (vulkan->bound_vertex_buffer != vertex_buffer || vulkan->bound_vertex_offset != offset) {
+    vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &offset);
+    vulkan->bound_vertex_buffer = vertex_buffer;
+    vulkan->bound_vertex_offset = offset;
+  }
+
+  VkBuffer index_buffer = vulkan->index_buffers[vulkan->current_frame].buffer;
+  if (vulkan->bound_index_buffer != index_buffer) {
+    vkCmdBindIndexBuffer(command, index_buffer, 0, VK_INDEX_TYPE_UINT32);
+    vulkan->bound_index_buffer = index_buffer;
+  }
 
   VulkanMaterial bound_material = *material;
   bound_material.base_texture_override = texture;
@@ -512,10 +579,6 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
   push_lighting(vulkan, layout, mvp, model_rows, material, 0);
 
   vkCmdDrawIndexed(command, (uint32_t)polygon->index_count, 1, (uint32_t)index_start, 0, 0);
-
-  vulkan->vertex_cursor += polygon->vertex_count;
-
-  vulkan->index_cursor += polygon->index_count;
 }
 
 void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, const HMM_Vec2 *world_positions, float viewport_width,
@@ -592,26 +655,49 @@ void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, 
 
   VkDeviceSize offset = vertex_start * sizeof(VulkanVertex);
 
+  uint32_t variant = depth_variant(material->depth_enabled, material->depth_write);
   VkPipeline pipeline = select_2d_pipeline(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
-
   VkPipelineLayout layout = select_2d_layout(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
+
+  if (material->source_material && material->source_material->shader_program &&
+      material->source_material->shader_program->asset.is_2d == true &&
+      VULKAN_GetOrCreateCustomPipeline(vulkan, material->source_material->shader_program, true, material->render_mode, variant, &pipeline, &layout) != 0) {
+    pipeline = select_2d_pipeline(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
+    layout = select_2d_layout(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
+  }
 
   Vulkan2DPushConstants push = {0};
   push.viewport[0] = viewport_width;
   push.viewport[1] = viewport_height;
   pack_material_payload(push.material, push.pbr, push.emission, push.material_ext, push.surface, push.meta, material);
 
-  vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  if (vulkan->bound_pipeline != pipeline) {
+    vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    vulkan->bound_pipeline = pipeline;
+  }
 
-  vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &offset);
+  if (vulkan->bound_vertex_buffer != vertex_buffer || vulkan->bound_vertex_offset != offset) {
+    vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &offset);
+    vulkan->bound_vertex_buffer = vertex_buffer;
+    vulkan->bound_vertex_offset = offset;
+  }
 
-  vkCmdBindIndexBuffer(command, vulkan->index_buffers[vulkan->current_frame].buffer, 0, VK_INDEX_TYPE_UINT32);
+  VkBuffer index_buffer = vulkan->index_buffers[vulkan->current_frame].buffer;
+  if (vulkan->bound_index_buffer != index_buffer) {
+    vkCmdBindIndexBuffer(command, index_buffer, 0, VK_INDEX_TYPE_UINT32);
+    vulkan->bound_index_buffer = index_buffer;
+  }
 
   VulkanMaterial bound_material = *material;
   bound_material.base_texture_override = texture;
   VULKAN_RendererBindMaterial(vulkan, layout, &bound_material);
 
-  vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &vulkan->light_descriptor_sets_2d[vulkan->current_frame], 0, NULL);
+  VkDescriptorSet light_set = vulkan->light_descriptor_sets_2d[vulkan->current_frame];
+  if (vulkan->bound_light_set != light_set || vulkan->bound_light_layout != layout) {
+    vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &light_set, 0, NULL);
+    vulkan->bound_light_set = light_set;
+    vulkan->bound_light_layout = layout;
+  }
 
   vkCmdPushConstants(command, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
 
@@ -620,6 +706,30 @@ void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, 
   vulkan->vertex_cursor += polygon->vertex_count;
 
   vulkan->index_cursor += polygon->index_count;
+}
+
+
+static bool find_cached_shadow_geometry(VULKAN *vulkan, const BLB_Polygon3D *polygon, size_t *vertex_start) {
+  if (!vulkan || !polygon || !vertex_start)
+    return false;
+  for (size_t i = 0; i < vulkan->shadow_geometry_cache_count; ++i) {
+    const VULKAN_ShadowGeometryCacheEntry *entry = &vulkan->shadow_geometry_cache[i];
+    if (entry->polygon == polygon && entry->vertex_count == polygon->index_count) {
+      *vertex_start = entry->vertex_start;
+      return true;
+    }
+  }
+  return false;
+}
+
+static void cache_shadow_geometry(VULKAN *vulkan, const BLB_Polygon3D *polygon, size_t vertex_start) {
+  if (!vulkan || !polygon || vulkan->shadow_geometry_cache_count >= VULKAN_MAX_SHADOW_GEOMETRY_CACHE_ENTRIES)
+    return;
+  vulkan->shadow_geometry_cache[vulkan->shadow_geometry_cache_count++] = (VULKAN_ShadowGeometryCacheEntry){
+      .polygon = polygon,
+      .vertex_start = vertex_start,
+      .vertex_count = polygon->index_count,
+  };
 }
 
 void VULKAN_RendererDrawShadowPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float *model_mvp) {
@@ -637,40 +747,34 @@ void VULKAN_RendererDrawShadowPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *pol
       return;
   }
 
-  VulkanShadowVertex *vertices = (VulkanShadowVertex *)vulkan->shadow_vertex_buffers[vulkan->current_frame].mapped;
+  size_t vertex_start = 0;
+  if (!find_cached_shadow_geometry(vulkan, polygon, &vertex_start)) {
+    if (vulkan->shadow_vertex_cursor + polygon->index_count > VULKAN_MAX_INDICES)
+      return;
 
-  if (!vertices)
-    return;
+    VulkanShadowVertex *vertices = (VulkanShadowVertex *)vulkan->shadow_vertex_buffers[vulkan->current_frame].mapped;
+    if (!vertices)
+      return;
 
-  for (size_t i = 0; i < polygon->index_count; i++) {
-    uint32_t index = polygon->indices[i];
-
-    HMM_Vec3 p = polygon->vertices[index];
-
-    vertices[i] = (VulkanShadowVertex){
-        {
-            p.x,
-            p.y,
-            p.z,
-        },
-    };
+    vertex_start = vulkan->shadow_vertex_cursor;
+    for (size_t i = 0; i < polygon->index_count; i++) {
+      uint32_t index = polygon->indices[i];
+      HMM_Vec3 p = polygon->vertices[index];
+      vertices[vertex_start + i] = (VulkanShadowVertex){{p.x, p.y, p.z}};
+    }
+    vulkan->shadow_vertex_cursor += polygon->index_count;
+    cache_shadow_geometry(vulkan, polygon, vertex_start);
   }
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
-
-  VkDeviceSize offset = 0;
-
+  VkDeviceSize offset = vertex_start * sizeof(VulkanShadowVertex);
   VulkanShadowPushConstants push = {0};
-
   memcpy(push.mvp, model_mvp, sizeof(push.mvp));
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan->shadow_pipeline);
-
   vkCmdBindVertexBuffers(command, 0, 1, &vulkan->shadow_vertex_buffers[vulkan->current_frame].buffer, &offset);
-
   vkCmdPushConstants(command, vulkan->shadow_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(push), &push);
-
-  vkCmdDraw(command, (uint32_t)polygon->index_count, 1, 0, 0);
+  vkCmdDraw(command, (uint32_t)polygon->index_count, 1, (uint32_t)vertex_start, 0);
 }
 
 static uint16_t pack_unorm16(float value, float min_value, float max_value) {
@@ -799,6 +903,10 @@ void push_lighting(VULKAN *vulkan, VkPipelineLayout layout, const float *mvp, co
   VkDescriptorSet descriptor_set =
       is_2d ? vulkan->light_descriptor_sets_2d[vulkan->current_frame] : vulkan->light_descriptor_sets_3d[vulkan->current_frame];
 
-  vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptor_set, 0, NULL);
+  if (vulkan->bound_light_set != descriptor_set || vulkan->bound_light_layout != layout) {
+    vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptor_set, 0, NULL);
+    vulkan->bound_light_set = descriptor_set;
+    vulkan->bound_light_layout = layout;
+  }
   vkCmdPushConstants(command, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(data), &data);
 }

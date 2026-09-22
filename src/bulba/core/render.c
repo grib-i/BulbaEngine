@@ -6,6 +6,22 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <stdint.h>
+
+#ifndef BLB_GLOW_STEPS_3D
+#define BLB_GLOW_STEPS_3D 8
+#endif
+
+#ifndef BLB_GLOW_STEPS_2D
+#define BLB_GLOW_STEPS_2D 8
+#endif
+
+typedef struct {
+  bool valid;
+  HMM_Mat4 view;
+  HMM_Mat4 projection;
+  HMM_Mat4 view_projection;
+} BLB_RenderCameraCache;
 
 typedef struct {
   float base_color[4];
@@ -888,10 +904,10 @@ static VulkanMaterial vulkan_material_from_state(const BLB_RenderMaterialState *
   return result;
 }
 
-static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, BLB_Camera *camera, float aspect, const BLB_RenderMaterialState *state,
+static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache, const BLB_RenderMaterialState *state,
                                float scale_mul, float glow_mul) {
 
-  if (!object || !renderer || !camera || !state)
+  if (!object || !renderer || !camera_cache || !camera_cache->valid || !state)
     return;
 
   HMM_Vec3 pass_scale = HMM_MulV3F(object->scale, scale_mul);
@@ -899,11 +915,7 @@ static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, BLB_Camer
   HMM_Mat4 model;
   build_model(object->position, object->rotation, pass_scale, &model);
 
-  HMM_Mat4 view = BLB_CameraView(camera);
-
-  HMM_Mat4 projection = BLB_CameraProjection(camera, aspect);
-
-  HMM_Mat4 mvp = HMM_MulM4(projection, HMM_MulM4(view, model));
+  HMM_Mat4 mvp = HMM_MulM4(camera_cache->projection, HMM_MulM4(camera_cache->view, model));
 
   float model_rows[12];
 
@@ -936,15 +948,15 @@ static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, BLB_Camer
                                pass.base_color[2], pass.base_color[3], &vk_material, object->texture);
 }
 
-static void draw_object3d(BLB_Object3D *object, VULKAN *renderer, BLB_Camera *camera, float aspect) {
+static void draw_object3d(BLB_Object3D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache) {
 
-  if (!object || !renderer || !camera || !object->visible || !object->polygon)
+  if (!object || !renderer || !camera_cache || !camera_cache->valid || !object->visible || !object->polygon)
     return;
 
   BLB_RenderMaterialState state = material_state_from_3d(object);
 
   if (state.glow > 0.0f && state.glow_radius > 0.0f) {
-    const int steps = 10;
+    const int steps = BLB_GLOW_STEPS_3D > 0 ? BLB_GLOW_STEPS_3D : 1;
     const float radius = state.glow_radius;
     const float falloff = fmaxf(state.glow_falloff, 0.2f);
 
@@ -961,14 +973,14 @@ static void draw_object3d(BLB_Object3D *object, VULKAN *renderer, BLB_Camera *ca
       float scale_mul = 1.0f + radius * 0.019f * t;
       float glow_mul = smooth_envelope * state.glow * 0.22f;
 
-      draw_object3d_pass(object, renderer, camera, aspect, &state, scale_mul, glow_mul);
+      draw_object3d_pass(object, renderer, camera_cache, &state, scale_mul, glow_mul);
     }
   }
 
-  draw_object3d_pass(object, renderer, camera, aspect, &state, 1.0f, 1.0f);
+  draw_object3d_pass(object, renderer, camera_cache, &state, 1.0f, 1.0f);
 }
 
-static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, BLB_Camera *camera, float aspect, const BLB_RenderMaterialState *state,
+static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache, const BLB_RenderMaterialState *state,
                                float scale_mul, float glow_mul) {
 
   if (!object || !renderer || !object->polygon || !state)
@@ -1013,15 +1025,9 @@ static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, BLB_Camer
   const float c = cosf(angle);
   const float s = sinf(angle);
 
-  HMM_Mat4 vp = HMM_M4D(1.0f);
-
-  if (!object->screen_space && camera) {
-    HMM_Mat4 view = BLB_CameraView(camera);
-
-    HMM_Mat4 projection = BLB_CameraProjection(camera, aspect);
-
-    vp = HMM_MulM4(projection, view);
-  }
+  const HMM_Mat4 *vp = NULL;
+  if (!object->screen_space && camera_cache && camera_cache->valid)
+    vp = &camera_cache->view_projection;
 
   for (size_t i = 0; i < count; i++) {
     const float x = object->polygon->vertices[i].x * object->scale.x * scale_mul;
@@ -1033,7 +1039,7 @@ static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, BLB_Camer
 
     world_positions[i] = HMM_V2(world_x, world_y);
 
-    if (object->screen_space || !camera) {
+    if (object->screen_space || !vp) {
       vertices[i] = HMM_V2(world_x, world_y);
 
       continue;
@@ -1041,7 +1047,7 @@ static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, BLB_Camer
 
     HMM_Vec4 world_position = HMM_V4(world_x, world_y, 0.0f, 1.0f);
 
-    HMM_Vec4 clip = HMM_MulM4V4(vp, world_position);
+    HMM_Vec4 clip = HMM_MulM4V4(*vp, world_position);
 
     if (fabsf(clip.w) <= 0.000001f) {
       vertices[i] = HMM_V2(-100000.0f, -100000.0f);
@@ -1066,19 +1072,19 @@ static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, BLB_Camer
                                pass.base_color[2], pass.base_color[3], &vk_material, object->texture);
 }
 
-static void draw_object2d(BLB_Object2D *object, VULKAN *renderer, BLB_Camera *camera, float aspect) {
+static void draw_object2d(BLB_Object2D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache) {
 
   if (!object || !renderer || !object->visible || !object->polygon)
     return;
 
   BLB_RenderMaterialState state = material_state_from_2d(object);
 
-  draw_object2d_pass(object, renderer, camera, aspect, &state, 1.0f, 1.0f);
+  draw_object2d_pass(object, renderer, camera_cache, &state, 1.0f, 1.0f);
 
   if (state.glow <= 0.0f || state.glow_radius <= 0.0f)
     return;
 
-  const int steps = 10;
+  const int steps = BLB_GLOW_STEPS_2D > 0 ? BLB_GLOW_STEPS_2D : 1;
 
   const float falloff = fmaxf(state.glow_falloff, 0.2f);
 
@@ -1093,7 +1099,7 @@ static void draw_object2d(BLB_Object2D *object, VULKAN *renderer, BLB_Camera *ca
 
     const float glow_mul = smooth_envelope * state.glow * 0.16f;
 
-    draw_object2d_pass(object, renderer, camera, aspect, &state, scale_mul, glow_mul);
+    draw_object2d_pass(object, renderer, camera_cache, &state, scale_mul, glow_mul);
   }
 }
 
@@ -1118,6 +1124,72 @@ static void draw_text2d(BLB_Text2D *text, VULKAN *renderer, BLB_Camera *camera, 
   VULKAN_RendererDrawText(renderer, &text->font, text->text, text->position.x, text->position.y, glyph_scale, text->scale, 0.0f, state.base_color[0],
                           state.base_color[1], state.base_color[2], state.base_color[3], state.emission, state.glow, state.roughness,
                           normalize_render_mode(state.render_mode));
+}
+
+
+static uint64_t render_sort_signature3d(BLB_Object3D **objects, int count) {
+  uint64_t h = UINT64_C(1469598103934665603);
+  for (int i = 0; i < count; ++i) {
+    uintptr_t p = (uintptr_t)objects[i];
+    BLB_Object3D *o = objects[i];
+    uint64_t v = (uint64_t)p ^ ((uint64_t)(o ? (uint32_t)(o->layer + 32768) : 0u) << 32u) ^
+                 (uint64_t)(o ? (uint32_t)object3d_render_mode(o) : 0u);
+    h ^= v;
+    h *= UINT64_C(1099511628211);
+  }
+  return h ^ (uint64_t)(unsigned)count;
+}
+
+static uint64_t render_sort_signature2d(BLB_Object2D **objects, int count) {
+  uint64_t h = UINT64_C(1469598103934665603);
+  for (int i = 0; i < count; ++i) {
+    uintptr_t p = (uintptr_t)objects[i];
+    BLB_Object2D *o = objects[i];
+    uint64_t v = (uint64_t)p ^ ((uint64_t)(o ? (uint32_t)(o->layer + 32768) : 0u) << 32u) ^
+                 (uint64_t)(o ? (uint32_t)object2d_render_mode(o) : 0u);
+    h ^= v;
+    h *= UINT64_C(1099511628211);
+  }
+  return h ^ (uint64_t)(unsigned)count;
+}
+
+static uint64_t render_sort_signature_text2d(BLB_Text2D **objects, int count) {
+  uint64_t h = UINT64_C(1469598103934665603);
+  for (int i = 0; i < count; ++i) {
+    uintptr_t p = (uintptr_t)objects[i];
+    BLB_Text2D *o = objects[i];
+    uint64_t v = (uint64_t)p ^ ((uint64_t)(o ? (uint32_t)(o->layer + 32768) : 0u) << 32u) ^
+                 (uint64_t)(o ? (uint32_t)o->render_mode : 0u);
+    h ^= v;
+    h *= UINT64_C(1099511628211);
+  }
+  return h ^ (uint64_t)(unsigned)count;
+}
+
+static uint64_t render_sort_signature_light3d(BLB_Light3D **lights, int count) {
+  uint64_t h = UINT64_C(1469598103934665603);
+  for (int i = 0; i < count; ++i) {
+    uintptr_t p = (uintptr_t)lights[i];
+    BLB_Light3D *l = lights[i];
+    uint64_t v = (uint64_t)p ^ ((uint64_t)(l && l->object ? (uint32_t)(l->object->layer + 32768) : 0u) << 32u) ^
+                 (uint64_t)(l && l->object ? (uint32_t)l->object->render_mode : 0u);
+    h ^= v;
+    h *= UINT64_C(1099511628211);
+  }
+  return h ^ (uint64_t)(unsigned)count;
+}
+
+static uint64_t render_sort_signature_light2d(BLB_Light2D **lights, int count) {
+  uint64_t h = UINT64_C(1469598103934665603);
+  for (int i = 0; i < count; ++i) {
+    uintptr_t p = (uintptr_t)lights[i];
+    BLB_Light2D *l = lights[i];
+    uint64_t v = (uint64_t)p ^ ((uint64_t)(l && l->object ? (uint32_t)(l->object->layer + 32768) : 0u) << 32u) ^
+                 (uint64_t)(l && l->object ? (uint32_t)l->object->render_mode : 0u);
+    h ^= v;
+    h *= UINT64_C(1099511628211);
+  }
+  return h ^ (uint64_t)(unsigned)count;
 }
 
 int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
@@ -1214,9 +1286,6 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
 
   VULKAN_RendererSetLightingObjects2D(renderer, scene->objects2d, scene->object2d_count);
 
-  update_light_buffer_3d(renderer);
-  update_light_buffer_2d(renderer);
-
   HMM_Mat4 shadow_vp = HMM_M4D(1.0f);
   HMM_Mat4 point_shadow_mvp[VULKAN_POINT_SHADOW_FACES];
   BLB_Light3D *point_shadow_light = NULL;
@@ -1234,6 +1303,9 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
   } else {
     VULKAN_RendererSetShadow(renderer, &shadow_vp.Elements[0][0], false, 0.003f);
   }
+
+  update_light_buffer_3d(renderer);
+  update_light_buffer_2d(renderer);
 
   if (renderer->shadow_mode != 0) {
     uint32_t shadow_count = renderer->shadow_mode == 2 ? VULKAN_POINT_SHADOW_FACES : 1;
@@ -1271,22 +1343,51 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
   VULKAN_RendererBeginMainPass(renderer);
 
   if (scene_draw_enabled) {
-    if (scene->object3d_count > 1)
+    uint64_t sig3d = render_sort_signature3d(scene->objects3d, scene->object3d_count);
+    uint64_t sig2d = render_sort_signature2d(scene->objects2d, scene->object2d_count);
+    uint64_t sigt2d = render_sort_signature_text2d(scene->text2d, scene->text2d_count);
+    uint64_t sigl3d = render_sort_signature_light3d(scene->lights3d, scene->light3d_count);
+    uint64_t sigl2d = render_sort_signature_light2d(scene->lights2d, scene->light2d_count);
+
+    if (scene->object3d_count > 1 && sig3d != scene->sort_signature3d) {
       qsort(scene->objects3d, scene->object3d_count, sizeof(BLB_Object3D *), compare_object3d);
+      scene->sort_signature3d = render_sort_signature3d(scene->objects3d, scene->object3d_count);
+    }
+    if (scene->object3d_count <= 1) scene->sort_signature3d = sig3d;
 
-    if (scene->object2d_count > 1)
+    if (scene->object2d_count > 1 && sig2d != scene->sort_signature2d) {
       qsort(scene->objects2d, scene->object2d_count, sizeof(BLB_Object2D *), compare_object2d);
+      scene->sort_signature2d = render_sort_signature2d(scene->objects2d, scene->object2d_count);
+    }
+    if (scene->object2d_count <= 1) scene->sort_signature2d = sig2d;
 
-    if (scene->text2d_count > 1)
+    if (scene->text2d_count > 1 && sigt2d != scene->sort_signature_text2d) {
       qsort(scene->text2d, scene->text2d_count, sizeof(BLB_Text2D *), compare_text2d);
+      scene->sort_signature_text2d = render_sort_signature_text2d(scene->text2d, scene->text2d_count);
+    }
+    if (scene->text2d_count <= 1) scene->sort_signature_text2d = sigt2d;
 
-    if (scene->light3d_count > 1)
+    if (scene->light3d_count > 1 && sigl3d != scene->sort_signature_light3d) {
       qsort(scene->lights3d, scene->light3d_count, sizeof(BLB_Light3D *), compare_light3d);
+      scene->sort_signature_light3d = render_sort_signature_light3d(scene->lights3d, scene->light3d_count);
+    }
+    if (scene->light3d_count <= 1) scene->sort_signature_light3d = sigl3d;
 
-    if (scene->light2d_count > 1)
+    if (scene->light2d_count > 1 && sigl2d != scene->sort_signature_light2d) {
       qsort(scene->lights2d, scene->light2d_count, sizeof(BLB_Light2D *), compare_light2d);
+      scene->sort_signature_light2d = render_sort_signature_light2d(scene->lights2d, scene->light2d_count);
+    }
+    if (scene->light2d_count <= 1) scene->sort_signature_light2d = sigl2d;
 
     float aspect = renderer->swapchain_extent.height ? (float)renderer->swapchain_extent.width / (float)renderer->swapchain_extent.height : 1.0f;
+
+    BLB_RenderCameraCache camera_cache = {0};
+    if (scene->camera) {
+      camera_cache.valid = true;
+      camera_cache.view = BLB_CameraView(scene->camera);
+      camera_cache.projection = BLB_CameraProjection(scene->camera, aspect);
+      camera_cache.view_projection = HMM_MulM4(camera_cache.projection, camera_cache.view);
+    }
 
     size_t indices[5] = {
         0, 0, 0, 0, 0,
@@ -1333,11 +1434,11 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
 
       switch (best) {
       case 0:
-        draw_object3d(scene->objects3d[indices[0]], renderer, scene->camera, aspect);
+        draw_object3d(scene->objects3d[indices[0]], renderer, &camera_cache);
         break;
 
       case 1:
-        draw_object2d(scene->objects2d[indices[1]], renderer, scene->camera, aspect);
+        draw_object2d(scene->objects2d[indices[1]], renderer, &camera_cache);
         break;
 
       case 2:
@@ -1347,14 +1448,14 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
       case 3:
         if (scene->lights3d[indices[3]] && scene->lights3d[indices[3]]->object) {
 
-          draw_object3d(scene->lights3d[indices[3]]->object, renderer, scene->camera, aspect);
+          draw_object3d(scene->lights3d[indices[3]]->object, renderer, &camera_cache);
         }
         break;
 
       case 4:
         if (scene->lights2d[indices[4]] && scene->lights2d[indices[4]]->object) {
 
-          draw_object2d(scene->lights2d[indices[4]]->object, renderer, scene->camera, aspect);
+          draw_object2d(scene->lights2d[indices[4]]->object, renderer, &camera_cache);
         }
         break;
       }

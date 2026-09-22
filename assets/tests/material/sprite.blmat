@@ -96,7 +96,7 @@ material "Sprite"
     {
         base_color
         {
-            path = "textures/player.png"
+            path = "../textures/potato.png"
 
             uv_set = 0
 
@@ -129,7 +129,7 @@ material "Sprite"
 
         normal
         {
-            path = "textures/player_normal.png"
+            path = ""
 
             uv_set = 0
             offset = [0.0, 0.0]
@@ -161,7 +161,7 @@ material "Sprite"
 
         emission
         {
-            path = "textures/player_emission.png"
+            path = ""
 
             uv_set = 0
             offset = [0.0, 0.0]

@@ -60,6 +60,19 @@ void BLB_Object3D_Transform(BLB_Object3D *object, HMM_Vec3 position, HMM_Vec3 ro
   object->scale = scale;
 }
 
+void BLB_Object3D_SetMaterial(BLB_Object3D *object, BLB_Material *material) {
+  if (!object || object->material == material)
+    return;
+
+  if (material)
+    BLB_Material_Retain(material);
+
+  if (object->material)
+    BLB_Material_Release(object->material);
+
+  object->material = material;
+}
+
 void BLB_Object3D_SetTexture(BLB_Object3D *object, BLB_Texture *texture) {
   if (!object)
     return;

@@ -1,0 +1,328 @@
+33.89 MB  727cde800000-727ce6a08000 r-xp 00000000 103:02 27003471 /usr/lib/x86_64-linux-gnu/libLLVM.so.20.1
+14.08 MB  57a2a1db6000-57a2a2bf6000 rw-p 00000000 00:00 0 [heap]
+6.56 MB  727ce6a09000-727ce709e000 r--p 08208000 103:02 27003471 /usr/lib/x86_64-linux-gnu/libLLVM.so.20.1
+2.22 MB  727ce844b000-727ce8d0a000 r-xp 0004b000 103:02 27017206 /usr/lib/x86_64-linux-gnu/libvulkan_intel.so
+1.30 MB  727ceb828000-727ceb9b1000 r-xp 00028000 103:02 27029207 /usr/lib/x86_64-linux-gnu/libc.so.6
+1.10 MB  727cd9e5b000-727cda26b000 r-xp 0005b000 103:02 27018868 /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so
+0.85 MB  727ce8d0a000-727ce9784000 r--p 0090a000 103:02 27017206 /usr/lib/x86_64-linux-gnu/libvulkan_intel.so
+0.78 MB  727cdaa00000-727cdaac9000 r--p 00000000 103:02 27020486 /usr/lib/x86_64-linux-gnu/libvulkan_nouveau.so
+0.74 MB  727cdb873000-727cdb931000 r--p 00e72000 103:02 27020486 /usr/lib/x86_64-linux-gnu/libvulkan_nouveau.so
+0.70 MB  727cdba5a000-727cdbdd0000 r-xp 0005a000 103:02 27017146 /usr/lib/x86_64-linux-gnu/libvulkan_asahi.so
+0.70 MB  727ce9a9d000-727ce9be5000 r-xp 0009d000 103:02 27011586 /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33
+0.70 MB  727cdc48b000-727cdc542000 r--p 00a8b000 103:02 27017146 /usr/lib/x86_64-linux-gnu/libvulkan_asahi.so
+0.67 MB  727cd802b000-727cd80ff000 rw-p 00000000 00:00 0
+0.66 MB  727ce9784000-727ce982f000 r--p 01383000 103:02 27017206 /usr/lib/x86_64-linux-gnu/libvulkan_intel.so
+0.66 MB  57a28bc88000-57a28bd35000 r--p 0003f000 103:02 668258 /home/grib/projects/BulbaEngine/engine/build/debug/bulba
+0.65 MB  727cdbdd0000-727cdc48b000 r--p 003d0000 103:02 27017146 /usr/lib/x86_64-linux-gnu/libvulkan_asahi.so
+0.63 MB  727ce70e6000-727ce718e000 rw-p 00000000 00:00 0
+0.62 MB  727cdaac9000-727cdb090000 r-xp 000c9000 103:02 27020486 /usr/lib/x86_64-linux-gnu/libvulkan_nouveau.so
+0.61 MB  727ce9a00000-727ce9a9d000 r--p 00000000 103:02 27011586 /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33
+0.61 MB  727ce9e48000-727cea459000 r-xp 00048000 103:02 27018866 /usr/lib/x86_64-linux-gnu/libvulkan_intel_hasvk.so
+0.61 MB  727ce9c9e000-727ce9d8b000 r-xp 00016000 103:02 27020491 /usr/lib/x86_64-linux-gnu/libvulkan_virtio.so
+0.60 MB  727cdb090000-727cdb873000 r--p 00690000 103:02 27020486 /usr/lib/x86_64-linux-gnu/libvulkan_nouveau.so
+0.59 MB  727ceadd1000-727ceae6a000 r--p 00fd0000 103:02 27018866 /usr/lib/x86_64-linux-gnu/libvulkan_intel_hasvk.so
+0.59 MB  727cda8c6000-727cda95c000 r--p 00ac5000 103:02 27018868 /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so
+0.58 MB  727ce7fd3000-727ce806a000 r--p 00dd3000 103:02 27020487 /usr/lib/x86_64-linux-gnu/libvulkan_radeon.so
+0.57 MB  727ce77da000-727ce7fd3000 r--p 005da000 103:02 27020487 /usr/lib/x86_64-linux-gnu/libvulkan_radeon.so
+0.56 MB  727ceb6dc000-727ceb76c000 r-xp 00019000 103:02 27012174 /usr/lib/x86_64-linux-gnu/libX11.so.6.4.0
+0.55 MB  727cebbc3000-727cebc54000 r-xp 0000d000 103:02 27003647 /usr/lib/x86_64-linux-gnu/libfreetype.so.6.20.1
+0.55 MB  727cde373000-727cde400000 rw-p 00000000 00:00 0
+0.54 MB  727ce725d000-727ce77da000 r-xp 0005d000 103:02 27020487 /usr/lib/x86_64-linux-gnu/libvulkan_radeon.so
+0.51 MB  727ce9833000-727ce98b9000 rw-p 00000000 00:00 0
+0.50 MB  727cda26b000-727cda8c6000 r--p 0046b000 103:02 27018868 /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so
+0.48 MB  727cea459000-727ceadd1000 r--p 00659000 103:02 27018866 /usr/lib/x86_64-linux-gnu/libvulkan_intel_hasvk.so
+0.41 MB  727cde400000-727cde468000 r--p 00000000 103:02 27012577 /usr/lib/x86_64-linux-gnu/libicuuc.so.74.2
+0.36 MB  727ce7200000-727ce725d000 r--p 00000000 103:02 27020487 /usr/lib/x86_64-linux-gnu/libvulkan_radeon.so
+0.36 MB  727cd9e00000-727cd9e5b000 r--p 00000000 103:02 27018868 /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so
+0.35 MB  727cdba00000-727cdba5a000 r--p 00000000 103:02 27017146 /usr/lib/x86_64-linux-gnu/libvulkan_asahi.so
+0.34 MB  727ceaf4a000-727ceaff1000 r-xp 00004000 103:02 27012987 /usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5
+0.32 MB  727cebaa3000-727cebb22000 r-xp 00010000 103:02 27029210 /usr/lib/x86_64-linux-gnu/libm.so.6
+0.30 MB  727ce9d8b000-727ce9deb000 r--p 00103000 103:02 27020491 /usr/lib/x86_64-linux-gnu/libvulkan_virtio.so
+0.30 MB  727cebcf0000-727cebd3c000 r-xp 00006000 103:02 27012919 /usr/lib/x86_64-linux-gnu/libvulkan.so.1.3.275
+0.29 MB  727ce8400000-727ce844b000 r--p 00000000 103:02 27017206 /usr/lib/x86_64-linux-gnu/libvulkan_intel.so
+0.28 MB  727ce9e00000-727ce9e48000 r--p 00000000 103:02 27018866 /usr/lib/x86_64-linux-gnu/libvulkan_intel_hasvk.so
+0.26 MB  727ce821f000-727ce8363000 r-xp 00019000 103:02 27017148 /usr/lib/x86_64-linux-gnu/libvulkan_gfxstream.so
+0.23 MB  57a28bc4d000-57a28bc88000 r-xp 00004000 103:02 668258 /home/grib/projects/BulbaEngine/engine/build/debug/bulba
+0.23 MB  727ce8363000-727ce83ec000 r--p 0015d000 103:02 27017148 /usr/lib/x86_64-linux-gnu/libvulkan_gfxstream.so
+0.18 MB  727cde61e000-727cde64d000 r--p 00000000 103:02 27006675 /usr/lib/x86_64-linux-gnu/libxml2.so.2.9.14
+0.18 MB  727ceb9b1000-727ceba00000 r--p 001b1000 103:02 27029207 /usr/lib/x86_64-linux-gnu/libc.so.6
+0.17 MB  727cebd9d000-727cebdc8000 r-xp 00001000 103:02 27029204 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+0.16 MB  727ceb800000-727ceb828000 r--p 00000000 103:02 27029207 /usr/lib/x86_64-linux-gnu/libc.so.6
+0.15 MB  727ceb76c000-727ceb7fb000 r--p 000a9000 103:02 27012174 /usr/lib/x86_64-linux-gnu/libX11.so.6.4.0
+0.14 MB  7fff4bae4000-7fff4bb09000 rw-p 00000000 00:00 0 [stack]
+0.14 MB  727cebd3c000-727cebd66000 r--p 00052000 103:02 27012919 /usr/lib/x86_64-linux-gnu/libvulkan.so.1.3.275
+0.14 MB  727cebca1000-727cebcc5000 r--p 0001f000 103:02 27005443 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
+0.13 MB  727cebcc8000-727cebcea000 rw-p 00000000 00:00 0
+0.12 MB  727ceb622000-727ceb67b000 r--p 00000000 103:02 27001248 /usr/lib/locale/C.utf8/LC_CTYPE
+0.12 MB  727cebb22000-727cebb7a000 r--p 0008f000 103:02 27029210 /usr/lib/x86_64-linux-gnu/libm.so.6
+0.12 MB  727ceaefb000-727ceaf1a000 r-xp 00004000 103:02 27006101 /usr/lib/x86_64-linux-gnu/libexpat.so.1.9.1
+0.10 MB  727ceb6c3000-727ceb6dc000 r--p 00000000 103:02 27012174 /usr/lib/x86_64-linux-gnu/libX11.so.6.4.0
+0.10 MB  727ce8206000-727ce821f000 r--p 00000000 103:02 27017148 /usr/lib/x86_64-linux-gnu/libvulkan_gfxstream.so
+0.09 MB  727cebc8a000-727cebca1000 r-xp 00008000 103:02 27005443 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
+0.09 MB  727ce9c88000-727ce9c9e000 r--p 00000000 103:02 27020491 /usr/lib/x86_64-linux-gnu/libvulkan_virtio.so
+0.07 MB  727ceba35000-727ceba48000 r-xp 0000b000 103:02 27012971 /usr/lib/x86_64-linux-gnu/libxcb.so.1.1.0
+0.07 MB  727cde5f7000-727cde60a000 r--p 001f7000 103:02 27012577 /usr/lib/x86_64-linux-gnu/libicuuc.so.74.2
+0.07 MB  727ce9deb000-727ce9dfc000 r--p 00162000 103:02 27020491 /usr/lib/x86_64-linux-gnu/libvulkan_virtio.so
+0.07 MB  727ce83ec000-727ce83fd000 r--p 001e5000 103:02 27017148 /usr/lib/x86_64-linux-gnu/libvulkan_gfxstream.so
+0.06 MB  727cebb83000-727cebbab000 r-xp 00005000 103:02 27001308 /usr/lib/x86_64-linux-gnu/libpng16.so.16.43.0
+0.06 MB  727ceba93000-727cebaa3000 r--p 00000000 103:02 27029210 /usr/lib/x86_64-linux-gnu/libm.so.6
+0.06 MB  727ceba79000-727ceba8b000 r-xp 00002000 103:02 27003770 /usr/lib/x86_64-linux-gnu/libz.so.1.3
+0.06 MB  727ceb000000-727ceb577000 r--p 00000000 103:02 27001179 /usr/lib/locale/locale-archive
+0.06 MB  727ceaecd000-727ceaef1000 r-xp 00004000 103:02 27006194 /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+0.06 MB  727ceaea1000-727ceaeb7000 r-xp 00003000 103:02 27012414 /usr/lib/x86_64-linux-gnu/libelf-0.190.so
+0.06 MB  727ce99ce000-727ce99ed000 r-xp 00008000 103:02 27012407 /usr/lib/x86_64-linux-gnu/libedit.so.2.0.72
+0.06 MB  727ce99a0000-727ce99b3000 r-xp 0000e000 103:02 27010888 /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4
+0.06 MB  727ce9963000-727ce9985000 r-xp 00003000 103:02 27012024 /usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5
+0.06 MB  727cde64d000-727cde7b3000 r-xp 0002f000 103:02 27006675 /usr/lib/x86_64-linux-gnu/libxml2.so.2.9.14
+0.06 MB  727cde468000-727cde56d000 r-xp 00068000 103:02 27012577 /usr/lib/x86_64-linux-gnu/libicuuc.so.74.2
+0.06 MB  727cebc54000-727cebc7a000 r--p 0009e000 103:02 27003647 /usr/lib/x86_64-linux-gnu/libfreetype.so.6.20.1
+0.06 MB  727ceae7a000-727ceae89000 r-xp 00003000 103:02 27017142 /usr/lib/x86_64-linux-gnu/libVkLayer_MESA_device_select.so
+0.06 MB  727ce9be5000-727ce9c6c000 r--p 001e5000 103:02 27011586 /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33
+0.05 MB  727ceba65000-727ceba73000 r-xp 00002000 103:02 27006181 /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4
+0.05 MB  727ce9992000-727ce99a0000 r--p 00000000 103:02 27010888 /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4
+0.05 MB  727cebbb6000-727cebbc3000 r--p 00000000 103:02 27003647 /usr/lib/x86_64-linux-gnu/libfreetype.so.6.20.1
+0.05 MB  727ceb5a6000-727ceb5b2000 r-xp 00005000 103:02 27002257 /usr/lib/x86_64-linux-gnu/libdrm.so.2.125.0
+0.05 MB  727ceaff1000-727ceaffe000 r--p 000ab000 103:02 27012987 /usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5
+0.05 MB  727ce806a000-727ce8082000 rw-p 00e6a000 103:02 27020487 /usr/lib/x86_64-linux-gnu/libvulkan_radeon.so
+0.05 MB  727ce709e000-727ce70e6000 rw-p 0889d000 103:02 27003471 /usr/lib/x86_64-linux-gnu/libLLVM.so.20.1
+0.04 MB  727cebd6f000-727cebd7a000 r-xp 00004000 103:02 27012182 /usr/lib/x86_64-linux-gnu/libXext.so.6.4.0
+0.04 MB  727ceba2a000-727ceba35000 r--p 00000000 103:02 27012971 /usr/lib/x86_64-linux-gnu/libxcb.so.1.1.0
+0.04 MB  727ceb68e000-727ceb69a000 r-xp 00004000 103:02 27012323 /usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1
+0.04 MB  727ceb5ed000-727ceb5f9000 r-xp 00003000 103:02 27012186 /usr/lib/x86_64-linux-gnu/libXi.so.6.1.0
+0.04 MB  727ce9c6c000-727ce9c77000 r--p 0026b000 103:02 27011586 /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33
+0.04 MB  727cebdc8000-727cebdd2000 r--p 0002c000 103:02 27029204 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+0.04 MB  727ceba48000-727ceba51000 r--p 0001e000 103:02 27012971 /usr/lib/x86_64-linux-gnu/libxcb.so.1.1.0
+0.04 MB  727cde7f5000-727cde7fe000 r--p 001d6000 103:02 27006675 /usr/lib/x86_64-linux-gnu/libxml2.so.2.9.14
+0.03 MB  727cebc82000-727cebc8a000 r--p 00000000 103:02 27005443 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
+0.03 MB  727ceba54000-727ceba5c000 r-xp 00001000 103:02 27012321 /usr/lib/x86_64-linux-gnu/libbrotlidec.so.1.1.0
+0.03 MB  727ceb67d000-727ceb686000 r-xp 00002000 103:02 27012643 /usr/lib/x86_64-linux-gnu/libmd.so.0.1.0
+0.03 MB  727ceaf1a000-727ceaf22000 r--p 00023000 103:02 27006101 /usr/lib/x86_64-linux-gnu/libexpat.so.1.9.1
+0.03 MB  727ce9c7e000-727ce9c86000 rw-s 00000000 00:01 42939 /memfd:state table (deleted)
+0.03 MB  727ce99c6000-727ce99ce000 r--p 00000000 103:02 27012407 /usr/lib/x86_64-linux-gnu/libedit.so.2.0.72
+0.03 MB  727cdc542000-727cdc54a000 rw-p 00b42000 103:02 27017146 /usr/lib/x86_64-linux-gnu/libvulkan_asahi.so
+0.03 MB  727cebd86000-727cebd8d000 r--s 00000000 103:02 27029196 /usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache
+0.03 MB  727cebc7a000-727cebc81000 r--p 000c4000 103:02 27003647 /usr/lib/x86_64-linux-gnu/libfreetype.so.6.20.1
+0.03 MB  727ceb5df000-727ceb5e6000 r-xp 00002000 103:02 27012191 /usr/lib/x86_64-linux-gnu/libXrandr.so.2.2.0
+0.03 MB  727ceb5d3000-727ceb5da000 r-xp 00002000 103:02 27012192 /usr/lib/x86_64-linux-gnu/libXrender.so.1.3.0
+0.03 MB  727ceaf35000-727ceaf3c000 r--p 00000000 103:02 27012960 /usr/lib/x86_64-linux-gnu/libxcb-randr.so.0.1.0
+0.03 MB  727ceaebf000-727ceaec6000 r-xp 00002000 103:02 27012431 /usr/lib/x86_64-linux-gnu/libffi.so.8.1.4
+0.02 MB  727cebcea000-727cebcf0000 r--p 00000000 103:02 27012919 /usr/lib/x86_64-linux-gnu/libvulkan.so.1.3.275
+0.02 MB  727ceba8b000-727ceba91000 r--p 00014000 103:02 27003770 /usr/lib/x86_64-linux-gnu/libz.so.1.3
+0.02 MB  727ceb5c7000-727ceb5cd000 r-xp 00002000 103:02 27012179 /usr/lib/x86_64-linux-gnu/libXcursor.so.1.0.2
+0.02 MB  727ceaf2a000-727ceaf30000 r-xp 00005000 103:02 27012929 /usr/lib/x86_64-linux-gnu/libwayland-client.so.0.22.0
+0.02 MB  727ceae94000-727ceae9a000 r-xp 00003000 103:02 27003468 /usr/lib/x86_64-linux-gnu/libdrm_amdgpu.so.1.125.0
+0.02 MB  727cebb7e000-727cebb83000 r--p 00000000 103:02 27001308 /usr/lib/x86_64-linux-gnu/libpng16.so.16.43.0
+0.02 MB  727ceba06000-727ceba13000 rw-p 00000000 00:00 0
+0.02 MB  727ceb5a1000-727ceb5a6000 r--p 00000000 103:02 27002257 /usr/lib/x86_64-linux-gnu/libdrm.so.2.125.0
+0.02 MB  727ceaf3c000-727ceaf41000 r-xp 00007000 103:02 27012960 /usr/lib/x86_64-linux-gnu/libxcb-randr.so.0.1.0
+0.02 MB  727ceaf25000-727ceaf2a000 r--p 00000000 103:02 27012929 /usr/lib/x86_64-linux-gnu/libwayland-client.so.0.22.0
+0.02 MB  727cda961000-727cda98d000 rw-p 00000000 00:00 0
+0.02 MB  727cda95c000-727cda961000 rw-p 00b5b000 103:02 27018868 /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so
+0.02 MB  727cebd6b000-727cebd6f000 r--p 00000000 103:02 27012182 /usr/lib/x86_64-linux-gnu/libXext.so.6.4.0
+0.02 MB  727ceba18000-727ceba1c000 rw-p 00000000 00:00 0
+0.02 MB  727ceba00000-727ceba04000 r--p 001ff000 103:02 27029207 /usr/lib/x86_64-linux-gnu/libc.so.6
+0.02 MB  727ceb7fc000-727ceb800000 rw-p 00139000 103:02 27012174 /usr/lib/x86_64-linux-gnu/libX11.so.6.4.0
+0.02 MB  727ceb68a000-727ceb68e000 r--p 00000000 103:02 27012323 /usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1
+0.02 MB  727ceb602000-727ceb606000 rw-s 00000000 00:01 42939 /memfd:state table (deleted)
+0.02 MB  727ceb5b2000-727ceb5b6000 r--p 00011000 103:02 27002257 /usr/lib/x86_64-linux-gnu/libdrm.so.2.125.0
+0.02 MB  727ceaf46000-727ceaf4a000 r--p 00000000 103:02 27012987 /usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5
+0.02 MB  727ceaef7000-727ceaefb000 r--p 00000000 103:02 27006101 /usr/lib/x86_64-linux-gnu/libexpat.so.1.9.1
+0.02 MB  727ceaef1000-727ceaef5000 r--p 00028000 103:02 27006194 /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+0.02 MB  727ceaec9000-727ceaecd000 r--p 00000000 103:02 27006194 /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+0.02 MB  727ceae89000-727ceae8d000 r--p 00012000 103:02 27017142 /usr/lib/x86_64-linux-gnu/libVkLayer_MESA_device_select.so
+0.02 MB  727ce99c1000-727ce99c5000 r--p 0002e000 103:02 27010888 /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4
+0.02 MB  727ce982f000-727ce9833000 rw-p 0142e000 103:02 27017206 /usr/lib/x86_64-linux-gnu/libvulkan_intel.so
+0.02 MB  727cd9600000-727cd9e00000 rw-p 00000000 00:00 0
+0.02 MB  57a28bc49000-57a28bc4d000 r--p 00000000 103:02 668258 /home/grib/projects/BulbaEngine/engine/build/debug/bulba
+0.01 MB  727cebd80000-727cebd83000 r-xp 00001000 103:02 27012200 /usr/lib/x86_64-linux-gnu/libXxf86vm.so.1.0.0
+0.01 MB  727cebd7a000-727cebd7d000 r--p 0000f000 103:02 27012182 /usr/lib/x86_64-linux-gnu/libXext.so.6.4.0
+0.01 MB  727ceb5ea000-727ceb5ed000 r--p 00000000 103:02 27012186 /usr/lib/x86_64-linux-gnu/libXi.so.6.1.0
+0.01 MB  727ceb5bf000-727ceb5c2000 r-xp 00002000 103:02 27012183 /usr/lib/x86_64-linux-gnu/libXfixes.so.3.1.0
+0.01 MB  727ceb58e000-727ceb591000 r-xp 00003000 103:02 27012968 /usr/lib/x86_64-linux-gnu/libxcb-xfixes.so.0.0.0
+0.01 MB  727ceb58b000-727ceb58e000 r--p 00000000 103:02 27012968 /usr/lib/x86_64-linux-gnu/libxcb-xfixes.so.0.0.0
+0.01 MB  727ceb585000-727ceb588000 r-xp 00003000 103:02 27012966 /usr/lib/x86_64-linux-gnu/libxcb-sync.so.1.0.0
+0.01 MB  727ceb582000-727ceb585000 r--p 00000000 103:02 27012966 /usr/lib/x86_64-linux-gnu/libxcb-sync.so.1.0.0
+0.01 MB  727ceaf41000-727ceaf44000 r--p 0000c000 103:02 27012960 /usr/lib/x86_64-linux-gnu/libxcb-randr.so.0.1.0
+0.01 MB  727ceae9e000-727ceaea1000 r--p 00000000 103:02 27012414 /usr/lib/x86_64-linux-gnu/libelf-0.190.so
+0.01 MB  727ceae91000-727ceae94000 r--p 00000000 103:02 27003468 /usr/lib/x86_64-linux-gnu/libdrm_amdgpu.so.1.125.0
+0.01 MB  727ceae77000-727ceae7a000 r--p 00000000 103:02 27017142 /usr/lib/x86_64-linux-gnu/libVkLayer_MESA_device_select.so
+0.01 MB  727ceae6a000-727ceae6d000 rw-p 01069000 103:02 27018866 /usr/lib/x86_64-linux-gnu/libvulkan_intel_hasvk.so
+0.01 MB  727ce9dfc000-727ce9dff000 rw-p 00173000 103:02 27020491 /usr/lib/x86_64-linux-gnu/libvulkan_virtio.so
+0.01 MB  727ce9c7a000-727ce9c7e000 rw-p 00000000 00:00 0
+0.01 MB  727ce9c77000-727ce9c7a000 rw-p 00276000 103:02 27011586 /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33
+0.01 MB  727ce9960000-727ce9963000 r--p 00000000 103:02 27012024 /usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5
+0.01 MB  727ce83fd000-727ce8400000 rw-p 001f6000 103:02 27017148 /usr/lib/x86_64-linux-gnu/libvulkan_gfxstream.so
+0.01 MB  727cdb931000-727cdb934000 rw-p 00f30000 103:02 27020486 /usr/lib/x86_64-linux-gnu/libvulkan_nouveau.so
+0.01 MB  727cd2fff000-727cd37ff000 rw-p 00000000 00:00 0
+0.01 MB  727cd27fe000-727cd2ffe000 rw-p 00000000 00:00 0
+0.01 MB  727cebdd4000-727cebdd6000 rw-p 00038000 103:02 27029204 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+0.01 MB  727cebdd2000-727cebdd4000 r--p 00036000 103:02 27029204 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+0.01 MB  727cebd9a000-727cebd9c000 r-xp 00000000 00:00 0 [vdso]
+0.01 MB  727cebd92000-727cebd94000 rw-p 00000000 00:00 0
+0.01 MB  727cebcc5000-727cebcc7000 r--p 00042000 103:02 27005443 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
+0.01 MB  727cebb7c000-727cebb7e000 rw-p 00000000 00:00 0
+0.01 MB  727ceba77000-727ceba79000 r--p 00000000 103:02 27003770 /usr/lib/x86_64-linux-gnu/libz.so.1.3
+0.01 MB  727ceba63000-727ceba65000 r--p 00000000 103:02 27006181 /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4
+0.01 MB  727ceba61000-727ceba63000 rw-p 00000000 00:00 0
+0.01 MB  727ceba25000-727ceba27000 r-xp 00001000 103:02 27012176 /usr/lib/x86_64-linux-gnu/libXau.so.6.0.0
+0.01 MB  727ceba1e000-727ceba20000 r-xp 00002000 103:02 27012181 /usr/lib/x86_64-linux-gnu/libXdmcp.so.6.0.0
+0.01 MB  727ceba1c000-727ceba1e000 r--p 00000000 103:02 27012181 /usr/lib/x86_64-linux-gnu/libXdmcp.so.6.0.0
+0.01 MB  727ceba04000-727ceba06000 rw-p 00203000 103:02 27029207 /usr/lib/x86_64-linux-gnu/libc.so.6
+0.01 MB  727ceb67b000-727ceb67d000 r--p 00000000 103:02 27012643 /usr/lib/x86_64-linux-gnu/libmd.so.0.1.0
+0.01 MB  727ceb5f9000-727ceb5fb000 r--p 0000f000 103:02 27012186 /usr/lib/x86_64-linux-gnu/libXi.so.6.1.0
+0.01 MB  727ceb5e6000-727ceb5e8000 r--p 00009000 103:02 27012191 /usr/lib/x86_64-linux-gnu/libXrandr.so.2.2.0
+0.01 MB  727ceb5dd000-727ceb5df000 r--p 00000000 103:02 27012191 /usr/lib/x86_64-linux-gnu/libXrandr.so.2.2.0
+0.01 MB  727ceb5d1000-727ceb5d3000 r--p 00000000 103:02 27012192 /usr/lib/x86_64-linux-gnu/libXrender.so.1.3.0
+0.01 MB  727ceb5cd000-727ceb5cf000 r--p 00008000 103:02 27012179 /usr/lib/x86_64-linux-gnu/libXcursor.so.1.0.2
+0.01 MB  727ceb5c5000-727ceb5c7000 r--p 00000000 103:02 27012179 /usr/lib/x86_64-linux-gnu/libXcursor.so.1.0.2
+0.01 MB  727ceb5bd000-727ceb5bf000 r--p 00000000 103:02 27012183 /usr/lib/x86_64-linux-gnu/libXfixes.so.3.1.0
+0.01 MB  727ceb59c000-727ceb59e000 r-xp 00002000 103:02 27012954 /usr/lib/x86_64-linux-gnu/libxcb-dri3.so.0.1.0
+0.01 MB  727ceb59a000-727ceb59c000 r--p 00000000 103:02 27012954 /usr/lib/x86_64-linux-gnu/libxcb-dri3.so.0.1.0
+0.01 MB  727ceb591000-727ceb593000 r--p 00006000 103:02 27012968 /usr/lib/x86_64-linux-gnu/libxcb-xfixes.so.0.0.0
+0.01 MB  727ceaf32000-727ceaf34000 r--p 0000d000 103:02 27012929 /usr/lib/x86_64-linux-gnu/libwayland-client.so.0.22.0
+0.01 MB  727ceaf22000-727ceaf24000 r--p 0002b000 103:02 27006101 /usr/lib/x86_64-linux-gnu/libexpat.so.1.9.1
+0.01 MB  727ceaebd000-727ceaebf000 r--p 00000000 103:02 27012431 /usr/lib/x86_64-linux-gnu/libffi.so.8.1.4
+0.01 MB  727ceae6d000-727ceae70000 rw-p 00000000 00:00 0
+0.01 MB  727ce99f9000-727ce99fb000 r--p 00033000 103:02 27012407 /usr/lib/x86_64-linux-gnu/libedit.so.2.0.72
+0.01 MB  727cdc54a000-727cdc551000 rw-p 00000000 00:00 0
+0.01 MB  727cdb934000-727cdb937000 rw-p 00000000 00:00 0
+0.01 MB  727cd4000000-727cd4021000 rw-p 00000000 00:00 0
+0.01 MB  727cd3800000-727cd4000000 rw-p 00000000 00:00 0
+0.00 MB  727cebd9c000-727cebd9d000 r--p 00000000 103:02 27029204 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+0.00 MB  727cebd91000-727cebd92000 rw-p 00003000 103:02 27024351 /usr/libexec/coreutils/libstdbuf.so
+0.00 MB  727cebd90000-727cebd91000 r--p 00002000 103:02 27024351 /usr/libexec/coreutils/libstdbuf.so
+0.00 MB  727cebd8f000-727cebd90000 r--p 00002000 103:02 27024351 /usr/libexec/coreutils/libstdbuf.so
+0.00 MB  727cebd8e000-727cebd8f000 r-xp 00001000 103:02 27024351 /usr/libexec/coreutils/libstdbuf.so
+0.00 MB  727cebd8d000-727cebd8e000 r--p 00000000 103:02 27024351 /usr/libexec/coreutils/libstdbuf.so
+0.00 MB  727cebd85000-727cebd86000 rw-p 00005000 103:02 27012200 /usr/lib/x86_64-linux-gnu/libXxf86vm.so.1.0.0
+0.00 MB  727cebd84000-727cebd85000 r--p 00004000 103:02 27012200 /usr/lib/x86_64-linux-gnu/libXxf86vm.so.1.0.0
+0.00 MB  727cebd83000-727cebd84000 r--p 00004000 103:02 27012200 /usr/lib/x86_64-linux-gnu/libXxf86vm.so.1.0.0
+0.00 MB  727cebd7f000-727cebd80000 r--p 00000000 103:02 27012200 /usr/lib/x86_64-linux-gnu/libXxf86vm.so.1.0.0
+0.00 MB  727cebd7e000-727cebd7f000 rw-p 00012000 103:02 27012182 /usr/lib/x86_64-linux-gnu/libXext.so.6.4.0
+0.00 MB  727cebd7d000-727cebd7e000 r--p 00011000 103:02 27012182 /usr/lib/x86_64-linux-gnu/libXext.so.6.4.0
+0.00 MB  727cebd6a000-727cebd6b000 rw-s 00000000 00:01 42938 /memfd:state table (deleted)
+0.00 MB  727cebd69000-727cebd6a000 rw-s 00000000 00:01 42939 /memfd:state table (deleted)
+0.00 MB  727cebd68000-727cebd69000 rw-s 00000000 00:01 42939 /memfd:state table (deleted)
+0.00 MB  727cebd67000-727cebd68000 rw-p 0007c000 103:02 27012919 /usr/lib/x86_64-linux-gnu/libvulkan.so.1.3.275
+0.00 MB  727cebd66000-727cebd67000 r--p 0007b000 103:02 27012919 /usr/lib/x86_64-linux-gnu/libvulkan.so.1.3.275
+0.00 MB  727cebcc7000-727cebcc8000 rw-p 00044000 103:02 27005443 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
+0.00 MB  727cebc81000-727cebc82000 rw-p 000cb000 103:02 27003647 /usr/lib/x86_64-linux-gnu/libfreetype.so.6.20.1
+0.00 MB  727cebbb5000-727cebbb6000 rw-p 00036000 103:02 27001308 /usr/lib/x86_64-linux-gnu/libpng16.so.16.43.0
+0.00 MB  727cebbb4000-727cebbb5000 r--p 00035000 103:02 27001308 /usr/lib/x86_64-linux-gnu/libpng16.so.16.43.0
+0.00 MB  727cebb7b000-727cebb7c000 rw-p 000e8000 103:02 27029210 /usr/lib/x86_64-linux-gnu/libm.so.6
+0.00 MB  727cebb7a000-727cebb7b000 r--p 000e7000 103:02 27029210 /usr/lib/x86_64-linux-gnu/libm.so.6
+0.00 MB  727ceba92000-727ceba93000 rw-p 0001b000 103:02 27003770 /usr/lib/x86_64-linux-gnu/libz.so.1.3
+0.00 MB  727ceba91000-727ceba92000 r--p 0001a000 103:02 27003770 /usr/lib/x86_64-linux-gnu/libz.so.1.3
+0.00 MB  727ceba76000-727ceba77000 rw-p 00012000 103:02 27006181 /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4
+0.00 MB  727ceba75000-727ceba76000 r--p 00011000 103:02 27006181 /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.4
+0.00 MB  727ceba60000-727ceba61000 rw-p 0000c000 103:02 27012321 /usr/lib/x86_64-linux-gnu/libbrotlidec.so.1.1.0
+0.00 MB  727ceba5f000-727ceba60000 r--p 0000b000 103:02 27012321 /usr/lib/x86_64-linux-gnu/libbrotlidec.so.1.1.0
+0.00 MB  727ceba53000-727ceba54000 r--p 00000000 103:02 27012321 /usr/lib/x86_64-linux-gnu/libbrotlidec.so.1.1.0
+0.00 MB  727ceba52000-727ceba53000 rw-p 00027000 103:02 27012971 /usr/lib/x86_64-linux-gnu/libxcb.so.1.1.0
+0.00 MB  727ceba51000-727ceba52000 r--p 00026000 103:02 27012971 /usr/lib/x86_64-linux-gnu/libxcb.so.1.1.0
+0.00 MB  727ceba29000-727ceba2a000 rw-p 00004000 103:02 27012176 /usr/lib/x86_64-linux-gnu/libXau.so.6.0.0
+0.00 MB  727ceba28000-727ceba29000 r--p 00003000 103:02 27012176 /usr/lib/x86_64-linux-gnu/libXau.so.6.0.0
+0.00 MB  727ceba27000-727ceba28000 r--p 00003000 103:02 27012176 /usr/lib/x86_64-linux-gnu/libXau.so.6.0.0
+0.00 MB  727ceba24000-727ceba25000 r--p 00000000 103:02 27012176 /usr/lib/x86_64-linux-gnu/libXau.so.6.0.0
+0.00 MB  727ceba23000-727ceba24000 rw-p 00006000 103:02 27012181 /usr/lib/x86_64-linux-gnu/libXdmcp.so.6.0.0
+0.00 MB  727ceba22000-727ceba23000 r--p 00005000 103:02 27012181 /usr/lib/x86_64-linux-gnu/libXdmcp.so.6.0.0
+0.00 MB  727ceba17000-727ceba18000 rw-p 00003000 103:02 27012187 /usr/lib/x86_64-linux-gnu/libXinerama.so.1.0.0
+0.00 MB  727ceba16000-727ceba17000 r--p 00002000 103:02 27012187 /usr/lib/x86_64-linux-gnu/libXinerama.so.1.0.0
+0.00 MB  727ceba15000-727ceba16000 r--p 00002000 103:02 27012187 /usr/lib/x86_64-linux-gnu/libXinerama.so.1.0.0
+0.00 MB  727ceba14000-727ceba15000 r-xp 00001000 103:02 27012187 /usr/lib/x86_64-linux-gnu/libXinerama.so.1.0.0
+0.00 MB  727ceba13000-727ceba14000 r--p 00000000 103:02 27012187 /usr/lib/x86_64-linux-gnu/libXinerama.so.1.0.0
+0.00 MB  727ceb7fb000-727ceb7fc000 r--p 00138000 103:02 27012174 /usr/lib/x86_64-linux-gnu/libX11.so.6.4.0
+0.00 MB  727ceb6c2000-727ceb6c3000 rw-p 00022000 103:02 27012320 /usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1.1.0
+0.00 MB  727ceb6c1000-727ceb6c2000 r--p 00021000 103:02 27012320 /usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1.1.0
+0.00 MB  727ceb6a1000-727ceb6a2000 r-xp 00001000 103:02 27012320 /usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1.1.0
+0.00 MB  727ceb6a0000-727ceb6a1000 r--p 00000000 103:02 27012320 /usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1.1.0
+0.00 MB  727ceb69e000-727ceb69f000 rw-p 00013000 103:02 27012323 /usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1
+0.00 MB  727ceb69d000-727ceb69e000 r--p 00012000 103:02 27012323 /usr/lib/x86_64-linux-gnu/libbsd.so.0.12.1
+0.00 MB  727ceb689000-727ceb68a000 rw-p 0000d000 103:02 27012643 /usr/lib/x86_64-linux-gnu/libmd.so.0.1.0
+0.00 MB  727ceb688000-727ceb689000 r--p 0000c000 103:02 27012643 /usr/lib/x86_64-linux-gnu/libmd.so.0.1.0
+0.00 MB  727ceb621000-727ceb622000 rw-s 00000000 00:01 42940 /memfd:state table (deleted)
+0.00 MB  727ceb620000-727ceb621000 rw-s 00000000 00:01 42941 /memfd:state table (deleted)
+0.00 MB  727ceb61f000-727ceb620000 rw-s 00000000 00:01 42942 /memfd:state table (deleted)
+0.00 MB  727ceb61e000-727ceb61f000 rw-s 00000000 00:01 42943 /memfd:state table (deleted)
+0.00 MB  727ceb61d000-727ceb61e000 rw-s 00000000 00:01 42944 /memfd:state table (deleted)
+0.00 MB  727ceb61c000-727ceb61d000 rw-s 00000000 00:01 42945 /memfd:state table (deleted)
+0.00 MB  727ceb61b000-727ceb61c000 rw-s 00000000 00:01 42945 /memfd:state table (deleted)
+0.00 MB  727ceb617000-727ceb618000 rw-s 00000000 00:01 42942 /memfd:state table (deleted)
+0.00 MB  727ceb616000-727ceb617000 rw-s 00000000 00:01 44405 /memfd:xshmfence (deleted)
+0.00 MB  727ceb615000-727ceb616000 rw-s 00000000 00:01 44406 /memfd:xshmfence (deleted)
+0.00 MB  727ceb614000-727ceb615000 rw-s 00000000 00:01 44407 /memfd:xshmfence (deleted)
+0.00 MB  727ceb613000-727ceb614000 rw-s 00000000 00:01 44408 /memfd:xshmfence (deleted)
+0.00 MB  727ceb609000-727ceb60a000 rw-s 00000000 00:01 42941 /memfd:state table (deleted)
+0.00 MB  727ceb607000-727ceb608000 rw-s 00000000 00:01 42940 /memfd:state table (deleted)
+0.00 MB  727ceb606000-727ceb607000 rw-s 00000000 00:01 42943 /memfd:state table (deleted)
+0.00 MB  727ceb5fc000-727ceb5fd000 rw-p 00012000 103:02 27012186 /usr/lib/x86_64-linux-gnu/libXi.so.6.1.0
+0.00 MB  727ceb5fb000-727ceb5fc000 r--p 00011000 103:02 27012186 /usr/lib/x86_64-linux-gnu/libXi.so.6.1.0
+0.00 MB  727ceb5e9000-727ceb5ea000 rw-p 0000b000 103:02 27012191 /usr/lib/x86_64-linux-gnu/libXrandr.so.2.2.0
+0.00 MB  727ceb5e8000-727ceb5e9000 r--p 0000a000 103:02 27012191 /usr/lib/x86_64-linux-gnu/libXrandr.so.2.2.0
+0.00 MB  727ceb5dc000-727ceb5dd000 rw-p 0000a000 103:02 27012192 /usr/lib/x86_64-linux-gnu/libXrender.so.1.3.0
+0.00 MB  727ceb5db000-727ceb5dc000 r--p 00009000 103:02 27012192 /usr/lib/x86_64-linux-gnu/libXrender.so.1.3.0
+0.00 MB  727ceb5da000-727ceb5db000 r--p 00009000 103:02 27012192 /usr/lib/x86_64-linux-gnu/libXrender.so.1.3.0
+0.00 MB  727ceb5d0000-727ceb5d1000 rw-p 0000a000 103:02 27012179 /usr/lib/x86_64-linux-gnu/libXcursor.so.1.0.2
+0.00 MB  727ceb5cf000-727ceb5d0000 r--p 00009000 103:02 27012179 /usr/lib/x86_64-linux-gnu/libXcursor.so.1.0.2
+0.00 MB  727ceb5c4000-727ceb5c5000 rw-p 00006000 103:02 27012183 /usr/lib/x86_64-linux-gnu/libXfixes.so.3.1.0
+0.00 MB  727ceb5c3000-727ceb5c4000 r--p 00005000 103:02 27012183 /usr/lib/x86_64-linux-gnu/libXfixes.so.3.1.0
+0.00 MB  727ceb5bc000-727ceb5bd000 rw-p 00003000 103:02 27012173 /usr/lib/x86_64-linux-gnu/libX11-xcb.so.1.0.0
+0.00 MB  727ceb5bb000-727ceb5bc000 r--p 00002000 103:02 27012173 /usr/lib/x86_64-linux-gnu/libX11-xcb.so.1.0.0
+0.00 MB  727ceb5b9000-727ceb5ba000 r-xp 00001000 103:02 27012173 /usr/lib/x86_64-linux-gnu/libX11-xcb.so.1.0.0
+0.00 MB  727ceb5b8000-727ceb5b9000 r--p 00000000 103:02 27012173 /usr/lib/x86_64-linux-gnu/libX11-xcb.so.1.0.0
+0.00 MB  727ceb5b7000-727ceb5b8000 rw-p 00016000 103:02 27002257 /usr/lib/x86_64-linux-gnu/libdrm.so.2.125.0
+0.00 MB  727ceb5b6000-727ceb5b7000 r--p 00015000 103:02 27002257 /usr/lib/x86_64-linux-gnu/libdrm.so.2.125.0
+0.00 MB  727ceb5a0000-727ceb5a1000 rw-p 00005000 103:02 27012954 /usr/lib/x86_64-linux-gnu/libxcb-dri3.so.0.1.0
+0.00 MB  727ceb59f000-727ceb5a0000 r--p 00004000 103:02 27012954 /usr/lib/x86_64-linux-gnu/libxcb-dri3.so.0.1.0
+0.00 MB  727ceb59e000-727ceb59f000 r--p 00004000 103:02 27012954 /usr/lib/x86_64-linux-gnu/libxcb-dri3.so.0.1.0
+0.00 MB  727ceb599000-727ceb59a000 rw-p 00003000 103:02 27012959 /usr/lib/x86_64-linux-gnu/libxcb-present.so.0.0.0
+0.00 MB  727ceb598000-727ceb599000 r--p 00002000 103:02 27012959 /usr/lib/x86_64-linux-gnu/libxcb-present.so.0.0.0
+0.00 MB  727ceb597000-727ceb598000 r--p 00002000 103:02 27012959 /usr/lib/x86_64-linux-gnu/libxcb-present.so.0.0.0
+0.00 MB  727ceb596000-727ceb597000 r-xp 00001000 103:02 27012959 /usr/lib/x86_64-linux-gnu/libxcb-present.so.0.0.0
+0.00 MB  727ceb595000-727ceb596000 r--p 00000000 103:02 27012959 /usr/lib/x86_64-linux-gnu/libxcb-present.so.0.0.0
+0.00 MB  727ceb594000-727ceb595000 rw-p 00008000 103:02 27012968 /usr/lib/x86_64-linux-gnu/libxcb-xfixes.so.0.0.0
+0.00 MB  727ceb593000-727ceb594000 r--p 00007000 103:02 27012968 /usr/lib/x86_64-linux-gnu/libxcb-xfixes.so.0.0.0
+0.00 MB  727ceb58a000-727ceb58b000 rw-p 00008000 103:02 27012966 /usr/lib/x86_64-linux-gnu/libxcb-sync.so.1.0.0
+0.00 MB  727ceb589000-727ceb58a000 r--p 00007000 103:02 27012966 /usr/lib/x86_64-linux-gnu/libxcb-sync.so.1.0.0
+0.00 MB  727ceb588000-727ceb589000 r--p 00006000 103:02 27012966 /usr/lib/x86_64-linux-gnu/libxcb-sync.so.1.0.0
+0.00 MB  727ceb581000-727ceb582000 rw-p 00003000 103:02 27012965 /usr/lib/x86_64-linux-gnu/libxcb-shm.so.0.0.0
+0.00 MB  727ceb580000-727ceb581000 r--p 00002000 103:02 27012965 /usr/lib/x86_64-linux-gnu/libxcb-shm.so.0.0.0
+0.00 MB  727ceb57e000-727ceb57f000 r-xp 00001000 103:02 27012965 /usr/lib/x86_64-linux-gnu/libxcb-shm.so.0.0.0
+0.00 MB  727ceb57d000-727ceb57e000 r--p 00000000 103:02 27012965 /usr/lib/x86_64-linux-gnu/libxcb-shm.so.0.0.0
+0.00 MB  727ceb57c000-727ceb57d000 rw-p 00003000 103:02 27012980 /usr/lib/x86_64-linux-gnu/libxshmfence.so.1.0.0
+0.00 MB  727ceb57b000-727ceb57c000 r--p 00002000 103:02 27012980 /usr/lib/x86_64-linux-gnu/libxshmfence.so.1.0.0
+0.00 MB  727ceb57a000-727ceb57b000 r--p 00002000 103:02 27012980 /usr/lib/x86_64-linux-gnu/libxshmfence.so.1.0.0
+0.00 MB  727ceb579000-727ceb57a000 r-xp 00001000 103:02 27012980 /usr/lib/x86_64-linux-gnu/libxshmfence.so.1.0.0
+0.00 MB  727ceb578000-727ceb579000 r--p 00000000 103:02 27012980 /usr/lib/x86_64-linux-gnu/libxshmfence.so.1.0.0
+0.00 MB  727ceafff000-727ceb000000 rw-p 000b8000 103:02 27012987 /usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5
+0.00 MB  727ceaffe000-727ceafff000 r--p 000b7000 103:02 27012987 /usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5
+0.00 MB  727ceaf45000-727ceaf46000 rw-p 00010000 103:02 27012960 /usr/lib/x86_64-linux-gnu/libxcb-randr.so.0.1.0
+0.00 MB  727ceaf44000-727ceaf45000 r--p 0000f000 103:02 27012960 /usr/lib/x86_64-linux-gnu/libxcb-randr.so.0.1.0
+0.00 MB  727ceaf34000-727ceaf35000 rw-p 0000f000 103:02 27012929 /usr/lib/x86_64-linux-gnu/libwayland-client.so.0.22.0
+0.00 MB  727ceaf24000-727ceaf25000 rw-p 0002d000 103:02 27006101 /usr/lib/x86_64-linux-gnu/libexpat.so.1.9.1
+0.00 MB  727ceaef6000-727ceaef7000 rw-p 0002c000 103:02 27006194 /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+0.00 MB  727ceaef5000-727ceaef6000 r--p 0002b000 103:02 27006194 /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+0.00 MB  727ceaec8000-727ceaec9000 rw-p 0000b000 103:02 27012431 /usr/lib/x86_64-linux-gnu/libffi.so.8.1.4
+0.00 MB  727ceaec7000-727ceaec8000 r--p 0000a000 103:02 27012431 /usr/lib/x86_64-linux-gnu/libffi.so.8.1.4
+0.00 MB  727ceaebc000-727ceaebd000 rw-p 0001d000 103:02 27012414 /usr/lib/x86_64-linux-gnu/libelf-0.190.so
+0.00 MB  727ceaebb000-727ceaebc000 r--p 0001c000 103:02 27012414 /usr/lib/x86_64-linux-gnu/libelf-0.190.so
+0.00 MB  727ceae9d000-727ceae9e000 rw-p 0000b000 103:02 27003468 /usr/lib/x86_64-linux-gnu/libdrm_amdgpu.so.1.125.0
+0.00 MB  727ceae9c000-727ceae9d000 r--p 0000a000 103:02 27003468 /usr/lib/x86_64-linux-gnu/libdrm_amdgpu.so.1.125.0
+0.00 MB  727ceae8e000-727ceae8f000 rw-p 00017000 103:02 27017142 /usr/lib/x86_64-linux-gnu/libVkLayer_MESA_device_select.so
+0.00 MB  727ceae8d000-727ceae8e000 r--p 00016000 103:02 27017142 /usr/lib/x86_64-linux-gnu/libVkLayer_MESA_device_select.so
+0.00 MB  727ce99fb000-727ce99fc000 rw-p 00035000 103:02 27012407 /usr/lib/x86_64-linux-gnu/libedit.so.2.0.72
+0.00 MB  727ce99c5000-727ce99c6000 rw-p 00032000 103:02 27010888 /usr/lib/x86_64-linux-gnu/libtinfo.so.6.4
+0.00 MB  727ce9991000-727ce9992000 rw-p 00031000 103:02 27012024 /usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5
+0.00 MB  727ce9990000-727ce9991000 r--p 00030000 103:02 27012024 /usr/lib/x86_64-linux-gnu/liblzma.so.5.4.5
+0.00 MB  727ce8082000-727ce8087000 rw-p 00000000 00:00 0
+0.00 MB  727cde7fe000-727cde7ff000 rw-p 001df000 103:02 27006675 /usr/lib/x86_64-linux-gnu/libxml2.so.2.9.14
+0.00 MB  727cde60a000-727cde60b000 rw-p 0020a000 103:02 27012577 /usr/lib/x86_64-linux-gnu/libicuuc.so.74.2
+0.00 MB  727cde35f000-727cde360000 rw-p 01d5e000 103:02 27012572 /usr/lib/x86_64-linux-gnu/libicudata.so.74.2
+0.00 MB  727cde35e000-727cde35f000 r--p 01d5d000 103:02 27012572 /usr/lib/x86_64-linux-gnu/libicudata.so.74.2
+0.00 MB  727cdc601000-727cdc602000 r-xp 00001000 103:02 27012572 /usr/lib/x86_64-linux-gnu/libicudata.so.74.2
+0.00 MB  727cdc600000-727cdc601000 r--p 00000000 103:02 27012572 /usr/lib/x86_64-linux-gnu/libicudata.so.74.2
+0.00 MB  727ccc000000-727ccc021000 rw-p 00000000 00:00 0
+0.00 MB  727cc8000000-727cc8021000 rw-p 00000000 00:00 0
+0.00 MB  727cc4000000-727cc4021000 rw-p 00000000 00:00 0
+0.00 MB  57a28bd36000-57a28bd37000 rw-p 000ed000 103:02 668258 /home/grib/projects/BulbaEngine/engine/build/debug/bulba
+0.00 MB  57a28bd35000-57a28bd36000 r--p 000ec000 103:02 668258 /home/grib/projects/BulbaEngine/engine/build/debug/bulba

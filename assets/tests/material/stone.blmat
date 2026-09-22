@@ -96,7 +96,7 @@ material "Stone"
     {
         base_color
         {
-            path = "textures/stone_basecolor.png"
+            path = "../textures/zta-stones.png"
 
             uv_set = 0
 
@@ -113,7 +113,7 @@ material "Stone"
 
         metallic_roughness
         {
-            path = "textures/stone_metallic_roughness.png"
+            path = ""
 
             uv_set = 0
 
@@ -130,7 +130,7 @@ material "Stone"
 
         normal
         {
-            path = "textures/stone_normal.png"
+            path = ""
 
             uv_set = 0
 
@@ -147,7 +147,7 @@ material "Stone"
 
         occlusion
         {
-            path = "textures/stone_occlusion.png"
+            path = ""
 
             uv_set = 0
 

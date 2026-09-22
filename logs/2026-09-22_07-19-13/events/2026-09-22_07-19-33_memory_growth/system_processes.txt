@@ -1,0 +1,40 @@
+    PID    PPID %CPU %MEM   RSS    VSZ STAT WCHAN  COMMAND
+ 438659  438613 65.9  1.1 87136 633868 Rl+  drm_sy bulba
+  88322    2420 10.5  7.8 615176 12715412 Sl poll_s firefox
+ 292697    2081  9.1  4.4 345900 2180528 SLl poll_s telegram-deskto
+  94432   88500  6.9 10.5 826880 3812108 Sl poll_s Isolated Web Co
+ 438613  420300  6.6  0.0  5168  11644 S+   do_wai install
+ 419178    2081  6.1  7.7 611224 40458152 Ssl ep_pol zed-editor
+   2150    2145  6.0  0.6 47244 781644 Sl+  ep_pol Xorg
+   2420    2081  5.9  2.9 234016 4973272 Ssl poll_s gnome-shell
+  88522   88500  4.7  0.7 57040 982436 Sl   poll_s RDD Process
+ 393578    1926  1.2  0.5 40016 1273188 Sl  -      sing-box
+   2110    2081  0.9  0.3 28868 154676 S<sl ep_pol pipewire-pulse
+ 420303  419178  0.9  3.6 289136 2114364 Sl anon_p clangd.main
+   2109    2081  0.8  0.1 15420 408948 S<sl poll_s wireplumber
+  89144   88500  0.6  0.3 23752 642632 Sl   poll_s Utility Process
+ 200748   88500  0.6  1.5 124044 2719968 Sl poll_s Isolated Web Co
+ 419207  419178  0.5  0.4 36644 400116 S    ep_pol zed-editor
+    279       2  0.4  0.0     0      0 S    -      irq/140-GXTP7863:00
+ 393562    7391  0.3  0.4 35628 1299280 Sl  futex_ xray
+   2106    2081  0.3  0.2 21520 199980 S<sl ep_pol pipewire
+ 404273       2  0.2  0.0     0      0 I    -      kworker/u48:3-kvfree_rcu_reclaim
+ 403417       2  0.2  0.0     0      0 D<   -      kworker/u49:0+i915_flip
+   2543    2081  0.2  0.2 18232 469800 Ssl  poll_s ibus-daemon
+   7391    2420  0.2  1.0 83096 4583936 Sl  poll_s Happ
+ 393655       2  0.2  0.0     0      0 I<   -      kworker/u49:2-rb_allocator
+ 417338       2  0.2  0.0     0      0 I    -      kworker/u48:1-events_unbound
+ 392511   88500  0.2  2.9 232576 2806460 Sl poll_s Isolated Web Co
+ 416677       2  0.2  0.0     0      0 I    -      kworker/6:2-i915-unordered
+ 291984       2  0.1  0.0     0      0 I    -      kworker/6:0-events
+  88752   88500  0.1  1.6 125784 19822500 Sl poll_s WebExtensions
+ 420824  419178  0.1  0.9 76676 22293652 Sl ep_pol node
+     15       2  0.1  0.0     0      0 I    -      rcu_preempt
+ 416947       2  0.1  0.0     0      0 I    -      kworker/u48:0-kvfree_rcu_reclaim
+ 420700  419178  0.1  0.1 15616 1230336 Sl  futex_ neocmakelsp
+    708       2  0.1  0.0     0      0 S    -      irq/151-iwlwifi:default_queue
+ 297643   88500  0.1  1.9 150132 2726536 Sl poll_s Isolated Web Co
+ 420823  419178  0.1  1.0 81008 1139984 Sl  ep_pol node
+ 420300  419178  0.1  0.1 10312  16668 Ss   sigsus zsh
+   1937       1  0.1  0.1 14640 2385380 Ssl -      containerd
+ 394768       2  0.1  0.0     0      0 I    -      kworker/u48:7-flush-259:0

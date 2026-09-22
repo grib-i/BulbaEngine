@@ -1,0 +1,1 @@
+cat: /proc/453926/syscall: Operation not permitted

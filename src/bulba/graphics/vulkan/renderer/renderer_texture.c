@@ -788,8 +788,14 @@ void VULKAN_RendererBindMaterial(VULKAN *vulkan, VkPipelineLayout layout, const 
   if (ensure_material_descriptor_set(vulkan, material, &set, &dynamic_offset) != 0 || set == VK_NULL_HANDLE)
     return;
 
+  if (vulkan->bound_material_set == set && vulkan->bound_material_layout == layout && vulkan->bound_material_offset == dynamic_offset)
+    return;
+
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
   vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 1, 1, &set, 1, &dynamic_offset);
+  vulkan->bound_material_set = set;
+  vulkan->bound_material_layout = layout;
+  vulkan->bound_material_offset = dynamic_offset;
 }
 
 void VULKAN_RendererInvalidateMaterialCache(VULKAN *vulkan, BLB_Material *material) {

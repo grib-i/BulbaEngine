@@ -2,6 +2,7 @@
 #define BULBA_CORE_RENDER_MATERIAL_H
 
 #include "bulba/core/render_mode.h"
+#include "bulba/core/render/shader.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -121,8 +122,7 @@ struct BLB_Material {
 
   char name[BLB_MATERIAL_NAME_MAX];
 
-  void *shader_vertex;
-  void *shader_fragment;
+  BLB_ShaderProgram *shader_program;
 
   BLB_MaterialTextureRetainFn texture_retain;
   BLB_MaterialTextureReleaseFn texture_release;
@@ -173,6 +173,7 @@ void BLB_Material_SetLighting(BLB_Material *material, bool enabled);
 void BLB_Material_SetDepth(BLB_Material *material, bool enabled, bool write);
 void BLB_Material_SetDoubleSided(BLB_Material *material, bool enabled);
 void BLB_Material_SetUnlit(BLB_Material *material, bool enabled);
+void BLB_Material_SetShader(BLB_Material *material, BLB_ShaderProgram *shader);
 
 void BLB_MaterialTexture_Init(BLB_MaterialTexture *texture);
 void BLB_MaterialTexture_SetTexture(BLB_Material *material, BLB_MaterialTexture *slot, BLB_Texture *texture);

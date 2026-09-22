@@ -88,7 +88,6 @@ vec2 material_uv(uint slot) {
   return uv;
 }
 
-
 vec3 unpack_rgb10(uint packed) {
   return vec3(
     float(packed & 1023u),
@@ -109,8 +108,7 @@ uint surface_word(uint index) {
   uint group = index >> 2u;
   uint lane = index & 3u;
   return group == 0u
-      ? push_constants.surface[0][lane]
-      : push_constants.surface[1][lane];
+  ? push_constants.surface[0][lane] : push_constants.surface[1][lane];
 }
 
 float decode01(float packed, float min_value, float max_value) {

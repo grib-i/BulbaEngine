@@ -12,10 +12,9 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(PNG REQUIRED)
 
 find_program(GLSLC glslc REQUIRED)
-
-find_package(PNG REQUIRED)
 
 file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_SOURCE_DIR}/src/bulba/*.c
@@ -66,10 +65,40 @@ if(UNIX AND NOT APPLE)
   )
 endif()
 
+include(${CMAKE_SOURCE_DIR}/cmake/options.cmake)
+
+target_compile_definitions(
+  bulba_engine
+  PUBLIC
+  VULKAN_SHADOW_MAP_SIZE=${BLB_SHADOW_MAP_SIZE}
+  BLB_GLOW_STEPS_3D=${BLB_GLOW_STEPS_3D}
+  BLB_GLOW_STEPS_2D=${BLB_GLOW_STEPS_2D}
+)
+
 if(BLB_BUILD_APP)
+  set(APP_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/main.c
+  )
+
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
+      ${CMAKE_SOURCE_DIR}/tests/*.c
+    )
+
+    list(APPEND APP_SOURCES
+      ${TEST_SOURCES}
+    )
+  endif()
+
   add_executable(
     ${PROJECT_NAME}
-    ${CMAKE_SOURCE_DIR}/src/main.c
+    ${APP_SOURCES}
+  )
+
+  target_include_directories(
+    ${PROJECT_NAME}
+    PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests
   )
 
   target_link_libraries(
@@ -86,8 +115,6 @@ if(BLB_BUILD_APP)
     )
   endif()
 endif()
-
-include(${CMAKE_SOURCE_DIR}/cmake/options.cmake)
 
 install(
   TARGETS bulba_engine

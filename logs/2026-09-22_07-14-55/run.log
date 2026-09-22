@@ -1,0 +1,40 @@
+============================================================
+BulbaEngine diagnostic session
+Date: Tue Sep 22 07:14:55 +04 2026
+Project: bulba
+Build type: Debug
+Live monitor: 1
+Valgrind: 0
+============================================================
+
+============================================================
+CMAKE DEBUG CONFIGURE
+============================================================
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/grib/projects/BulbaEngine/engine/build/debug
+
+============================================================
+CMAKE DEBUG BUILD
+============================================================
+[0/2] Re-checking globbed directories...
+[1/2] Building C object CMakeFiles/bulba.dir/tests/supernova.c.o
+[2/2] Linking C executable bulba
+[2026-09-22 07:14:55] APPLICATION LOG: logs/2026-09-22_07-14-55/application.log
+[2026-09-22 07:14:55] ASAN: ON
+[2026-09-22 07:14:55] Application started
+[2026-09-22 07:14:55] PID: 431869
+[2026-09-22 07:14:55] Application output redirected to: logs/2026-09-22_07-14-55/application.log
+[2026-09-22 07:14:55] MONITOR START
+[2026-09-22 07:14:55] PID: 431869
+[2026-09-22 07:14:55] EXE: /home/grib/projects/BulbaEngine/engine/build/debug/bulba
+[2026-09-22 07:14:55] APPLICATION LOG: logs/2026-09-22_07-14-55/application.log
+[2026-09-22 07:14:55] CPU=60.0% RSS=5.17 MB HWM=5.17 MB VSZ=14.74 MB DATA=0.61 MB ANON=0.76 MB PSS=1.68 MB THREADS=1 FD=14 STATE=S (sleeping) WCHAN=-
+[2026-09-22 07:14:56] CPU=43.2% RSS=85.63 MB HWM=85.63 MB VSZ=619.48 MB DATA=50.52 MB ANON=28.20 MB PSS=54.51 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=-
+[2026-09-22 07:14:57] CPU=42.5% RSS=85.63 MB HWM=85.63 MB VSZ=619.47 MB DATA=50.52 MB ANON=28.20 MB PSS=54.51 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:14:58] CPU=42.6% RSS=85.63 MB HWM=85.63 MB VSZ=619.48 MB DATA=50.52 MB ANON=28.20 MB PSS=54.51 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:14:59] CPU=42.2% RSS=85.64 MB HWM=85.64 MB VSZ=619.48 MB DATA=50.52 MB ANON=28.21 MB PSS=54.52 MB THREADS=5 FD=29 STATE=R (running) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:15:00] CPU=42.1% RSS=85.64 MB HWM=85.64 MB VSZ=619.48 MB DATA=50.52 MB ANON=28.21 MB PSS=54.52 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:15:01] CPU=42.0% RSS=85.64 MB HWM=85.64 MB VSZ=619.48 MB DATA=50.52 MB ANON=28.21 MB PSS=54.52 MB THREADS=5 FD=29 STATE=S (sleeping) WCHAN=drm_syncobj_array_wait_timeout.constprop.0
+[2026-09-22 07:15:02] MONITOR END
+[2026-09-22 07:15:02] PROCESS EXIT CODE: 0

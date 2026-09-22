@@ -320,6 +320,21 @@ int VULKAN_RendererBeginFrame(VULKAN *vulkan) {
   vulkan->vertex_cursor = 0;
   vulkan->index_cursor = 0;
   vulkan->text_vertex_cursor = 0;
+  vulkan->geometry_cache_count = 0;
+  vulkan->shadow_geometry_cache_count = 0;
+  vulkan->shadow_vertex_cursor = 0;
+  vulkan->bound_material_set = VK_NULL_HANDLE;
+  vulkan->bound_material_layout = VK_NULL_HANDLE;
+  vulkan->bound_material_offset = 0;
+  vulkan->bound_light_set = VK_NULL_HANDLE;
+  vulkan->bound_light_layout = VK_NULL_HANDLE;
+  vulkan->bound_pipeline = VK_NULL_HANDLE;
+  vulkan->bound_vertex_buffer = VK_NULL_HANDLE;
+  vulkan->bound_vertex_offset = 0;
+  vulkan->bound_index_buffer = VK_NULL_HANDLE;
+  vulkan->frame_serial++;
+  vulkan->light_buffer_dirty_3d = true;
+  vulkan->light_buffer_dirty_2d = true;
 
   vulkan->main_render_pass_begun = false;
   vulkan->shadow_pass_begun = false;

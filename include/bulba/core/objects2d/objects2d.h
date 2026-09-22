@@ -58,5 +58,6 @@ void BLB_Object2D_SetScale(BLB_Object2D *object, HMM_Vec2 scale);
 void BLB_Object2D_Transform(BLB_Object2D *object, HMM_Vec2 position, float rotation, HMM_Vec2 scale);
 
 void BLB_Object2D_SetTexture(BLB_Object2D *object, BLB_Texture *texture);
+void BLB_Object2D_SetMaterial(BLB_Object2D *object, BLB_Material *material);
 
 #endif
