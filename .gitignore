@@ -38,4 +38,5 @@ ideas/
 .DS_Store
 Thumbs.db
 
+logs/
 ideas.txt
