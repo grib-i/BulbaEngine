@@ -49,7 +49,6 @@ BLB_Scene *BLB_CreateScene(const char *name) {
 
   scene->main_count = 0;
   scene->next_entity_id = 1;
-
   return scene;
 }
 

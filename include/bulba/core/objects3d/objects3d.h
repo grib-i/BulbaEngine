@@ -69,4 +69,8 @@ void BLB_Object3D_Transform(BLB_Object3D *object, HMM_Vec3 position, HMM_Vec3 ro
 void BLB_Object3D_SetTexture(BLB_Object3D *object, BLB_Texture *texture);
 void BLB_Object3D_SetMaterial(BLB_Object3D *object, BLB_Material *material);
 
+void BLB_Object3D_FlipX(BLB_Object3D *object);
+void BLB_Object3D_FlipY(BLB_Object3D *object);
+void BLB_Object3D_FlipZ(BLB_Object3D *object);
+
 #endif

@@ -1,2 +1,0 @@
-    PID    PPID USER     %CPU %MEM   RSS    VSZ STAT WCHAN      ELAPSED NLWP  NI PRI COMMAND
- 477257  477216 grib     82.6  1.1 87244 633828 Rl+  -            00:20    5   0  19 bulba

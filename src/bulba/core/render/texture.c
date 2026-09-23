@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 typedef struct {
   BLB_Texture *texture;
   char *path;
@@ -16,16 +15,19 @@ static size_t texture_cache_count = 0;
 static size_t texture_cache_capacity = 0;
 
 static char *duplicate_string(const char *value) {
-  if (!value) return NULL;
+  if (!value)
+    return NULL;
   size_t n = strlen(value) + 1u;
   char *copy = malloc(n);
-  if (!copy) return NULL;
+  if (!copy)
+    return NULL;
   memcpy(copy, value, n);
   return copy;
 }
 
 static BLB_Texture *texture_cache_find(const char *path) {
-  if (!path) return NULL;
+  if (!path)
+    return NULL;
   BLB_Texture *result = NULL;
   for (size_t i = 0; i < texture_cache_count; ++i) {
     if (texture_cache[i].texture && strcmp(texture_cache[i].path, path) == 0) {
@@ -37,13 +39,18 @@ static BLB_Texture *texture_cache_find(const char *path) {
 }
 
 static void texture_cache_insert(BLB_Texture *texture, const char *path) {
-  if (!texture || !path) return;
+  if (!texture || !path)
+    return;
   char *key = duplicate_string(path);
-  if (!key) return;
+  if (!key)
+    return;
   if (texture_cache_count == texture_cache_capacity) {
     size_t new_capacity = texture_cache_capacity ? texture_cache_capacity * 2u : 32u;
     BLB_TextureCacheEntry *next = realloc(texture_cache, new_capacity * sizeof(*next));
-    if (!next) { free(key); return; }
+    if (!next) {
+      free(key);
+      return;
+    }
     texture_cache = next;
     texture_cache_capacity = new_capacity;
   }
@@ -51,9 +58,11 @@ static void texture_cache_insert(BLB_Texture *texture, const char *path) {
 }
 
 static void texture_cache_remove(BLB_Texture *texture) {
-  if (!texture) return;
+  if (!texture)
+    return;
   for (size_t i = 0; i < texture_cache_count; ++i) {
-    if (texture_cache[i].texture != texture) continue;
+    if (texture_cache[i].texture != texture)
+      continue;
     free(texture_cache[i].path);
     texture_cache[i] = texture_cache[texture_cache_count - 1u];
     --texture_cache_count;
@@ -141,6 +150,7 @@ BLB_Texture *BLB_Texture_Load2D(const char *path) {
   return texture;
 }
 
+// sprite list loader
 BLB_Texture *BLB_SpriteList_Load2D(const char *path, uint32_t sprite_x, uint32_t sprite_y, uint32_t sprite_width, uint32_t sprite_height,
                                    uint32_t distance) {
   if (!path)
@@ -188,6 +198,7 @@ BLB_Texture *BLB_SpriteList_Load2D(const char *path, uint32_t sprite_x, uint32_t
   return texture;
 }
 
+// auto sprite list loader
 static int BLB_AutoSpriteRect_Compare(const void *a, const void *b) {
   const BLB_AutoSpriteRect *ra = a;
   const BLB_AutoSpriteRect *rb = b;

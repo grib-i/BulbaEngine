@@ -1,1 +1,0 @@
-cat: /proc/427948/syscall: No such file or directory

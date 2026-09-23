@@ -11,5 +11,6 @@ int BLB_TestSpriteSheet(void);
 int BLB_TestObjectCount(size_t count, BLB_TestObjectType type);
 int BLB_TestObjects(void);
 int BLB_TestSuperNova(void);
+int BLB_AnimationTest(void);
 
 #endif

@@ -1,29 +1,61 @@
-#include "tests.h"
 #include "test_common.h"
+#include "tests.h"
+
+#include <debug.h>
+#include <stdlib.h>
 
 int BLB_TestSpriteSheet(void) {
   BLB_TestContext app;
-  if (BLB_TestContext_Init(&app, 1200, 900, "BulbaEngine - Sprite Sheet Test", HMM_V3(0.0f, 0.0f, 10.0f), 8, 8, 12) != 0)
+
+  printd("[SpriteSheet] START\n");
+
+  if (BLB_TestContext_Init(&app, 1200, 900, "BulbaEngine - Sprite Sheet Test", HMM_V3(0.0f, 0.0f, 10.0f), 8, 8, 12) != 0) {
+
+    printd("[SpriteSheet] FAIL: BLB_TestContext_Init()\n");
     return -1;
+  }
+
+  printd("[SpriteSheet] TestContext initialized\n");
 
   BLB_Texture **textures = BLB_SpriteListAuto_Load2D("assets/tests/textures/zta-stones.png", 1);
+
+  printd("[SpriteSheet] BLB_SpriteListAuto_Load2D() -> %p\n", (void *)textures);
+
   if (!textures) {
+    printd("[SpriteSheet] FAIL: textures == NULL\n");
+
     BLB_TestContext_Shutdown(&app);
     return -1;
   }
 
   size_t count = 0;
-  while (textures[count])
+
+  printd("[SpriteSheet] Counting textures...\n");
+
+  while (textures[count]) {
+    printd("[SpriteSheet] textures[%zu] = %p\n", count, (void *)textures[count]);
+
     count++;
+  }
+
+  printd("[SpriteSheet] textures[%zu] = NULL\n", count);
+  printd("[SpriteSheet] texture count = %zu\n", count);
 
   if (count == 0) {
+    printd("[SpriteSheet] FAIL: texture count == 0\n");
+
     BLB_SpriteList_Destroy(textures);
     BLB_TestContext_Shutdown(&app);
     return -1;
   }
 
   BLB_Object2D **objects = calloc(count, sizeof(*objects));
+
+  printd("[SpriteSheet] calloc objects[%zu] -> %p\n", count, (void *)objects);
+
   if (!objects) {
+    printd("[SpriteSheet] FAIL: calloc(objects) returned NULL\n");
+
     BLB_SpriteList_Destroy(textures);
     BLB_TestContext_Shutdown(&app);
     return -1;
@@ -35,21 +67,58 @@ int BLB_TestSpriteSheet(void) {
   const float max_sprite_size = 230.0f;
 
   for (size_t i = 0; i < count; ++i) {
+    printd("[SpriteSheet] ---- sprite %zu/%zu ----\n", i + 1, count);
+
+    printd("[SpriteSheet] texture = %p\n", (void *)textures[i]);
+
+    if (!textures[i]) {
+      printd("[SpriteSheet] FAIL: textures[%zu] == NULL\n", i);
+
+      for (size_t j = 0; j < i; ++j) {
+        if (objects[j])
+          BLB_DestroySquare2D(objects[j]);
+      }
+
+      free(objects);
+      BLB_SpriteList_Destroy(textures);
+      BLB_TestContext_Shutdown(&app);
+      return -1;
+    }
+
     uint32_t width = BLB_Texture_GetWidth(textures[i]);
     uint32_t height = BLB_Texture_GetHeight(textures[i]);
+
+    printd("[SpriteSheet] texture[%zu] size = %ux%u\n", i, width, height);
+
     float max_dim = (float)(width > height ? width : height);
+
     float scale = max_dim > 0.0f ? max_sprite_size / max_dim : 1.0f;
+
     float sprite_width = (float)width * scale;
+
     float sprite_height = (float)height * scale;
+
     size_t row = i / columns;
     size_t column = i % columns;
-    HMM_Vec2 position = HMM_V2(slot_width * 0.5f + (float)column * slot_width,
-                                70.0f + slot_height * 0.5f + (float)row * slot_height);
+
+    HMM_Vec2 position = HMM_V2(slot_width * 0.5f + (float)column * slot_width, 70.0f + slot_height * 0.5f + (float)row * slot_height);
+
+    printd("[SpriteSheet] sprite[%zu]: row=%zu column=%zu "
+           "scale=%f size=(%f,%f) position=(%f,%f)\n",
+           i, row, column, scale, sprite_width, sprite_height, position.x, position.y);
 
     objects[i] = BLB_CreateSquare2D(HMM_V2(sprite_width, sprite_height), position, textures[i], true);
+
+    printd("[SpriteSheet] BLB_CreateSquare2D[%zu] -> %p\n", i, (void *)objects[i]);
+
     if (!objects[i]) {
-      for (size_t j = 0; j < i; ++j)
-        BLB_DestroySquare2D(objects[j]);
+      printd("[SpriteSheet] FAIL: BLB_CreateSquare2D[%zu] returned NULL\n", i);
+
+      for (size_t j = 0; j < i; ++j) {
+        if (objects[j])
+          BLB_DestroySquare2D(objects[j]);
+      }
+
       free(objects);
       BLB_SpriteList_Destroy(textures);
       BLB_TestContext_Shutdown(&app);
@@ -57,49 +126,60 @@ int BLB_TestSpriteSheet(void) {
     }
 
     objects[i]->layer = (unsigned short)(i + 1);
-    BLB_Material_SetLighting(objects[i]->material, false);
-    BLB_Material_SetUnlit(objects[i]->material, true);
-    BLB_Material_SetDepth(objects[i]->material, false, false);
-    BLB_Material_SetDoubleSided(objects[i]->material, true);
-    BLB_Material_SetAlphaMode(objects[i]->material, BLB_ALPHA_BLEND);
-    BLB_Material_SetRenderMode(objects[i]->material, BLB_RENDER_TRANSPARENT);
+
+    printd("[SpriteSheet] object[%zu] layer = %u\n", i, objects[i]->layer);
+
+    printd("[SpriteSheet] object[%zu] texture = %p\n", i, (void *)objects[i]->texture);
+
+    printd("[SpriteSheet] object[%zu] polygon = %p\n", i, (void *)objects[i]->polygon);
+
     BLB_AddObject2D(app.scene, objects[i]);
+
+    printd("[SpriteSheet] BLB_AddObject2D[%zu] done\n", i);
   }
 
-  BLB_SpriteList_Destroy(textures);
-
-  /*
-  BLB_Texture *sprite = BLB_SpriteList_Load2D("assets/tests/textures/zta-stones.png", 0, 3, 569, 358, 1);
-  if (sprite) {
-    BLB_Object2D *object = BLB_CreateSquare2D(HMM_V2(220.0f, 140.0f), HMM_V2(160.0f, 160.0f), sprite, true);
-    BLB_Texture_Release(sprite);
-    if (object) {
-      BLB_Material_SetLighting(object->material, false);
-      BLB_Material_SetUnlit(object->material, true);
-      BLB_Material_SetDepth(object->material, false, false);
-      BLB_Material_SetDoubleSided(object->material, true);
-      BLB_Material_SetAlphaMode(object->material, BLB_ALPHA_BLEND);
-      BLB_Material_SetRenderMode(object->material, BLB_RENDER_TRANSPARENT);
-      BLB_AddObject2D(app.scene, object);
-    }
-  }
-  */
+  printd("[SpriteSheet] All %zu sprites created successfully\n", count);
 
   while (!BLB_WindowShouldClose(app.window)) {
     float dt = 0.0f;
+
     int frame = BLB_TestContext_BeginFrame(&app, &dt);
-    if (frame < 0)
+
+    if (frame < 0) {
+      printd("[SpriteSheet] FAIL: BLB_TestContext_BeginFrame() -> %d\n", frame);
       break;
+    }
+
     if (frame > 0)
       continue;
 
-    if (BLB_TestContext_Draw(&app) < 0)
+    if (BLB_TestContext_Draw(&app) < 0) {
+      printd("[SpriteSheet] FAIL: BLB_TestContext_Draw()\n");
       break;
+    }
   }
 
-  for (size_t i = 0; i < count; ++i)
-    BLB_DestroySquare2D(objects[i]);
+  printd("[SpriteSheet] Destroying objects...\n");
+
+  for (size_t i = 0; i < count; ++i) {
+    if (objects[i]) {
+      printd("[SpriteSheet] destroying object[%zu] = %p\n", i, (void *)objects[i]);
+
+      BLB_DestroySquare2D(objects[i]);
+    }
+  }
+
   free(objects);
+
+  printd("[SpriteSheet] Destroying texture list = %p\n", (void *)textures);
+
+  BLB_SpriteList_Destroy(textures);
+
+  printd("[SpriteSheet] Shutting down test context\n");
+
   BLB_TestContext_Shutdown(&app);
+
+  printd("[SpriteSheet] SUCCESS\n");
+
   return 0;
 }

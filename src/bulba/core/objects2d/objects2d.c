@@ -1,5 +1,18 @@
 #include "bulba/core/objects2d/objects2d.h"
 
+void BLB_SetAnimation(BLB_Object2D *object, BLB_Texture **textures, float frame_time, size_t textures_count) {
+  object->animation->textures = textures;
+  object->animation->frame_time = frame_time;
+  object->animation->enable = false;
+  object->animation->texture_counter = 0;
+  object->animation->frame_count = 0;
+  object->animation->textures_count = textures_count;
+}
+
+void BLB_StartAnimation(BLB_Object2D *object) { object->animation->enable = true; }
+
+void BLB_StopAnimation(BLB_Object2D *object) { object->animation->enable = false; }
+
 void BLB_Object2D_Move(BLB_Object2D *object, HMM_Vec2 velocity) {
   if (!object)
     return;
@@ -87,4 +100,18 @@ void BLB_Object2D_SetTexture(BLB_Object2D *object, BLB_Texture *texture) {
     BLB_Texture_Release(object->texture);
 
   object->texture = texture;
+}
+
+void BLB_Object2D_FlipX(BLB_Object2D *object) {
+  if (!object)
+    return;
+
+  object->scale.x *= -1.0f;
+}
+
+void BLB_Object2D_FlipY(BLB_Object2D *object) {
+  if (!object)
+    return;
+
+  object->scale.y *= -1.0f;
 }

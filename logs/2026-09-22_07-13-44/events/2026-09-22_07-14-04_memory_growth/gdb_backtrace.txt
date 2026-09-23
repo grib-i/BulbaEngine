@@ -1,2 +1,0 @@
-ptrace: No such process.
-The program is not being run.

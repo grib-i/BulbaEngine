@@ -1,2 +1,0 @@
-    PID     TID PSR %CPU %MEM   RSS    VSZ STAT WCHAN  COMMAND
- 477257  477257   8 82.5  1.1 87244 633828 Rl+  -      bulba

@@ -5,8 +5,8 @@
 #include "bulba/core/objects3d/objects3d.h"
 
 #include <math.h>
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #ifndef BLB_GLOW_STEPS_3D
 #define BLB_GLOW_STEPS_3D 8
@@ -811,20 +811,12 @@ static bool build_point_shadow_matrices(BLB_Scene *scene, HMM_Mat4 shadow_mvp[VU
   float far_plane = fmaxf(light->range, 10.0f);
   HMM_Mat4 projection = HMM_Perspective_RH_ZO(HMM_AngleDeg(90.0f), 1.0f, 0.05f, far_plane);
   HMM_Vec3 directions[VULKAN_POINT_SHADOW_FACES] = {
-      HMM_V3(1.0f, 0.0f, 0.0f),
-      HMM_V3(-1.0f, 0.0f, 0.0f),
-      HMM_V3(0.0f, 1.0f, 0.0f),
-      HMM_V3(0.0f, -1.0f, 0.0f),
-      HMM_V3(0.0f, 0.0f, 1.0f),
-      HMM_V3(0.0f, 0.0f, -1.0f),
+      HMM_V3(1.0f, 0.0f, 0.0f),  HMM_V3(-1.0f, 0.0f, 0.0f), HMM_V3(0.0f, 1.0f, 0.0f),
+      HMM_V3(0.0f, -1.0f, 0.0f), HMM_V3(0.0f, 0.0f, 1.0f),  HMM_V3(0.0f, 0.0f, -1.0f),
   };
   HMM_Vec3 ups[VULKAN_POINT_SHADOW_FACES] = {
-      HMM_V3(0.0f, -1.0f, 0.0f),
-      HMM_V3(0.0f, -1.0f, 0.0f),
-      HMM_V3(0.0f, 0.0f, 1.0f),
-      HMM_V3(0.0f, 0.0f, -1.0f),
-      HMM_V3(0.0f, -1.0f, 0.0f),
-      HMM_V3(0.0f, -1.0f, 0.0f),
+      HMM_V3(0.0f, -1.0f, 0.0f), HMM_V3(0.0f, -1.0f, 0.0f), HMM_V3(0.0f, 0.0f, 1.0f),
+      HMM_V3(0.0f, 0.0f, -1.0f), HMM_V3(0.0f, -1.0f, 0.0f), HMM_V3(0.0f, -1.0f, 0.0f),
   };
 
   for (uint32_t i = 0; i < VULKAN_POINT_SHADOW_FACES; i++) {
@@ -904,8 +896,8 @@ static VulkanMaterial vulkan_material_from_state(const BLB_RenderMaterialState *
   return result;
 }
 
-static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache, const BLB_RenderMaterialState *state,
-                               float scale_mul, float glow_mul) {
+static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache,
+                               const BLB_RenderMaterialState *state, float scale_mul, float glow_mul) {
 
   if (!object || !renderer || !camera_cache || !camera_cache->valid || !state)
     return;
@@ -944,8 +936,8 @@ static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, const BLB
   VulkanMaterial vk_material = vulkan_material_from_state(&pass, !glow_pass);
   vk_material.base_texture_override = object->texture;
 
-  VULKAN_RendererDrawPolygon3D(renderer, object->polygon, &mvp.Elements[0][0], model_rows, pass.base_color[0], pass.base_color[1],
-                               pass.base_color[2], pass.base_color[3], &vk_material, object->texture);
+  VULKAN_RendererDrawPolygon3D(renderer, object->polygon, &mvp.Elements[0][0], model_rows, pass.base_color[0], pass.base_color[1], pass.base_color[2],
+                               pass.base_color[3], &vk_material, object->texture);
 }
 
 static void draw_object3d(BLB_Object3D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache) {
@@ -980,15 +972,13 @@ static void draw_object3d(BLB_Object3D *object, VULKAN *renderer, const BLB_Rend
   draw_object3d_pass(object, renderer, camera_cache, &state, 1.0f, 1.0f);
 }
 
-static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache, const BLB_RenderMaterialState *state,
-                               float scale_mul, float glow_mul) {
-
+static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache,
+                               const BLB_RenderMaterialState *state, float scale_mul, float glow_mul) {
   if (!object || !renderer || !object->polygon || !state)
     return;
 
   BLB_RenderMaterialState pass = *state;
-
-  bool glow_pass = glow_mul < 0.9999f;
+  const bool glow_pass = glow_mul < 0.9999f;
 
   pass.emission *= glow_mul;
   pass.glow *= glow_mul;
@@ -1009,39 +999,63 @@ static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, const BLB
   VulkanMaterial vk_material = vulkan_material_from_state(&pass, !glow_pass);
 
   const size_t count = object->polygon->vertex_count;
-
   if (count == 0)
     return;
 
   const float viewport_width = (float)renderer->swapchain_extent.width;
-
   const float viewport_height = (float)renderer->swapchain_extent.height;
 
   HMM_Vec2 vertices[count];
   HMM_Vec2 world_positions[count];
+  HMM_Vec2 uvs[count];
+
+  const bool has_uvs = object->polygon->uvs != NULL;
+  const bool flip_uv_y = !object->screen_space && camera_cache && camera_cache->valid;
 
   const float angle = HMM_AngleDeg(object->rotation);
-
   const float c = cosf(angle);
   const float s = sinf(angle);
 
   const HMM_Mat4 *vp = NULL;
+
   if (!object->screen_space && camera_cache && camera_cache->valid)
     vp = &camera_cache->view_projection;
 
+  BLB_Texture *texture = object->texture;
+
+  if (object->animation && object->animation->textures && object->animation->textures_count > 0) {
+    size_t frame = object->animation->texture_counter;
+
+    if (frame >= object->animation->textures_count)
+      frame = 0;
+
+    texture = object->animation->textures[frame];
+  }
+
   for (size_t i = 0; i < count; i++) {
     const float x = object->polygon->vertices[i].x * object->scale.x * scale_mul;
+
     const float y = object->polygon->vertices[i].y * object->scale.y * scale_mul;
+
     const float transformed_x = x * c - y * s;
+
     const float transformed_y = x * s + y * c;
+
     const float world_x = object->position.x + transformed_x;
+
     const float world_y = object->position.y + transformed_y;
 
     world_positions[i] = HMM_V2(world_x, world_y);
 
+    if (has_uvs) {
+      uvs[i] = object->polygon->uvs[i];
+
+      if (flip_uv_y)
+        uvs[i].y = 1.0f - uvs[i].y;
+    }
+
     if (object->screen_space || !vp) {
       vertices[i] = HMM_V2(world_x, world_y);
-
       continue;
     }
 
@@ -1051,7 +1065,6 @@ static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, const BLB
 
     if (fabsf(clip.w) <= 0.000001f) {
       vertices[i] = HMM_V2(-100000.0f, -100000.0f);
-
       continue;
     }
 
@@ -1065,15 +1078,16 @@ static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, const BLB
   }
 
   BLB_Polygon2D transformed = *object->polygon;
-
   transformed.vertices = vertices;
 
+  if (has_uvs)
+    transformed.uvs = uvs;
+
   VULKAN_RendererDrawPolygon2D(renderer, &transformed, world_positions, viewport_width, viewport_height, pass.base_color[0], pass.base_color[1],
-                               pass.base_color[2], pass.base_color[3], &vk_material, object->texture);
+                               pass.base_color[2], pass.base_color[3], &vk_material, texture);
 }
 
 static void draw_object2d(BLB_Object2D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache) {
-
   if (!object || !renderer || !object->visible || !object->polygon)
     return;
 
@@ -1126,14 +1140,12 @@ static void draw_text2d(BLB_Text2D *text, VULKAN *renderer, BLB_Camera *camera, 
                           normalize_render_mode(state.render_mode));
 }
 
-
 static uint64_t render_sort_signature3d(BLB_Object3D **objects, int count) {
   uint64_t h = UINT64_C(1469598103934665603);
   for (int i = 0; i < count; ++i) {
     uintptr_t p = (uintptr_t)objects[i];
     BLB_Object3D *o = objects[i];
-    uint64_t v = (uint64_t)p ^ ((uint64_t)(o ? (uint32_t)(o->layer + 32768) : 0u) << 32u) ^
-                 (uint64_t)(o ? (uint32_t)object3d_render_mode(o) : 0u);
+    uint64_t v = (uint64_t)p ^ ((uint64_t)(o ? (uint32_t)(o->layer + 32768) : 0u) << 32u) ^ (uint64_t)(o ? (uint32_t)object3d_render_mode(o) : 0u);
     h ^= v;
     h *= UINT64_C(1099511628211);
   }
@@ -1145,8 +1157,7 @@ static uint64_t render_sort_signature2d(BLB_Object2D **objects, int count) {
   for (int i = 0; i < count; ++i) {
     uintptr_t p = (uintptr_t)objects[i];
     BLB_Object2D *o = objects[i];
-    uint64_t v = (uint64_t)p ^ ((uint64_t)(o ? (uint32_t)(o->layer + 32768) : 0u) << 32u) ^
-                 (uint64_t)(o ? (uint32_t)object2d_render_mode(o) : 0u);
+    uint64_t v = (uint64_t)p ^ ((uint64_t)(o ? (uint32_t)(o->layer + 32768) : 0u) << 32u) ^ (uint64_t)(o ? (uint32_t)object2d_render_mode(o) : 0u);
     h ^= v;
     h *= UINT64_C(1099511628211);
   }
@@ -1158,8 +1169,7 @@ static uint64_t render_sort_signature_text2d(BLB_Text2D **objects, int count) {
   for (int i = 0; i < count; ++i) {
     uintptr_t p = (uintptr_t)objects[i];
     BLB_Text2D *o = objects[i];
-    uint64_t v = (uint64_t)p ^ ((uint64_t)(o ? (uint32_t)(o->layer + 32768) : 0u) << 32u) ^
-                 (uint64_t)(o ? (uint32_t)o->render_mode : 0u);
+    uint64_t v = (uint64_t)p ^ ((uint64_t)(o ? (uint32_t)(o->layer + 32768) : 0u) << 32u) ^ (uint64_t)(o ? (uint32_t)o->render_mode : 0u);
     h ^= v;
     h *= UINT64_C(1099511628211);
   }
@@ -1245,6 +1255,17 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
 
         if (object && object->delta_time)
           *object->delta_time = scene->delta_time;
+
+        if (object && object->animation && object->animation->enable && object->animation->textures && object->animation->textures_count > 0) {
+
+          object->animation->frame_count += scene->delta_time;
+
+          while (object->animation->frame_count >= object->animation->frame_time) {
+            object->animation->frame_count -= object->animation->frame_time;
+            object->animation->texture_counter = (object->animation->texture_counter + 1) % object->animation->textures_count;
+            BLB_Object2D_SetTexture(object, object->animation->textures[object->animation->texture_counter]);
+          }
+        }
       }
 
       if (i < scene->text2d_count) {
@@ -1353,31 +1374,36 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
       qsort(scene->objects3d, scene->object3d_count, sizeof(BLB_Object3D *), compare_object3d);
       scene->sort_signature3d = render_sort_signature3d(scene->objects3d, scene->object3d_count);
     }
-    if (scene->object3d_count <= 1) scene->sort_signature3d = sig3d;
+    if (scene->object3d_count <= 1)
+      scene->sort_signature3d = sig3d;
 
     if (scene->object2d_count > 1 && sig2d != scene->sort_signature2d) {
       qsort(scene->objects2d, scene->object2d_count, sizeof(BLB_Object2D *), compare_object2d);
       scene->sort_signature2d = render_sort_signature2d(scene->objects2d, scene->object2d_count);
     }
-    if (scene->object2d_count <= 1) scene->sort_signature2d = sig2d;
+    if (scene->object2d_count <= 1)
+      scene->sort_signature2d = sig2d;
 
     if (scene->text2d_count > 1 && sigt2d != scene->sort_signature_text2d) {
       qsort(scene->text2d, scene->text2d_count, sizeof(BLB_Text2D *), compare_text2d);
       scene->sort_signature_text2d = render_sort_signature_text2d(scene->text2d, scene->text2d_count);
     }
-    if (scene->text2d_count <= 1) scene->sort_signature_text2d = sigt2d;
+    if (scene->text2d_count <= 1)
+      scene->sort_signature_text2d = sigt2d;
 
     if (scene->light3d_count > 1 && sigl3d != scene->sort_signature_light3d) {
       qsort(scene->lights3d, scene->light3d_count, sizeof(BLB_Light3D *), compare_light3d);
       scene->sort_signature_light3d = render_sort_signature_light3d(scene->lights3d, scene->light3d_count);
     }
-    if (scene->light3d_count <= 1) scene->sort_signature_light3d = sigl3d;
+    if (scene->light3d_count <= 1)
+      scene->sort_signature_light3d = sigl3d;
 
     if (scene->light2d_count > 1 && sigl2d != scene->sort_signature_light2d) {
       qsort(scene->lights2d, scene->light2d_count, sizeof(BLB_Light2D *), compare_light2d);
       scene->sort_signature_light2d = render_sort_signature_light2d(scene->lights2d, scene->light2d_count);
     }
-    if (scene->light2d_count <= 1) scene->sort_signature_light2d = sigl2d;
+    if (scene->light2d_count <= 1)
+      scene->sort_signature_light2d = sigl2d;
 
     float aspect = renderer->swapchain_extent.height ? (float)renderer->swapchain_extent.width / (float)renderer->swapchain_extent.height : 1.0f;
 

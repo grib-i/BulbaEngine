@@ -12,11 +12,22 @@
 #include <stdbool.h>
 
 typedef struct {
+  BLB_Texture **textures;
+  short texture_counter;
+  size_t textures_count;
+
+  float frame_time;
+  bool enable;
+  float frame_count;
+} BLB_Animation;
+
+typedef struct {
   BLB_EntityId entity_id;
   BLB_ComponentMask component_mask;
 
   BLB_Material *material;
   BLB_Texture *texture;
+  BLB_Animation *animation;
 
   BLB_ObjectType type;
   BLB_ObjectID *id;
@@ -59,5 +70,15 @@ void BLB_Object2D_Transform(BLB_Object2D *object, HMM_Vec2 position, float rotat
 
 void BLB_Object2D_SetTexture(BLB_Object2D *object, BLB_Texture *texture);
 void BLB_Object2D_SetMaterial(BLB_Object2D *object, BLB_Material *material);
+
+void BLB_SetAnimation(BLB_Object2D *object, BLB_Texture **textures, float frame_time, size_t textures_count);
+
+void BLB_StartAnimation(BLB_Object2D *object);
+
+void BLB_StopAnimation(BLB_Object2D *object);
+
+void BLB_Object2D_FlipX(BLB_Object2D *object);
+void BLB_Object2D_FlipY(BLB_Object2D *object);
+void BLB_Object2D_FlipX(BLB_Object2D *object);
 
 #endif

@@ -1,5 +1,5 @@
-#include "tests.h"
 #include "test_common.h"
+#include "tests.h"
 
 int BLB_TestTexture(void) {
   BLB_TestContext app;
@@ -9,21 +9,21 @@ int BLB_TestTexture(void) {
   BLB_TestAddStudioLights(&app, 36.0f);
 
   BLB_Texture *potato = BLB_Texture_Load2D("assets/tests/textures/potato.png");
-  BLB_Texture *stones = BLB_Texture_Load2D("assets/tests/textures/zta-stones.png");
+  BLB_Texture *mars = BLB_Texture_Load2D("assets/tests/textures/planets/mars.png");
 
-  if (!potato || !stones) {
+  if (!potato || !mars) {
     BLB_Texture_Release(potato);
-    BLB_Texture_Release(stones);
+    BLB_Texture_Release(mars);
     BLB_TestContext_Shutdown(&app);
     return -1;
   }
 
-  BLB_Object3D *sphere = BLB_CreateSphere3D(HMM_V3(3.0f, 3.0f, 3.0f), HMM_V3(-4.5f, 0.0f, 0.0f), 5, potato);
+  BLB_Object3D *sphere = BLB_CreateSphere3D(HMM_V3(3.0f, 3.0f, 3.0f), HMM_V3(-4.5f, 0.0f, 0.0f), 5, mars);
   BLB_Object3D *cube = BLB_CreateCube3D(HMM_V3(3.1f, 3.1f, 3.1f), HMM_V3(0.0f, 0.0f, 0.0f), potato);
-  BLB_Object3D *torus = BLB_CreateTorus3D(HMM_V3(2.5f, 2.5f, 2.5f), HMM_V3(4.5f, 0.0f, 0.0f), 5, 0.0f, 0.0f, stones);
+  BLB_Object3D *torus = BLB_CreateTorus3D(HMM_V3(2.5f, 2.5f, 2.5f), HMM_V3(4.5f, 0.0f, 0.0f), 5, 0.0f, 0.0f, potato);
 
   BLB_Texture_Release(potato);
-  BLB_Texture_Release(stones);
+  BLB_Texture_Release(mars);
 
   if (!sphere || !cube || !torus) {
     BLB_DestroySphere3D(sphere);

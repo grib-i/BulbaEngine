@@ -45,7 +45,6 @@ BLB_Object2D *BLB_CreateSquare2D(HMM_Vec2 scale, HMM_Vec2 position, BLB_Texture 
   object->id = &BLB_OBJECTS_ID[object->type];
 
   if (polygon == NULL && object->id->id == 0 && strcmp(object->id->id_type, "square") == 0) {
-
     polygon = calloc(1, sizeof(*object->polygon));
 
     if (polygon == NULL)
@@ -128,6 +127,10 @@ BLB_Object2D *BLB_CreateSquare2D(HMM_Vec2 scale, HMM_Vec2 position, BLB_Texture 
     return NULL;
   }
 
+  object->animation = calloc(1, sizeof(*object->animation));
+  if (object->animation == NULL)
+    goto fail;
+
   BLB_Object2D_Transform(object, position, object->rotation, scale);
 
   if (texture != NULL)
@@ -165,6 +168,7 @@ void BLB_DestroySquare2D(BLB_Object2D *object) {
       BLB_SquareFreePolygon();
   }
 
+  free(object->animation);
   free(object->delta_time);
   free(object);
 }

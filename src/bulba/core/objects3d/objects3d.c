@@ -88,3 +88,24 @@ void BLB_Object3D_SetTexture(BLB_Object3D *object, BLB_Texture *texture) {
 
   object->texture = texture;
 }
+
+void BLB_Object3D_FlipX(BLB_Object3D *object) {
+  if (!object)
+    return;
+
+  object->scale.x *= -1.0f;
+}
+
+void BLB_Object3D_FlipY(BLB_Object3D *object) {
+  if (!object)
+    return;
+
+  object->scale.y *= -1.0f;
+}
+
+void BLB_Object3D_FlipZ(BLB_Object3D *object) {
+  if (!object)
+    return;
+
+  object->scale.z *= -1.0f;
+}
