@@ -79,19 +79,28 @@ BLB_Object3D *BLB_CreateCube3D(HMM_Vec3 scale, HMM_Vec3 position, BLB_Texture *t
 
     unsigned int indices[36] = {0,  3,  2,  0,  2,  1,  4,  7,  6,  4,  6,  5,  8,  10, 9,  8,  11, 10,
                                 12, 15, 14, 12, 14, 13, 16, 19, 18, 16, 18, 17, 20, 23, 22, 20, 22, 21};
+    HMM_Vec2 face_uvs[6][4] = {// BACK (-Z)
+                               {HMM_V2(1.00f, 0.333333f), HMM_V2(0.75f, 0.333333f), HMM_V2(0.75f, 0.666667f), HMM_V2(1.00f, 0.666667f)},
+                               // RIGHT (+X)
+                               {HMM_V2(0.75f, 0.333333f), HMM_V2(0.50f, 0.333333f), HMM_V2(0.50f, 0.666667f), HMM_V2(0.75f, 0.666667f)},
+                               // FRONT (+Z)
+                               {HMM_V2(0.50f, 0.333333f), HMM_V2(0.25f, 0.333333f), HMM_V2(0.25f, 0.666667f), HMM_V2(0.50f, 0.666667f)},
+                               // LEFT (-X)
+                               {HMM_V2(0.25f, 0.333333f), HMM_V2(0.00f, 0.333333f), HMM_V2(0.00f, 0.666667f), HMM_V2(0.25f, 0.666667f)},
+                               // TOP (+Y)
+                               {HMM_V2(0.25f, 1.000000f), HMM_V2(0.50f, 1.000000f), HMM_V2(0.50f, 0.666667f), HMM_V2(0.25f, 0.666667f)},
+                               // BOTTOM (-Y)
+                               {HMM_V2(0.25f, 0.333333f), HMM_V2(0.50f, 0.333333f), HMM_V2(0.50f, 0.000000f), HMM_V2(0.25f, 0.000000f)}};
 
-    HMM_Vec2 face_uvs[4] = {HMM_V2(0.0f, 0.0f), HMM_V2(1.0f, 0.0f), HMM_V2(1.0f, 1.0f), HMM_V2(0.0f, 1.0f)};
+    for (size_t face = 0; face < 6; face++) {
+      for (size_t corner = 0; corner < 4; corner++) {
+        polygon->uvs[face * 4 + corner] = face_uvs[face][corner];
+      }
+    }
 
     for (size_t i = 0; i < 24; i++) {
       polygon->vertices[i] = vertices[i];
       polygon->base_vertices[i] = vertices[i];
-    }
-
-    for (size_t face = 0; face < 6; face++) {
-      for (size_t corner = 0; corner < 4; corner++) {
-        const size_t i = face * 4 + corner;
-        polygon->uvs[i] = face_uvs[corner];
-      }
     }
 
     for (size_t i = 0; i < 36; i++)
@@ -186,6 +195,5 @@ void BLB_DestroyCube3D(BLB_Object3D *object) {
       BLB_CubeFreePolygon();
   }
 
-  free(object->delta_time);
   free(object);
 }

@@ -315,6 +315,5 @@ void BLB_DestroySphere3D(BLB_Object3D *object) {
       BLB_SphereFreePolygon();
   }
 
-  free(object->delta_time);
   free(object);
 }

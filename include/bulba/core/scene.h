@@ -71,8 +71,11 @@ void BLB_SetSceneVisible(BLB_Scene *scene, bool visible);
 void BLB_SetSceneLayer(BLB_Scene *scene, unsigned short layer);
 void BLB_SetSceneDeltaTime(BLB_Scene *scene, float delta_time);
 
-void BLB_SetSceneClear(BLB_Scene *scene, bool enabled, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+void BLB_SetSceneClear(BLB_Scene *scene, bool enabled, unsigned char r, unsigned char g, unsigned char b, unsigned char a); // char in number
 
+/*
+ * Functions for added objects from the scene
+ */
 int BLB_AddObject3D(BLB_Scene *scene, BLB_Object3D *object);
 int BLB_AddObject2D(BLB_Scene *scene, BLB_Object2D *object);
 
@@ -80,5 +83,16 @@ int BLB_AddText2D(BLB_Scene *scene, BLB_Text2D *text);
 
 int BLB_AddLight3D(BLB_Scene *scene, BLB_Light3D *light);
 int BLB_AddLight2D(BLB_Scene *scene, BLB_Light2D *light);
+
+/*
+ * Functions for removing objects from the scene
+ * Must be used when deleting the object.
+ */
+int BLB_RemoveObject3D(BLB_Scene *scene, BLB_Object3D *object);
+int BLB_RemoveObject2D(BLB_Scene *scene, BLB_Object2D *object);
+int BLB_RemoveText2D(BLB_Scene *scene, BLB_Text2D *text);
+
+int BLB_RemoveLight3D(BLB_Scene *scene, BLB_Light3D *light);
+int BLB_RemoveLight2D(BLB_Scene *scene, BLB_Light2D *light);
 
 #endif

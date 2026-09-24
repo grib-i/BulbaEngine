@@ -14,10 +14,13 @@ BLB_Camera *BLB_CreateCamera(HMM_Vec3 p) {
   c->aspect = 16.0f / 9.0f;
 
   c->delta_time = malloc(sizeof(float));
+  c->camera_cache = malloc(sizeof(BLB_CameraCache));
+
   return c;
 }
 
 void BLB_DestroyCamera(BLB_Camera *c) {
+  free(c->camera_cache);
   free(c->delta_time);
   free(c);
 }

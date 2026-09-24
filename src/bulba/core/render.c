@@ -17,13 +17,6 @@
 #endif
 
 typedef struct {
-  bool valid;
-  HMM_Mat4 view;
-  HMM_Mat4 projection;
-  HMM_Mat4 view_projection;
-} BLB_RenderCameraCache;
-
-typedef struct {
   float base_color[4];
   float emission;
   float glow;
@@ -896,8 +889,8 @@ static VulkanMaterial vulkan_material_from_state(const BLB_RenderMaterialState *
   return result;
 }
 
-static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache,
-                               const BLB_RenderMaterialState *state, float scale_mul, float glow_mul) {
+static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, const BLB_CameraCache *camera_cache, const BLB_RenderMaterialState *state,
+                               float scale_mul, float glow_mul) {
 
   if (!object || !renderer || !camera_cache || !camera_cache->valid || !state)
     return;
@@ -940,7 +933,7 @@ static void draw_object3d_pass(BLB_Object3D *object, VULKAN *renderer, const BLB
                                pass.base_color[3], &vk_material, object->texture);
 }
 
-static void draw_object3d(BLB_Object3D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache) {
+static void draw_object3d(BLB_Object3D *object, VULKAN *renderer, const BLB_CameraCache *camera_cache) {
 
   if (!object || !renderer || !camera_cache || !camera_cache->valid || !object->visible || !object->polygon)
     return;
@@ -972,8 +965,8 @@ static void draw_object3d(BLB_Object3D *object, VULKAN *renderer, const BLB_Rend
   draw_object3d_pass(object, renderer, camera_cache, &state, 1.0f, 1.0f);
 }
 
-static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache,
-                               const BLB_RenderMaterialState *state, float scale_mul, float glow_mul) {
+static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, const BLB_CameraCache *camera_cache, const BLB_RenderMaterialState *state,
+                               float scale_mul, float glow_mul) {
   if (!object || !renderer || !object->polygon || !state)
     return;
 
@@ -1087,7 +1080,7 @@ static void draw_object2d_pass(BLB_Object2D *object, VULKAN *renderer, const BLB
                                pass.base_color[2], pass.base_color[3], &vk_material, texture);
 }
 
-static void draw_object2d(BLB_Object2D *object, VULKAN *renderer, const BLB_RenderCameraCache *camera_cache) {
+static void draw_object2d(BLB_Object2D *object, VULKAN *renderer, const BLB_CameraCache *camera_cache) {
   if (!object || !renderer || !object->visible || !object->polygon)
     return;
 
@@ -1407,12 +1400,11 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
 
     float aspect = renderer->swapchain_extent.height ? (float)renderer->swapchain_extent.width / (float)renderer->swapchain_extent.height : 1.0f;
 
-    BLB_RenderCameraCache camera_cache = {0};
     if (scene->camera) {
-      camera_cache.valid = true;
-      camera_cache.view = BLB_CameraView(scene->camera);
-      camera_cache.projection = BLB_CameraProjection(scene->camera, aspect);
-      camera_cache.view_projection = HMM_MulM4(camera_cache.projection, camera_cache.view);
+      scene->camera->camera_cache->valid = true;
+      scene->camera->camera_cache->view = BLB_CameraView(scene->camera);
+      scene->camera->camera_cache->projection = BLB_CameraProjection(scene->camera, aspect);
+      scene->camera->camera_cache->view_projection = HMM_MulM4(scene->camera->camera_cache->projection, scene->camera->camera_cache->view);
     }
 
     size_t indices[5] = {
@@ -1460,11 +1452,11 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
 
       switch (best) {
       case 0:
-        draw_object3d(scene->objects3d[indices[0]], renderer, &camera_cache);
+        draw_object3d(scene->objects3d[indices[0]], renderer, scene->camera->camera_cache);
         break;
 
       case 1:
-        draw_object2d(scene->objects2d[indices[1]], renderer, &camera_cache);
+        draw_object2d(scene->objects2d[indices[1]], renderer, scene->camera->camera_cache);
         break;
 
       case 2:
@@ -1474,14 +1466,14 @@ int BLB_DrawScene(BLB_Scene *scene, VULKAN *renderer) {
       case 3:
         if (scene->lights3d[indices[3]] && scene->lights3d[indices[3]]->object) {
 
-          draw_object3d(scene->lights3d[indices[3]]->object, renderer, &camera_cache);
+          draw_object3d(scene->lights3d[indices[3]]->object, renderer, scene->camera->camera_cache);
         }
         break;
 
       case 4:
         if (scene->lights2d[indices[4]] && scene->lights2d[indices[4]]->object) {
 
-          draw_object2d(scene->lights2d[indices[4]]->object, renderer, &camera_cache);
+          draw_object2d(scene->lights2d[indices[4]]->object, renderer, scene->camera->camera_cache);
         }
         break;
       }

@@ -211,6 +211,5 @@ void BLB_DestroyCircle2D(BLB_Object2D *object) {
   }
 
   free(object->animation);
-  free(object->delta_time);
   free(object);
 }

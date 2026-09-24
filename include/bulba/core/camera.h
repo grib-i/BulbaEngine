@@ -3,6 +3,15 @@
 
 #include "bulba/core/math3v/math3v.h"
 
+#include <stdbool.h>
+
+typedef struct {
+  bool valid;
+  HMM_Mat4 view;
+  HMM_Mat4 projection;
+  HMM_Mat4 view_projection;
+} BLB_CameraCache;
+
 typedef struct BLB_Camera {
   HMM_Vec3 position;
   HMM_Vec3 rotation;
@@ -10,6 +19,8 @@ typedef struct BLB_Camera {
   float aspect;
 
   float *delta_time;
+
+  BLB_CameraCache *camera_cache;
 } BLB_Camera;
 
 BLB_Camera *BLB_CreateCamera(HMM_Vec3 position);

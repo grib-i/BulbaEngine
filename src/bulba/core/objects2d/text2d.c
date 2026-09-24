@@ -153,7 +153,6 @@ void BLB_DestroyText2D(BLB_Text2D *t) {
 
   free(t->text);
   free(t->font_path);
-  free(t->delta_time);
 
   free(t);
 }

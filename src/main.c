@@ -22,11 +22,11 @@ int main(void) {
 
   // BLB_TestSuperNova();
 
-  // result = BLB_TestTexture();
-  //
+  result = BLB_TestTexture();
+
   // result = BLB_TestSpriteSheet();
 
-  result = BLB_TestObjectCount(100, BLB_TEST_OBJECT_CUBE);
+  // result = BLB_TestObjectCount(100, BLB_TEST_OBJECT_CUBE);
 
   // result = BLB_TestPhysicsObjectCount(100, BLB_TEST_OBJECT_CUBE);
   // result = BLB_Test_ph3d();

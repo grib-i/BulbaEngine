@@ -233,3 +233,96 @@ int BLB_AddLight2D(BLB_Scene *scene, BLB_Light2D *light) {
 
   ADD_ITEM(scene->lights2d, scene->light2d_count, BLB_Light2D, light);
 }
+
+/*
+ * Functions for removing objects from the scene
+ * Must be used when deleting the object.
+ */
+
+static int remove_item(void *array, int *count, void *item) {
+  if (!array || !count || !item)
+    return -1;
+
+  void **items = *(void ***)array;
+
+  if (!items)
+    return -1;
+
+  for (int i = 0; i < *count; ++i) {
+    if (items[i] == item) {
+      memmove(&items[i], &items[i + 1], (size_t)(*count - i - 1) * sizeof(void *));
+
+      (*count)--;
+
+      if (*count == 0) {
+        free(items);
+        *(void ***)array = NULL;
+      } else {
+        void **new_array = realloc(items, (size_t)*count * sizeof(void *));
+        if (new_array)
+          *(void ***)array = new_array;
+      }
+
+      return 0;
+    }
+  }
+
+  return -1;
+}
+
+int BLB_RemoveObject3D(BLB_Scene *scene, BLB_Object3D *object) {
+  if (!scene || !object)
+    return -1;
+
+  for (int i = 0; i < scene->light3d_count;) {
+    BLB_Light3D *light = scene->lights3d[i];
+
+    if (light && light->object == object) {
+      remove_item((void **)&scene->lights3d, &scene->light3d_count, light);
+      continue;
+    }
+
+    i++;
+  }
+
+  return remove_item((void **)&scene->objects3d, &scene->object3d_count, object);
+}
+
+int BLB_RemoveObject2D(BLB_Scene *scene, BLB_Object2D *object) {
+  if (!scene || !object)
+    return -1;
+
+  for (int i = 0; i < scene->light2d_count;) {
+    BLB_Light2D *light = scene->lights2d[i];
+
+    if (light && light->object == object) {
+      remove_item((void **)&scene->lights2d, &scene->light2d_count, light);
+      continue;
+    }
+
+    i++;
+  }
+
+  return remove_item((void **)&scene->objects2d, &scene->object2d_count, object);
+}
+
+int BLB_RemoveText2D(BLB_Scene *scene, BLB_Text2D *text) {
+  if (!scene || !text)
+    return -1;
+
+  return remove_item((void **)&scene->text2d, &scene->text2d_count, text);
+}
+
+int BLB_RemoveLight3D(BLB_Scene *scene, BLB_Light3D *light) {
+  if (!scene || !light)
+    return -1;
+
+  return remove_item((void **)&scene->lights3d, &scene->light3d_count, light);
+}
+
+int BLB_RemoveLight2D(BLB_Scene *scene, BLB_Light2D *light) {
+  if (!scene || !light)
+    return -1;
+
+  return remove_item((void **)&scene->lights2d, &scene->light2d_count, light);
+}

@@ -1,3 +1,4 @@
+#include "bulba/core/scene.h"
 #include "test_common.h"
 #include "tests.h"
 
@@ -487,26 +488,40 @@ int BLB_TestSuperNova(void) {
     BLB_TestContext_Draw(&app);
   }
 
-  if (star)
+  if (star) {
+    BLB_RemoveObject3D(app.scene, star);
     BLB_DestroySphere3D(star);
+  }
 
-  if (core)
+  if (core) {
+    BLB_RemoveObject3D(app.scene, core);
     BLB_DestroySphere3D(core);
+  }
 
-  if (mercury)
+  if (mercury) {
+    BLB_RemoveObject3D(app.scene, mercury);
     BLB_DestroySphere3D(mercury);
+  }
 
-  if (mars)
+  if (mars) {
+    BLB_RemoveObject3D(app.scene, star);
     BLB_DestroySphere3D(mars);
+  }
 
-  if (jupiter)
+  if (jupiter) {
+    BLB_RemoveObject3D(app.scene, mars);
     BLB_DestroySphere3D(jupiter);
+  }
 
-  if (uranus)
+  if (uranus) {
+    BLB_RemoveObject3D(app.scene, uranus);
     BLB_DestroySphere3D(uranus);
+  }
 
-  if (light)
+  if (light) {
+    BLB_RemoveLight3D(app.scene, light);
     BLB_DestroyLight3D(light);
+  }
 
   BLB_TestContext_Shutdown(&app);
 

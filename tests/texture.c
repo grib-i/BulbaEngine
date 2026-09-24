@@ -1,3 +1,5 @@
+#include "bulba/core/render/material.h"
+#include "bulba/core/scene.h"
 #include "test_common.h"
 #include "tests.h"
 
@@ -9,6 +11,7 @@ int BLB_TestTexture(void) {
   BLB_TestAddStudioLights(&app, 36.0f);
 
   BLB_Texture *potato = BLB_Texture_Load2D("assets/tests/textures/potato.png");
+  BLB_Texture *dern = BLB_Texture_Load2D("assets/tests/textures/dern4.png");
   BLB_Texture *mars = BLB_Texture_Load2D("assets/tests/textures/planets/mars.png");
 
   if (!potato || !mars) {
@@ -19,7 +22,7 @@ int BLB_TestTexture(void) {
   }
 
   BLB_Object3D *sphere = BLB_CreateSphere3D(HMM_V3(3.0f, 3.0f, 3.0f), HMM_V3(-4.5f, 0.0f, 0.0f), 5, mars);
-  BLB_Object3D *cube = BLB_CreateCube3D(HMM_V3(3.1f, 3.1f, 3.1f), HMM_V3(0.0f, 0.0f, 0.0f), potato);
+  BLB_Object3D *cube = BLB_CreateCube3D(HMM_V3(3.1f, 3.1f, 3.1f), HMM_V3(0.0f, 0.0f, 0.0f), dern);
   BLB_Object3D *torus = BLB_CreateTorus3D(HMM_V3(2.5f, 2.5f, 2.5f), HMM_V3(4.5f, 0.0f, 0.0f), 5, 0.0f, 0.0f, potato);
 
   BLB_Texture_Release(potato);
@@ -50,16 +53,22 @@ int BLB_TestTexture(void) {
       continue;
 
     BLB_Object3D_Rotate(sphere, HMM_V3(0.0f, 24.0f, 0.0f));
-    BLB_Object3D_Rotate(cube, HMM_V3(8.0f, 18.0f, 5.0f));
+    BLB_Object3D_Rotate(cube, HMM_V3(18.0f, 18.0f, 18.0f));
     BLB_Object3D_Rotate(torus, HMM_V3(14.0f, 22.0f, 0.0f));
 
     if (BLB_TestContext_Draw(&app) < 0)
       break;
   }
 
+  BLB_RemoveObject3D(app.scene, sphere);
   BLB_DestroySphere3D(sphere);
+
+  BLB_RemoveObject3D(app.scene, cube);
   BLB_DestroyCube3D(cube);
+
+  BLB_RemoveObject3D(app.scene, torus);
   BLB_DestroyTorus3D(torus);
+
   BLB_TestContext_Shutdown(&app);
   return 0;
 }

@@ -659,6 +659,5 @@ void BLB_DestroyModelOBJ(BLB_Object3D *object) {
   object->polygon = NULL;
   object->geometry_id = 0;
 
-  free(object->delta_time);
   free(object);
 }

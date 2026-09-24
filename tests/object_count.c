@@ -178,8 +178,10 @@ int BLB_TestObjectCount(size_t count, BLB_TestObjectType type) {
       break;
   }
 
-  for (size_t i = 0; i < count; ++i)
+  for (size_t i = 0; i < count; ++i) {
+    BLB_RemoveObject3D(app.scene, objects[i]);
     destroy_object(type, objects[i]);
+  }
 
   free(objects);
   BLB_TestContext_Shutdown(&app);
