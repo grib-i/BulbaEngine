@@ -1,3 +1,4 @@
+#include "tests.h"
 #include <bulba/bulba.h>
 #include <debug.h>
 
@@ -12,52 +13,30 @@ int main(void) {
 
   DEBUG_InitStdIO();
   BLB_Init();
+  int result;
 
-  int result = 0;
-
-#ifdef DEBUG
+  // int result = 0;
   // result = BLB_TestMaterial();
-  // if (result != 0) {
-  //   printd("BLB_TestMaterial failed: %d\n", result);
-  //   return 1;
-  // }
 
   // result = BLB_TestObjects();
-  // if (result != 0) {
-  //   printd("BLB_TestObjects failed: %d\n", result);
-  //   return 1;
-  // }
 
-  // result = BLB_TestSuperNova();
-  // if (result != 0) {
-  //   printd("BLB_TestSuperNova failed: %d\n", result);
-  //   return 1;
-  // }
+  // BLB_TestSuperNova();
 
   // result = BLB_TestTexture();
-  // if (result != 0) {
-  //   printd("BLB_TestTexture failed: %d\n", result);
-  //   return 1;
-  // }
-
+  //
   // result = BLB_TestSpriteSheet();
-  // if (result != 0) {
-  //   printd("BLB_TestSpriteSheet failed: %d\n", result);
-  //   return 1;
-  // }
 
-  // result = BLB_TestObjectCount(1000, BLB_TEST_OBJECT_CUBE);
-  // if (result != 0) {
-  //   printd("BLB_TestObjectCount failed: %d\n", result);
-  //   return 1;
-  // }
+  result = BLB_TestObjectCount(100, BLB_TEST_OBJECT_CUBE);
 
-  result = BLB_AnimationTest();
+  // result = BLB_TestPhysicsObjectCount(100, BLB_TEST_OBJECT_CUBE);
+  // result = BLB_Test_ph3d();
+  // result = BLB_Test_ph2d();
+
+  // result = BLB_AnimationTest();
+
   if (result != 0) {
-    printd("BLB_TestSpriteSheet failed: %d\n", result);
     return 1;
   }
-#endif
 
   return 0;
 }

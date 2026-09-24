@@ -6,7 +6,9 @@
 #include "bulba/core/render/texture.h"
 #include "bulba/core/utils/object.h"
 
+#define _GNU_SOURCE
 #include <math.h>
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>

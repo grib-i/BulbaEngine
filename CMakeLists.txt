@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.22)
 
 if(NOT PROJECT_NAME)
   set(PROJECT_NAME "DEFAULT")
@@ -6,8 +6,42 @@ endif()
 
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C)
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)
+
+include(FetchContent)
+
+set(BOX2D_SAMPLES OFF CACHE BOOL "" FORCE)
+set(BOX2D_BENCHMARKS OFF CACHE BOOL "" FORCE)
+set(BOX2D_DOCS OFF CACHE BOOL "" FORCE)
+set(BOX2D_PROFILE OFF CACHE BOOL "" FORCE)
+set(BOX2D_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+set(BOX2D_VALIDATE OFF CACHE BOOL "" FORCE)
+set(BOX2D_COMPILE_WARNING_AS_ERROR OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+  box2d
+  GIT_REPOSITORY https://github.com/erincatto/box2d.git
+  GIT_TAG v3.1.1
+  GIT_SHALLOW TRUE
+)
+
+FetchContent_MakeAvailable(box2d)
+
+set(BOX3D_SAMPLES OFF CACHE BOOL "" FORCE)
+set(BOX3D_BENCHMARKS OFF CACHE BOOL "" FORCE)
+set(BOX3D_DOCS OFF CACHE BOOL "" FORCE)
+set(BOX3D_PROFILE OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+  box3d
+  GIT_REPOSITORY https://github.com/erincatto/box3d.git
+  GIT_TAG v0.1.0
+  GIT_SHALLOW TRUE
+)
+
+FetchContent_MakeAvailable(box3d)
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
@@ -52,6 +86,8 @@ target_link_libraries(
   glfw
   Freetype::Freetype
   PNG::PNG
+  box2d::box2d
+  box3d::box3d
   m
   dl
 )

@@ -6,7 +6,9 @@
 #include "bulba/core/render/texture.h"
 #include "bulba/core/utils/object.h"
 
+#define _GNU_SOURCE
 #include <math.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -182,8 +184,7 @@ static bool torus_geometry_matches(const BLB_TorusGeometry *entry, uint64_t id, 
   if (!entry || entry->geometry_id != id || entry->slices != slices)
     return false;
 
-  return memcmp(&entry->major_radius, &major_radius, sizeof(float)) == 0 &&
-         memcmp(&entry->minor_radius, &minor_radius, sizeof(float)) == 0;
+  return memcmp(&entry->major_radius, &major_radius, sizeof(float)) == 0 && memcmp(&entry->minor_radius, &minor_radius, sizeof(float)) == 0;
 }
 
 static BLB_TorusGeometry *torus_cache_acquire(float major_radius, float minor_radius, size_t slices) {

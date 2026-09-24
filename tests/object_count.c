@@ -1,16 +1,19 @@
-#include "tests.h"
+#include "bulba/core/objects3d/model_loader.h"
 #include "test_common.h"
+#include "tests.h"
 
 static BLB_Object3D *create_object(BLB_TestObjectType type, HMM_Vec3 position) {
   switch (type) {
-    case BLB_TEST_OBJECT_CUBE:
-      return BLB_CreateCube3D(HMM_V3(2.4f, 2.4f, 2.4f), position, NULL);
-    case BLB_TEST_OBJECT_SPHERE:
-      return BLB_CreateSphere3D(HMM_V3(2.4f, 2.4f, 2.4f), position, 5, NULL);
-    case BLB_TEST_OBJECT_TORUS:
-      return BLB_CreateTorus3D(HMM_V3(1.6f, 1.6f, 1.6f), position, 5, 0.0f, 0.0f, NULL);
-    default:
-      return NULL;
+  case BLB_TEST_OBJECT_CUBE:
+    return BLB_CreateCube3D(HMM_V3(2.4f, 2.4f, 2.4f), position, NULL);
+  case BLB_TEST_OBJECT_SPHERE:
+    return BLB_CreateSphere3D(HMM_V3(2.4f, 2.4f, 2.4f), position, 5, NULL);
+  case BLB_TEST_OBJECT_TORUS:
+    return BLB_CreateTorus3D(HMM_V3(1.6f, 1.6f, 1.6f), position, 5, 0.0f, 0.0f, NULL);
+  case BLB_TEST_OBJECT_TEAPOT:
+    return BLB_LoadModelOBJ("assets/tests/models/teapot.obj", HMM_V3(0.6f, 0.6f, 0.6f), position, NULL);
+  default:
+    return NULL;
   }
 }
 
@@ -19,29 +22,34 @@ static void destroy_object(BLB_TestObjectType type, BLB_Object3D *object) {
     return;
 
   switch (type) {
-    case BLB_TEST_OBJECT_CUBE:
-      BLB_DestroyCube3D(object);
-      break;
-    case BLB_TEST_OBJECT_SPHERE:
-      BLB_DestroySphere3D(object);
-      break;
-    case BLB_TEST_OBJECT_TORUS:
-      BLB_DestroyTorus3D(object);
-      break;
-    default:
-      break;
+  case BLB_TEST_OBJECT_CUBE:
+    BLB_DestroyCube3D(object);
+    break;
+  case BLB_TEST_OBJECT_SPHERE:
+    BLB_DestroySphere3D(object);
+    break;
+  case BLB_TEST_OBJECT_TORUS:
+    BLB_DestroyTorus3D(object);
+    break;
+  case BLB_TEST_OBJECT_TEAPOT:
+    BLB_DestroyModelOBJ(object);
+    break;
+  default:
+    break;
   }
 }
 
 static float object_radius(BLB_TestObjectType type) {
   switch (type) {
-    case BLB_TEST_OBJECT_TORUS:
-      return 1.2f;
-    case BLB_TEST_OBJECT_CUBE:
-    case BLB_TEST_OBJECT_SPHERE:
-      return 1.2f;
-    default:
-      return 1.2f;
+  case BLB_TEST_OBJECT_TEAPOT:
+    return 1.125f;
+  case BLB_TEST_OBJECT_TORUS:
+    return 1.2f;
+  case BLB_TEST_OBJECT_CUBE:
+  case BLB_TEST_OBJECT_SPHERE:
+    return 1.2f;
+  default:
+    return 1.2f;
   }
 }
 
@@ -75,7 +83,7 @@ int BLB_TestObjectCount(size_t count, BLB_TestObjectType type) {
   if (count == 0)
     return -1;
 
-  if (type != BLB_TEST_OBJECT_CUBE && type != BLB_TEST_OBJECT_SPHERE && type != BLB_TEST_OBJECT_TORUS)
+  if (type != BLB_TEST_OBJECT_CUBE && type != BLB_TEST_OBJECT_SPHERE && type != BLB_TEST_OBJECT_TORUS && type != BLB_TEST_OBJECT_TEAPOT)
     return -1;
 
   BLB_TestContext app;
@@ -85,12 +93,14 @@ int BLB_TestObjectCount(size_t count, BLB_TestObjectType type) {
   size_t columns = (size_t)ceil(sqrt((double)count * (1200.0 / 900.0)));
   if (columns < 1)
     columns = 1;
+
   size_t rows = (count + columns - 1) / columns;
   float spacing = 3.0f;
   float radius = object_radius(type);
 
   BLB_TestContext_AddLight(&app, BLB_LIGHT_POINT, HMM_V3(0.0f, 16.0f, 18.0f), HMM_V3(0.0f, 0.0f, 0.0f), 20.0f, 0.05f, 1.0f,
                            fmaxf(80.0f, (float)count * 0.12f));
+
   BLB_TestContext_AddLight(&app, BLB_LIGHT_POINT, HMM_V3(-18.0f, -8.0f, 10.0f), HMM_V3(0.0f, 0.0f, 0.0f), 9.0f, 0.025f, 0.6f,
                            fmaxf(80.0f, (float)count * 0.12f));
 
@@ -112,6 +122,7 @@ int BLB_TestObjectCount(size_t count, BLB_TestObjectType type) {
   }
 
   int error = 0;
+
   for (size_t i = 0; i < count; ++i) {
     size_t row = i / columns;
     size_t column = i % columns;
@@ -120,13 +131,16 @@ int BLB_TestObjectCount(size_t count, BLB_TestObjectType type) {
     float y = ((float)(rows - 1) * 0.5f - (float)row) * spacing;
 
     objects[i] = create_object(type, HMM_V3(x, y, 0.0f));
+
     if (!objects[i]) {
       error = 1;
       break;
     }
 
     BLB_Object3D_SetMaterial(objects[i], shared_material);
+
     objects[i]->rotation = HMM_V3((float)((i * 7) % 360), (float)((i * 17) % 360), (float)((i * 5) % 90));
+
     objects[i]->layer = 1;
 
     if (BLB_AddObject3D(app.scene, objects[i]) != 0) {
@@ -140,6 +154,7 @@ int BLB_TestObjectCount(size_t count, BLB_TestObjectType type) {
   if (error) {
     for (size_t i = 0; i < count; ++i)
       destroy_object(type, objects[i]);
+
     free(objects);
     BLB_TestContext_Shutdown(&app);
     return -1;
@@ -150,8 +165,10 @@ int BLB_TestObjectCount(size_t count, BLB_TestObjectType type) {
   while (!BLB_WindowShouldClose(app.window)) {
     float dt = 0.0f;
     int frame = BLB_TestContext_BeginFrame(&app, &dt);
+
     if (frame < 0)
       break;
+
     if (frame > 0)
       continue;
 
@@ -163,7 +180,9 @@ int BLB_TestObjectCount(size_t count, BLB_TestObjectType type) {
 
   for (size_t i = 0; i < count; ++i)
     destroy_object(type, objects[i]);
+
   free(objects);
   BLB_TestContext_Shutdown(&app);
+
   return 0;
 }

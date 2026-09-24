@@ -14,6 +14,8 @@
 #include "bulba/core/objects3d/sphere.h"
 #include "bulba/core/objects3d/torus.h"
 #include "bulba/core/physics.h"
+#include "bulba/core/physics2d.h"
+#include "bulba/core/physics3d.h"
 #include "bulba/core/platform.h"
 #include "bulba/core/render.h"
 #include "bulba/core/render/material.h"

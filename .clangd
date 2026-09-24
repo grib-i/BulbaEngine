@@ -5,3 +5,5 @@ CompileFlags:
     - -I/home/grib/projects/BulbaEngine/engine/build/debug/generated/textures
     - -I/home/grib/projects/BulbaEngine/engine/src
     - -I/home/grib/projects/BulbaEngine/engine/tests
+    - -I/home/grib/projects/BulbaEngine/engine/build/debug/_deps/box2d-src/include
+    - -I/home/grib/projects/BulbaEngine/engine/build/debug/_deps/box3d-src/include

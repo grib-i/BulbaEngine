@@ -7,7 +7,8 @@
 #include "bulba/core/objects2d/objects2d.h"
 #include "bulba/core/objects2d/text2d.h"
 #include "bulba/core/objects3d/objects3d.h"
-#include "bulba/core/physics.h"
+#include "bulba/core/physics2d.h"
+#include "bulba/core/physics3d.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -30,7 +31,9 @@ typedef struct BLB_Scene {
 
   BLB_EntityId next_entity_id;
 
-  BLB_PhysicsWorld *physics_world;
+  BLB_Physics2DWorld *physics_world2d;
+  BLB_Physics3DWorld *physics_world3d;
+
   BLB_Camera *camera;
 
   BLB_Object3D **objects3d;

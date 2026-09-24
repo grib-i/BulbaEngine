@@ -5,9 +5,9 @@
 #include <debug.h>
 
 #include <math.h>
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define BLB_TEST_MAX_LIGHTS 8
@@ -83,12 +83,12 @@ static inline int BLB_TestContext_Init(BLB_TestContext *ctx, int width, int heig
     BLB_AddText2D(ctx->scene, ctx->fps_text);
   }
 
-  BLB_InitFPS(&ctx->fps, &ctx->vk, 0, false);
+  BLB_InitFPS(&ctx->fps, &ctx->vk, 0, true);
   return 0;
 }
 
-static inline BLB_Light3D *BLB_TestContext_AddLight(BLB_TestContext *ctx, BLB_LightType type, HMM_Vec3 position, HMM_Vec3 rotation,
-                                                     float intensity, float ambient, float specular, float range) {
+static inline BLB_Light3D *BLB_TestContext_AddLight(BLB_TestContext *ctx, BLB_LightType type, HMM_Vec3 position, HMM_Vec3 rotation, float intensity,
+                                                    float ambient, float specular, float range) {
   if (!ctx || !ctx->scene || ctx->light_count >= BLB_TEST_MAX_LIGHTS)
     return NULL;
 

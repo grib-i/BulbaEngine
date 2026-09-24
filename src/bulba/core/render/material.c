@@ -18,16 +18,19 @@ static size_t material_cache_count = 0;
 static size_t material_cache_capacity = 0;
 
 static char *material_strdup(const char *text) {
-  if (!text) return NULL;
+  if (!text)
+    return NULL;
   size_t n = strlen(text) + 1u;
   char *copy = malloc(n);
-  if (!copy) return NULL;
+  if (!copy)
+    return NULL;
   memcpy(copy, text, n);
   return copy;
 }
 
 static BLB_Material *material_cache_find(const char *path) {
-  if (!path) return NULL;
+  if (!path)
+    return NULL;
   for (size_t i = 0; i < material_cache_count; ++i) {
     if (material_cache[i].material && strcmp(material_cache[i].path, path) == 0)
       return material_cache[i].material;
@@ -36,23 +39,28 @@ static BLB_Material *material_cache_find(const char *path) {
 }
 
 static void material_cache_insert(BLB_Material *material, const char *path) {
-  if (!material || !path) return;
+  if (!material || !path)
+    return;
   if (material_cache_count == material_cache_capacity) {
     size_t new_capacity = material_cache_capacity ? material_cache_capacity * 2u : 16u;
     BLB_MaterialCacheEntry *next = realloc(material_cache, new_capacity * sizeof(*next));
-    if (!next) return;
+    if (!next)
+      return;
     material_cache = next;
     material_cache_capacity = new_capacity;
   }
   char *copy = material_strdup(path);
-  if (!copy) return;
+  if (!copy)
+    return;
   material_cache[material_cache_count++] = (BLB_MaterialCacheEntry){.material = material, .path = copy};
 }
 
 static void material_cache_remove(BLB_Material *material) {
-  if (!material) return;
+  if (!material)
+    return;
   for (size_t i = 0; i < material_cache_count; ++i) {
-    if (material_cache[i].material != material) continue;
+    if (material_cache[i].material != material)
+      continue;
     free(material_cache[i].path);
     material_cache[i] = material_cache[material_cache_count - 1u];
     --material_cache_count;
@@ -623,7 +631,6 @@ bool BLB_MaterialTexture_Valid(const BLB_MaterialTexture *texture) { return text
 
 uint64_t BLB_Material_TextureStateRevision(void) { return texture_state_revision; }
 
-
 typedef enum {
   BLB_MAT_SEC_NONE = 0,
   BLB_MAT_SEC_RENDER,
@@ -729,7 +736,6 @@ static void parse_string_value(const char *text, char *out, size_t out_size) {
   out[out_size - 1] = '\0';
 }
 
-
 static BLB_RenderMode parse_render_mode(const char *text) {
   if (!text)
     return BLB_RENDER_OPAQUE;
@@ -752,9 +758,9 @@ static BLB_AlphaMode parse_alpha_mode(const char *text) {
 
 static int texture_slot_index(const char *name) {
   static const char *names[BLB_MATERIAL_TEXTURE_SLOT_COUNT] = {
-      "base_color", "metallic_roughness", "normal", "occlusion", "emission", "specular", "specular_color", "clearcoat",
-      "clearcoat_roughness", "clearcoat_normal", "transmission", "thickness", "sheen_color", "sheen_roughness", "iridescence",
-      "iridescence_thickness", "anisotropy"};
+      "base_color",  "metallic_roughness",    "normal",           "occlusion",    "emission",  "specular",    "specular_color",
+      "clearcoat",   "clearcoat_roughness",   "clearcoat_normal", "transmission", "thickness", "sheen_color", "sheen_roughness",
+      "iridescence", "iridescence_thickness", "anisotropy"};
 
   for (int i = 0; i < BLB_MATERIAL_TEXTURE_SLOT_COUNT; ++i)
     if (strcmp(name, names[i]) == 0)
@@ -765,12 +771,23 @@ static int texture_slot_index(const char *name) {
 static BLB_MaterialTexture *material_texture_slot(BLB_Material *material, int index) {
   if (!material || index < 0 || index >= BLB_MATERIAL_TEXTURE_SLOT_COUNT)
     return NULL;
-  BLB_MaterialTexture *slots[] = {
-      &material->base_color_texture, &material->metallic_roughness_texture, &material->normal_texture, &material->occlusion_texture,
-      &material->emission_texture, &material->specular_texture, &material->specular_color_texture, &material->clearcoat_texture,
-      &material->clearcoat_roughness_texture, &material->clearcoat_normal_texture, &material->transmission_texture, &material->thickness_texture,
-      &material->sheen_color_texture, &material->sheen_roughness_texture, &material->iridescence_texture, &material->iridescence_thickness_texture,
-      &material->anisotropy_texture};
+  BLB_MaterialTexture *slots[] = {&material->base_color_texture,
+                                  &material->metallic_roughness_texture,
+                                  &material->normal_texture,
+                                  &material->occlusion_texture,
+                                  &material->emission_texture,
+                                  &material->specular_texture,
+                                  &material->specular_color_texture,
+                                  &material->clearcoat_texture,
+                                  &material->clearcoat_roughness_texture,
+                                  &material->clearcoat_normal_texture,
+                                  &material->transmission_texture,
+                                  &material->thickness_texture,
+                                  &material->sheen_color_texture,
+                                  &material->sheen_roughness_texture,
+                                  &material->iridescence_texture,
+                                  &material->iridescence_thickness_texture,
+                                  &material->anisotropy_texture};
   return slots[index];
 }
 
@@ -906,19 +923,33 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
         texture_slot = texture_slot_index(name);
         continue;
       }
-      if (strcmp(name, "render") == 0) section = BLB_MAT_SEC_RENDER;
-      else if (strcmp(name, "base") == 0) section = BLB_MAT_SEC_BASE;
-      else if (strcmp(name, "emission") == 0) section = BLB_MAT_SEC_EMISSION;
-      else if (strcmp(name, "specular") == 0) section = BLB_MAT_SEC_SPECULAR;
-      else if (strcmp(name, "transmission") == 0) section = BLB_MAT_SEC_TRANSMISSION;
-      else if (strcmp(name, "volume") == 0) section = BLB_MAT_SEC_VOLUME;
-      else if (strcmp(name, "clearcoat") == 0) section = BLB_MAT_SEC_CLEARCOAT;
-      else if (strcmp(name, "sheen") == 0) section = BLB_MAT_SEC_SHEEN;
-      else if (strcmp(name, "iridescence") == 0) section = BLB_MAT_SEC_IRIDESCENCE;
-      else if (strcmp(name, "anisotropy") == 0) section = BLB_MAT_SEC_ANISOTROPY;
-      else if (strcmp(name, "glow") == 0) section = BLB_MAT_SEC_GLOW;
-      else if (strcmp(name, "textures") == 0) { section = BLB_MAT_SEC_TEXTURES; texture_slot = -1; }
-      else if (strcmp(name, "shader") == 0) section = BLB_MAT_SEC_SHADER;
+      if (strcmp(name, "render") == 0)
+        section = BLB_MAT_SEC_RENDER;
+      else if (strcmp(name, "base") == 0)
+        section = BLB_MAT_SEC_BASE;
+      else if (strcmp(name, "emission") == 0)
+        section = BLB_MAT_SEC_EMISSION;
+      else if (strcmp(name, "specular") == 0)
+        section = BLB_MAT_SEC_SPECULAR;
+      else if (strcmp(name, "transmission") == 0)
+        section = BLB_MAT_SEC_TRANSMISSION;
+      else if (strcmp(name, "volume") == 0)
+        section = BLB_MAT_SEC_VOLUME;
+      else if (strcmp(name, "clearcoat") == 0)
+        section = BLB_MAT_SEC_CLEARCOAT;
+      else if (strcmp(name, "sheen") == 0)
+        section = BLB_MAT_SEC_SHEEN;
+      else if (strcmp(name, "iridescence") == 0)
+        section = BLB_MAT_SEC_IRIDESCENCE;
+      else if (strcmp(name, "anisotropy") == 0)
+        section = BLB_MAT_SEC_ANISOTROPY;
+      else if (strcmp(name, "glow") == 0)
+        section = BLB_MAT_SEC_GLOW;
+      else if (strcmp(name, "textures") == 0) {
+        section = BLB_MAT_SEC_TEXTURES;
+        texture_slot = -1;
+      } else if (strcmp(name, "shader") == 0)
+        section = BLB_MAT_SEC_SHADER;
       continue;
     }
 
@@ -929,19 +960,33 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
         texture_slot = texture_slot_index(name);
         continue;
       }
-      if (strcmp(name, "render") == 0) section = BLB_MAT_SEC_RENDER;
-      else if (strcmp(name, "base") == 0) section = BLB_MAT_SEC_BASE;
-      else if (strcmp(name, "emission") == 0) section = BLB_MAT_SEC_EMISSION;
-      else if (strcmp(name, "specular") == 0) section = BLB_MAT_SEC_SPECULAR;
-      else if (strcmp(name, "transmission") == 0) section = BLB_MAT_SEC_TRANSMISSION;
-      else if (strcmp(name, "volume") == 0) section = BLB_MAT_SEC_VOLUME;
-      else if (strcmp(name, "clearcoat") == 0) section = BLB_MAT_SEC_CLEARCOAT;
-      else if (strcmp(name, "sheen") == 0) section = BLB_MAT_SEC_SHEEN;
-      else if (strcmp(name, "iridescence") == 0) section = BLB_MAT_SEC_IRIDESCENCE;
-      else if (strcmp(name, "anisotropy") == 0) section = BLB_MAT_SEC_ANISOTROPY;
-      else if (strcmp(name, "glow") == 0) section = BLB_MAT_SEC_GLOW;
-      else if (strcmp(name, "textures") == 0) { section = BLB_MAT_SEC_TEXTURES; texture_slot = -1; }
-      else if (strcmp(name, "shader") == 0) section = BLB_MAT_SEC_SHADER;
+      if (strcmp(name, "render") == 0)
+        section = BLB_MAT_SEC_RENDER;
+      else if (strcmp(name, "base") == 0)
+        section = BLB_MAT_SEC_BASE;
+      else if (strcmp(name, "emission") == 0)
+        section = BLB_MAT_SEC_EMISSION;
+      else if (strcmp(name, "specular") == 0)
+        section = BLB_MAT_SEC_SPECULAR;
+      else if (strcmp(name, "transmission") == 0)
+        section = BLB_MAT_SEC_TRANSMISSION;
+      else if (strcmp(name, "volume") == 0)
+        section = BLB_MAT_SEC_VOLUME;
+      else if (strcmp(name, "clearcoat") == 0)
+        section = BLB_MAT_SEC_CLEARCOAT;
+      else if (strcmp(name, "sheen") == 0)
+        section = BLB_MAT_SEC_SHEEN;
+      else if (strcmp(name, "iridescence") == 0)
+        section = BLB_MAT_SEC_IRIDESCENCE;
+      else if (strcmp(name, "anisotropy") == 0)
+        section = BLB_MAT_SEC_ANISOTROPY;
+      else if (strcmp(name, "glow") == 0)
+        section = BLB_MAT_SEC_GLOW;
+      else if (strcmp(name, "textures") == 0) {
+        section = BLB_MAT_SEC_TEXTURES;
+        texture_slot = -1;
+      } else if (strcmp(name, "shader") == 0)
+        section = BLB_MAT_SEC_SHADER;
       continue;
     }
 
@@ -987,13 +1032,17 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
       } else if (strcmp(clean_key, "rotation") == 0) {
         slot->rotation = parse_float_value(value, 0.0f);
       } else if (strcmp(clean_key, "wrap_u") == 0) {
-        char token[64]; sscanf(value, "%63s", token);
+        char token[64];
+        sscanf(value, "%63s", token);
         slot->wrap_u = strcmp(token, "clamp") == 0 || strcmp(token, "clamp_to_edge") == 0 ? BLB_TEXTURE_WRAP_CLAMP_TO_EDGE
-                      : strcmp(token, "mirrored_repeat") == 0 ? BLB_TEXTURE_WRAP_MIRRORED_REPEAT : BLB_TEXTURE_WRAP_REPEAT;
+                       : strcmp(token, "mirrored_repeat") == 0                            ? BLB_TEXTURE_WRAP_MIRRORED_REPEAT
+                                                                                          : BLB_TEXTURE_WRAP_REPEAT;
       } else if (strcmp(clean_key, "wrap_v") == 0) {
-        char token[64]; sscanf(value, "%63s", token);
+        char token[64];
+        sscanf(value, "%63s", token);
         slot->wrap_v = strcmp(token, "clamp") == 0 || strcmp(token, "clamp_to_edge") == 0 ? BLB_TEXTURE_WRAP_CLAMP_TO_EDGE
-                      : strcmp(token, "mirrored_repeat") == 0 ? BLB_TEXTURE_WRAP_MIRRORED_REPEAT : BLB_TEXTURE_WRAP_REPEAT;
+                       : strcmp(token, "mirrored_repeat") == 0                            ? BLB_TEXTURE_WRAP_MIRRORED_REPEAT
+                                                                                          : BLB_TEXTURE_WRAP_REPEAT;
       } else if (strcmp(clean_key, "min_filter") == 0) {
         slot->min_filter = strstr(value, "nearest") ? BLB_TEXTURE_FILTER_NEAREST : BLB_TEXTURE_FILTER_LINEAR;
       } else if (strcmp(clean_key, "mag_filter") == 0) {
@@ -1004,86 +1053,129 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
     }
 
     if (section == BLB_MAT_SEC_RENDER) {
-      if (strcmp(clean_key, "mode") == 0) material->render_mode = parse_render_mode(value);
-      else if (strcmp(clean_key, "alpha_mode") == 0) material->alpha_mode = parse_alpha_mode(value);
-      else if (strcmp(clean_key, "alpha_cutoff") == 0) material->alpha_cutoff = clamp01(parse_float_value(value, material->alpha_cutoff));
-      else if (strcmp(clean_key, "lighting") == 0) material->lighting_enabled = parse_bool_value(value, material->lighting_enabled);
-      else if (strcmp(clean_key, "depth_test") == 0) material->depth_enabled = parse_bool_value(value, material->depth_enabled);
-      else if (strcmp(clean_key, "depth_write") == 0) material->depth_write = parse_bool_value(value, material->depth_write);
-      else if (strcmp(clean_key, "double_sided") == 0) material->double_sided = parse_bool_value(value, material->double_sided);
-      else if (strcmp(clean_key, "unlit") == 0) material->unlit = parse_bool_value(value, material->unlit);
+      if (strcmp(clean_key, "mode") == 0)
+        material->render_mode = parse_render_mode(value);
+      else if (strcmp(clean_key, "alpha_mode") == 0)
+        material->alpha_mode = parse_alpha_mode(value);
+      else if (strcmp(clean_key, "alpha_cutoff") == 0)
+        material->alpha_cutoff = clamp01(parse_float_value(value, material->alpha_cutoff));
+      else if (strcmp(clean_key, "lighting") == 0)
+        material->lighting_enabled = parse_bool_value(value, material->lighting_enabled);
+      else if (strcmp(clean_key, "depth_test") == 0)
+        material->depth_enabled = parse_bool_value(value, material->depth_enabled);
+      else if (strcmp(clean_key, "depth_write") == 0)
+        material->depth_write = parse_bool_value(value, material->depth_write);
+      else if (strcmp(clean_key, "double_sided") == 0)
+        material->double_sided = parse_bool_value(value, material->double_sided);
+      else if (strcmp(clean_key, "unlit") == 0)
+        material->unlit = parse_bool_value(value, material->unlit);
       material_touch(material);
       continue;
     }
 
     if (section == BLB_MAT_SEC_BASE) {
-      if (strcmp(clean_key, "color") == 0) parse_float_list(value, material->base_color, 4);
-      else if (strcmp(clean_key, "metallic") == 0) material->metallic = clamp01(parse_float_value(value, material->metallic));
-      else if (strcmp(clean_key, "roughness") == 0) material->roughness = clamp01(parse_float_value(value, material->roughness));
-      else if (strcmp(clean_key, "normal_scale") == 0) material->normal_scale = non_negative(parse_float_value(value, material->normal_scale));
-      else if (strcmp(clean_key, "occlusion_strength") == 0) material->occlusion_strength = clamp01(parse_float_value(value, material->occlusion_strength));
+      if (strcmp(clean_key, "color") == 0)
+        parse_float_list(value, material->base_color, 4);
+      else if (strcmp(clean_key, "metallic") == 0)
+        material->metallic = clamp01(parse_float_value(value, material->metallic));
+      else if (strcmp(clean_key, "roughness") == 0)
+        material->roughness = clamp01(parse_float_value(value, material->roughness));
+      else if (strcmp(clean_key, "normal_scale") == 0)
+        material->normal_scale = non_negative(parse_float_value(value, material->normal_scale));
+      else if (strcmp(clean_key, "occlusion_strength") == 0)
+        material->occlusion_strength = clamp01(parse_float_value(value, material->occlusion_strength));
       material_touch(material);
       continue;
     }
 
     if (section == BLB_MAT_SEC_EMISSION) {
-      if (strcmp(clean_key, "color") == 0) parse_float_list(value, material->emission_color, 4);
-      else if (strcmp(clean_key, "strength") == 0) material->emission_strength = non_negative(parse_float_value(value, material->emission_strength));
+      if (strcmp(clean_key, "color") == 0)
+        parse_float_list(value, material->emission_color, 4);
+      else if (strcmp(clean_key, "strength") == 0)
+        material->emission_strength = non_negative(parse_float_value(value, material->emission_strength));
       material_touch(material);
       continue;
     }
 
     if (section == BLB_MAT_SEC_SPECULAR) {
-      if (strcmp(clean_key, "factor") == 0) material->specular_factor = clamp01(parse_float_value(value, material->specular_factor));
-      else if (strcmp(clean_key, "color") == 0) parse_float_list(value, material->specular_color, 3);
+      if (strcmp(clean_key, "factor") == 0)
+        material->specular_factor = clamp01(parse_float_value(value, material->specular_factor));
+      else if (strcmp(clean_key, "color") == 0)
+        parse_float_list(value, material->specular_color, 3);
       material_touch(material);
       continue;
     }
 
     if (section == BLB_MAT_SEC_TRANSMISSION) {
-      if (strcmp(clean_key, "factor") == 0) material->transmission = clamp01(parse_float_value(value, material->transmission));
-      material_touch(material); continue;
+      if (strcmp(clean_key, "factor") == 0)
+        material->transmission = clamp01(parse_float_value(value, material->transmission));
+      material_touch(material);
+      continue;
     }
 
     if (section == BLB_MAT_SEC_VOLUME) {
-      if (strcmp(clean_key, "thickness") == 0) material->volume_thickness = non_negative(parse_float_value(value, material->volume_thickness));
-      else if (strcmp(clean_key, "attenuation_distance") == 0) material->attenuation_distance = parse_float_value(value, material->attenuation_distance);
-      else if (strcmp(clean_key, "attenuation_color") == 0) parse_float_list(value, material->attenuation_color, 3);
-      material_touch(material); continue;
+      if (strcmp(clean_key, "thickness") == 0)
+        material->volume_thickness = non_negative(parse_float_value(value, material->volume_thickness));
+      else if (strcmp(clean_key, "attenuation_distance") == 0)
+        material->attenuation_distance = parse_float_value(value, material->attenuation_distance);
+      else if (strcmp(clean_key, "attenuation_color") == 0)
+        parse_float_list(value, material->attenuation_color, 3);
+      material_touch(material);
+      continue;
     }
 
     if (section == BLB_MAT_SEC_CLEARCOAT) {
-      if (strcmp(clean_key, "factor") == 0) material->clearcoat_factor = clamp01(parse_float_value(value, material->clearcoat_factor));
-      else if (strcmp(clean_key, "roughness") == 0) material->clearcoat_roughness = clamp01(parse_float_value(value, material->clearcoat_roughness));
-      else if (strcmp(clean_key, "normal_scale") == 0) material->clearcoat_normal_scale = non_negative(parse_float_value(value, material->clearcoat_normal_scale));
-      material_touch(material); continue;
+      if (strcmp(clean_key, "factor") == 0)
+        material->clearcoat_factor = clamp01(parse_float_value(value, material->clearcoat_factor));
+      else if (strcmp(clean_key, "roughness") == 0)
+        material->clearcoat_roughness = clamp01(parse_float_value(value, material->clearcoat_roughness));
+      else if (strcmp(clean_key, "normal_scale") == 0)
+        material->clearcoat_normal_scale = non_negative(parse_float_value(value, material->clearcoat_normal_scale));
+      material_touch(material);
+      continue;
     }
 
     if (section == BLB_MAT_SEC_SHEEN) {
-      if (strcmp(clean_key, "color") == 0) parse_float_list(value, material->sheen_color, 3);
-      else if (strcmp(clean_key, "roughness") == 0) material->sheen_roughness = clamp01(parse_float_value(value, material->sheen_roughness));
-      material_touch(material); continue;
+      if (strcmp(clean_key, "color") == 0)
+        parse_float_list(value, material->sheen_color, 3);
+      else if (strcmp(clean_key, "roughness") == 0)
+        material->sheen_roughness = clamp01(parse_float_value(value, material->sheen_roughness));
+      material_touch(material);
+      continue;
     }
 
     if (section == BLB_MAT_SEC_IRIDESCENCE) {
-      if (strcmp(clean_key, "factor") == 0) material->iridescence_factor = clamp01(parse_float_value(value, material->iridescence_factor));
-      else if (strcmp(clean_key, "ior") == 0) material->iridescence_ior = fmaxf(1.0f, parse_float_value(value, material->iridescence_ior));
-      else if (strcmp(clean_key, "thickness_min") == 0) material->iridescence_thickness_min = non_negative(parse_float_value(value, material->iridescence_thickness_min));
-      else if (strcmp(clean_key, "thickness_max") == 0) material->iridescence_thickness_max = fmaxf(material->iridescence_thickness_min, parse_float_value(value, material->iridescence_thickness_max));
-      material_touch(material); continue;
+      if (strcmp(clean_key, "factor") == 0)
+        material->iridescence_factor = clamp01(parse_float_value(value, material->iridescence_factor));
+      else if (strcmp(clean_key, "ior") == 0)
+        material->iridescence_ior = fmaxf(1.0f, parse_float_value(value, material->iridescence_ior));
+      else if (strcmp(clean_key, "thickness_min") == 0)
+        material->iridescence_thickness_min = non_negative(parse_float_value(value, material->iridescence_thickness_min));
+      else if (strcmp(clean_key, "thickness_max") == 0)
+        material->iridescence_thickness_max =
+            fmaxf(material->iridescence_thickness_min, parse_float_value(value, material->iridescence_thickness_max));
+      material_touch(material);
+      continue;
     }
 
     if (section == BLB_MAT_SEC_ANISOTROPY) {
-      if (strcmp(clean_key, "strength") == 0) material->anisotropy_strength = clamp01(parse_float_value(value, material->anisotropy_strength));
-      else if (strcmp(clean_key, "rotation") == 0) material->anisotropy_rotation = parse_float_value(value, material->anisotropy_rotation);
-      material_touch(material); continue;
+      if (strcmp(clean_key, "strength") == 0)
+        material->anisotropy_strength = clamp01(parse_float_value(value, material->anisotropy_strength));
+      else if (strcmp(clean_key, "rotation") == 0)
+        material->anisotropy_rotation = parse_float_value(value, material->anisotropy_rotation);
+      material_touch(material);
+      continue;
     }
 
     if (section == BLB_MAT_SEC_GLOW) {
-      if (strcmp(clean_key, "strength") == 0) material->glow_strength = non_negative(parse_float_value(value, material->glow_strength));
-      else if (strcmp(clean_key, "radius") == 0) material->glow_radius = non_negative(parse_float_value(value, material->glow_radius));
-      else if (strcmp(clean_key, "falloff") == 0) material->glow_falloff = fmaxf(0.2f, parse_float_value(value, material->glow_falloff));
-      material_touch(material); continue;
+      if (strcmp(clean_key, "strength") == 0)
+        material->glow_strength = non_negative(parse_float_value(value, material->glow_strength));
+      else if (strcmp(clean_key, "radius") == 0)
+        material->glow_radius = non_negative(parse_float_value(value, material->glow_radius));
+      else if (strcmp(clean_key, "falloff") == 0)
+        material->glow_falloff = fmaxf(0.2f, parse_float_value(value, material->glow_falloff));
+      material_touch(material);
+      continue;
     }
 
     if (section == BLB_MAT_SEC_SHADER) {
