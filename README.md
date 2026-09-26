@@ -268,7 +268,9 @@ Stable releases are merged into `main`.
 
 Contributions, experiments and ideas are welcome.
 
-See the project documentation for development guidelines.
+See the project documentation for development guideline.
+
+Fari4 was here
 
 ---
 
