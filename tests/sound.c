@@ -1,3 +1,5 @@
+#include "bulba/core/camera.h"
+#include "bulba/core/objects3d/audio3d.h"
 #include "test_common.h"
 #include "tests.h"
 
@@ -17,7 +19,7 @@ int BLB_TestSound(void) {
     return -1;
   }
 
-  BLB_Audio3D *audio3d = BLB_LoadAudio3D(io_audio, "assets/tests/sounds/kosmosu-zemlya.mp3", true, true, true, HMM_V3(0.0f, 0.0f, 6.0f));
+  BLB_Audio3D *audio3d = BLB_LoadAudio3D(io_audio, "assets/tests/sounds/blackpensil.mp3", true, true, true, HMM_V3(0.0f, 0.0f, -300.0f));
 
   app.lights[0]->enabled = false;
   if (!audio3d) {
@@ -30,6 +32,7 @@ int BLB_TestSound(void) {
   // BLB_SetVolume_Audio3D(audio3d, 1.0f);
   // BLB_SetPitch_Audio3D(audio3d, 1.0f);
   // BLB_StopAudio3D(audio3d);
+  BLB_SetAudio3DSeek(audio3d, 30, 0);
 
   BLB_AddAudio3D(app.scene, audio3d);
 
@@ -48,7 +51,9 @@ int BLB_TestSound(void) {
     if (frame > 0)
       continue;
 
-    BLB_Camera_Rotate(app.camera, HMM_V3(2, 2, 2));
+    // BLB_Camera_Rotate(app.camera, HMM_V3(2, 2, 2));
+    if (app.camera->position.z > -290)
+      BLB_Camera_Move(app.camera, HMM_V3(0.0f, 0.0f, -40.0f));
 
     if (BLB_TestContext_Draw(&app) < 0)
       break;

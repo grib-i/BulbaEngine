@@ -1,5 +1,5 @@
 #include "bulba/core/camera.h"
-#include "bulba/core/objects3d/model_loader.h"
+#include "bulba/core/objects3d/model_loader_obj.h"
 #include "bulba/core/objects3d/objects3d.h"
 #include "test_common.h"
 #include "tests.h"
