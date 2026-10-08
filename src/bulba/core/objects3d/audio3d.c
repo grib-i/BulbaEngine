@@ -1,8 +1,8 @@
+#include "bulba/core/objects3d/audio3d.h"
 #include "bulba/core/objects3d/cube.h"
+#include "bulba/core/objects3d/objects3d.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/utils/config.h"
-#define MINIAUDIO_IMPLEMENTATION
-#include "bulba/core/objects3d/audio3d.h"
 
 #include "volume_off_256dp.h"
 #include "volume_up_256dp.h"
@@ -15,9 +15,6 @@ static ma_uint32 BLB_AudioFlags(const BLB_Audio3D *audio) {
 
   if (audio->stream)
     flags |= MA_SOUND_FLAG_STREAM;
-
-  if (audio->surround)
-    flags |= MA_SOUND_FLAG_NO_SPATIALIZATION;
 
   return flags;
 }
@@ -65,6 +62,13 @@ BLB_Audio3D *BLB_LoadAudio3D(BLB_IO_Audio *io_audio, const char *path, bool play
     free(audio);
     return NULL;
   }
+
+  audio->io_audio = malloc(sizeof(BLB_IO_Audio));
+  if (!io_audio) {
+    free(audio);
+    return NULL;
+  }
+  audio->io_audio = io_audio;
 
   audio->path = strdup(path);
   if (!audio->path) {
@@ -167,14 +171,13 @@ void BLB_SetVelocity_Audio3D(BLB_Audio3D *audio, HMM_Vec3 velocity) {
   ma_sound_set_velocity(audio->sound, velocity.x, velocity.y, velocity.z);
 }
 
-void BLB_SetOrientation_Audio3D(BLB_Audio3D *audio, HMM_Vec3 direction) {
+void BLB_SetRotation_Audio3D(BLB_Audio3D *audio, HMM_Vec3 rotation) {
   if (!audio)
     return;
 
-  ma_sound_set_direction(audio->sound, direction.x, direction.y, direction.z);
+  ma_sound_set_direction(audio->sound, rotation.x, rotation.y, rotation.z);
+  BLB_Object3D_Rotate(audio->obj, rotation);
 }
-
-void BLB_SetPositon_Audio3D(BLB_Audio3D *audio, HMM_Vec3 positon) { BLB_SetPosition_Audio3D(audio, positon); }
 
 void BLB_SetAttenuation_Audio3D(BLB_Audio3D *audio, float attenuation) {
   if (!audio)
@@ -200,4 +203,14 @@ void BLB_SetPitch_Audio3D(BLB_Audio3D *audio, float pitch) {
 
   audio->pitch = pitch;
   ma_sound_set_pitch(audio->sound, pitch);
+}
+
+void BLB_SetAudio3DSeek(BLB_Audio3D *audio, float seconds, int frame) {
+  if (!audio || (seconds == 0 && frame == 0) || (seconds != 0 && frame != 0))
+    return;
+
+  if (seconds != 0)
+    ma_sound_seek_to_second(audio->sound, seconds);
+  else if (frame != 0)
+    ma_sound_seek_to_pcm_frame(audio->sound, frame);
 }

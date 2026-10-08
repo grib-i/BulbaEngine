@@ -1,5 +1,8 @@
 #include "bulba/core/utils/audio.h"
 
+#define MINIAUDIO_IMPLEMENTATION
+#include "bulba/core/math3v/miniaudio.h"
+
 #include <stdlib.h>
 
 BLB_IO_Audio *BLB_InitAudio(void) {

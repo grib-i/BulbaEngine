@@ -2434,22 +2434,38 @@ static void audio2d_play(BLB_Audio2D *audio2d) {
     audio2d->play = true;
 }
 
-static void audio3d_surround_play(BLB_Audio3D *audio3d) {
+static void audio3d_surround_play(BLB_Audio3D *audio3d, BLB_Scene *scene) {
   if (!audio3d || !audio3d->sound)
     return;
 
-  *audio3d->result = ma_sound_start(audio3d->sound);
+  ma_engine *engine = &audio3d->io_audio->engine;
 
-  if (*audio3d->result == MA_SUCCESS)
-    audio3d->play = true;
+  ma_engine_listener_set_position(engine, 0, scene->camera->position.x, scene->camera->position.y, scene->camera->position.z);
+
+  float pitch = scene->camera->rotation.x;
+  float yaw = scene->camera->rotation.y;
+  HMM_Vec3 forward = HMM_V3(cosf(pitch) * sinf(yaw), sinf(pitch), -cosf(pitch) * cosf(yaw));
+  ma_engine_listener_set_direction(engine, 0, forward.x, forward.y, forward.z);
+
+  if (!ma_sound_is_playing(audio3d->sound)) {
+    *audio3d->result = ma_sound_start(audio3d->sound);
+
+    if (*audio3d->result == MA_SUCCESS)
+      audio3d->play = true;
+  }
 }
 
-static void audio2d_surround_play(BLB_Audio2D *audio2d) {
+static void audio2d_surround_play(BLB_Audio2D *audio2d, BLB_Scene *scene) {
   if (!audio2d || !audio2d->sound)
     return;
 
-  *audio2d->result = ma_sound_start(audio2d->sound);
+  ma_engine_listener_set_position(&audio2d->io_audio->engine, 0, scene->camera->position.x, scene->camera->position.y, scene->camera->position.z);
+  float pitch = scene->camera->rotation.x;
+  float yaw = scene->camera->rotation.y;
+  HMM_Vec3 forward = HMM_V3(cosf(pitch) * sinf(yaw), sinf(pitch), -cosf(pitch) * cosf(yaw));
+  ma_engine_listener_set_direction(&audio2d->io_audio->engine, 0, forward.x, forward.y, forward.z);
 
+  *audio2d->result = ma_sound_start(audio2d->sound);
   if (*audio2d->result == MA_SUCCESS)
     audio2d->play = true;
 }
@@ -3161,15 +3177,16 @@ static void draw_render_objects(BLB_Scene *scene, BLB_Renderer *renderer, BLB_Re
                                   viewport_width, viewport_height)) {
 
         draw_object2d(scene->audio2d[indices[5]]->obj, renderer, scene->camera->camera_cache);
-        if (scene->audio2d[indices[5]]->play) {
-          if (scene->audio2d[indices[5]]->surround)
-            audio2d_surround_play(scene->audio2d[indices[5]]);
-          else
-            audio2d_play(scene->audio2d[indices[5]]);
-        } else {
-          BLB_Object2D_SetTexture(scene->audio2d[indices[5]]->obj, scene->audio2d[indices[5]]->audio_off_debug_texture);
-        }
       }
+      if (scene->audio2d[indices[5]]->play) {
+        if (scene->audio2d[indices[5]]->surround)
+          audio2d_surround_play(scene->audio2d[indices[5]], scene);
+        else
+          audio2d_play(scene->audio2d[indices[5]]);
+      } else {
+        BLB_Object2D_SetTexture(scene->audio2d[indices[5]]->obj, scene->audio2d[indices[5]]->audio_off_debug_texture);
+      }
+
       break;
 
     case 6:
@@ -3177,17 +3194,18 @@ static void draw_render_objects(BLB_Scene *scene, BLB_Renderer *renderer, BLB_Re
           cached_object3d_visible(visibility_cache, scene->audio3d[indices[6]]->obj, scene->camera->camera_cache, scene->camera->position)) {
 
         draw_object3d(scene->audio3d[indices[6]]->obj, renderer, scene->camera->camera_cache, scene->camera->position);
-
-        if (scene->audio3d[indices[6]]->play) {
-          BLB_Object3D_SetTexture(scene->audio3d[indices[6]]->obj, scene->audio3d[indices[6]]->audio_debug_texture);
-          if (scene->audio3d[indices[6]]->surround)
-            audio3d_surround_play(scene->audio3d[indices[6]]);
-          else
-            audio3d_play(scene->audio3d[indices[6]]);
-        } else {
-          BLB_Object3D_SetTexture(scene->audio3d[indices[6]]->obj, scene->audio3d[indices[6]]->audio_off_debug_texture);
-        }
       }
+
+      if (scene->audio3d[indices[6]]->play) {
+        BLB_Object3D_SetTexture(scene->audio3d[indices[6]]->obj, scene->audio3d[indices[6]]->audio_debug_texture);
+        if (scene->audio3d[indices[6]]->surround)
+          audio3d_surround_play(scene->audio3d[indices[6]], scene);
+        else
+          audio3d_play(scene->audio3d[indices[6]]);
+      } else {
+        BLB_Object3D_SetTexture(scene->audio3d[indices[6]]->obj, scene->audio3d[indices[6]]->audio_off_debug_texture);
+      }
+
       break;
     }
 

@@ -13,6 +13,8 @@ typedef struct {
   BLB_Texture *audio_debug_texture;
   BLB_Texture *audio_off_debug_texture;
 
+  BLB_IO_Audio *io_audio;
+
   ma_sound *sound;
   ma_result *result;
 
@@ -31,7 +33,7 @@ typedef struct {
 BLB_Audio2D *BLB_CreateAudio2D(BLB_IO_Audio *io_audio, bool loop, bool stream, float volume, float attenuation, float pitch, bool play,
                                bool surround);
 
-BLB_Audio2D *BLB_LoadAudio2D(BLB_IO_Audio *io_audio, const char *path, bool play, bool surround, bool loop, HMM_Vec3 position);
+BLB_Audio2D *BLB_LoadAudio2D(BLB_IO_Audio *io_audio, const char *path, bool play, bool surround, bool loop, HMM_Vec2 position);
 
 void BLB_DestroyAudio2D(BLB_IO_Audio *io_audio, BLB_Audio2D *audio);
 void BLB_ReleaseAudio2D(BLB_IO_Audio *io_audio, BLB_Audio2D *audio);
@@ -41,14 +43,16 @@ void BLB_SetVolume_Audio2D(BLB_Audio2D *audio, float volume);
 void BLB_PlayAudio_Audio2D(BLB_Audio2D *audio);
 void BLB_StopAudio_Audio2D(BLB_Audio2D *audio);
 
-void BLB_SetPosition_Audio2D(BLB_Audio2D *audio, HMM_Vec3 position);
-void BLB_SetVelocity_Audio2D(BLB_Audio2D *audio, HMM_Vec3 velocity);
-void BLB_SetOrientation_Audio2D(BLB_Audio2D *audio, HMM_Vec3 direction);
-
-void BLB_SetPositon_Audio2D(BLB_Audio2D *audio, HMM_Vec3 positon);
+void BLB_SetPosition_Audio2D(BLB_Audio2D *audio, HMM_Vec2 position);
+void BLB_SetVelocity_Audio2D(BLB_Audio2D *audio, HMM_Vec2 velocity);
+void BLB_SetRotation_Audio2D(BLB_Audio2D *audio, HMM_Vec2 rotation);
 
 void BLB_SetAttenuation_Audio2D(BLB_Audio2D *audio, float attenuation);
 void BLB_SetLoop_Audio2D(BLB_Audio2D *audio, bool loop);
 void BLB_SetPitch_Audio2D(BLB_Audio2D *audio, float pitch);
+
+void BLB_SetAudio2DSeek(BLB_Audio2D *audio, float seconds, int frame);
+
+void BLB_Audio2DSeek(BLB_Audio2D *audio, float seconds, int frame);
 
 #endif

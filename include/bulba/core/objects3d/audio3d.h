@@ -13,6 +13,8 @@ typedef struct {
   BLB_Texture *audio_debug_texture;
   BLB_Texture *audio_off_debug_texture;
 
+  BLB_IO_Audio *io_audio;
+
   ma_sound *sound;
   ma_result *result;
 
@@ -43,12 +45,14 @@ void BLB_StopAudio3D(BLB_Audio3D *audio);
 
 void BLB_SetPosition_Audio3D(BLB_Audio3D *audio, HMM_Vec3 position);
 void BLB_SetVelocity_Audio3D(BLB_Audio3D *audio, HMM_Vec3 velocity);
-void BLB_SetOrientation_Audio3D(BLB_Audio3D *audio, HMM_Vec3 direction);
-
-void BLB_SetPositon_Audio3D(BLB_Audio3D *audio, HMM_Vec3 positon);
+void BLB_SetRotation_Audio3D(BLB_Audio3D *audio, HMM_Vec3 rotation);
 
 void BLB_SetAttenuation_Audio3D(BLB_Audio3D *audio, float attenuation);
 void BLB_SetLoop_Audio3D(BLB_Audio3D *audio, bool loop);
 void BLB_SetPitch_Audio3D(BLB_Audio3D *audio, float pitch);
+
+void BLB_SetAudio3DSeek(BLB_Audio3D *audio, float seconds, int frame);
+
+void BLB_Audio3DSeek(BLB_Audio3D *audio, float seconds, int frame);
 
 #endif
