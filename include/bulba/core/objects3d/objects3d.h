@@ -18,6 +18,11 @@ typedef struct BLB_Collider BLB_Collider;
 typedef struct BLB_RenderObjects3DCluster BLB_RenderObjects3DCluster;
 typedef struct BLB_RenderInstances3DGroup BLB_RenderInstances3DGroup;
 
+typedef struct BLB_ObjectSubmesh {
+  BLB_Polygon3D *polygon;
+  BLB_Material *material;
+} BLB_ObjectSubmesh;
+
 typedef struct BLB_Object3D {
   BLB_EntityId entity_id;
   BLB_ComponentMask component_mask;
@@ -73,8 +78,15 @@ typedef struct BLB_Object3D {
   unsigned short layer;
 
   bool visible;
+  bool camera_attached;
 
   BLB_ObjectHandler *handler;
+
+  BLB_ObjectSubmesh *submeshes;
+  size_t submesh_count;
+  void *model_asset;
+  void *animation3d;
+  bool owns_model_geometry;
 } BLB_Object3D;
 
 void BLB_Object3D_Move(BLB_Object3D *object, HMM_Vec3 velocity);
@@ -91,8 +103,13 @@ void BLB_Object3D_SetScale(BLB_Object3D *object, HMM_Vec3 scale);
 
 void BLB_Object3D_Transform(BLB_Object3D *object, HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale);
 
+void BLB_Object3D_SetCameraAttached(BLB_Object3D *object, bool attached);
+bool BLB_Object3D_IsCameraAttached(const BLB_Object3D *object);
+
 int BLB_Object3D_SetTexture(BLB_Object3D *object, BLB_Texture *texture);
 void BLB_Object3D_SetMaterial(BLB_Object3D *object, BLB_Material *material);
+
+int BLB_Object3D_SetMaterialFromFile(BLB_Object3D *object, const char *path);
 
 void BLB_Object3D_FlipX(BLB_Object3D *object);
 void BLB_Object3D_FlipY(BLB_Object3D *object);

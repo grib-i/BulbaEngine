@@ -12,8 +12,15 @@
 #include "bulba/core/objects2d/objects2d.h"
 #include "bulba/core/objects2d/square.h"
 #include "bulba/core/objects2d/text2d.h"
+#include "bulba/core/objects3d/animation3d.h"
 #include "bulba/core/objects3d/audio3d.h"
 #include "bulba/core/objects3d/cube.h"
+
+#include "bulba/core/objects3d/model_loader_fbx.h"
+#include "bulba/core/objects3d/model_loader_glb.h"
+#include "bulba/core/objects3d/model_loader_gltf.h"
+#include "bulba/core/objects3d/model_loader_obj.h"
+
 #include "bulba/core/objects3d/objects3d.h"
 #include "bulba/core/objects3d/skybox.h"
 #include "bulba/core/objects3d/sphere.h"

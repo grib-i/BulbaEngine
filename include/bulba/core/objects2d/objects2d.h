@@ -82,6 +82,8 @@ void BLB_Object2D_Transform(BLB_Object2D *object, HMM_Vec2 position, float rotat
 int BLB_Object2D_SetTexture(BLB_Object2D *object, BLB_Texture *texture);
 void BLB_Object2D_SetMaterial(BLB_Object2D *object, BLB_Material *material);
 
+int BLB_Object2D_SetMaterialFromFile(BLB_Object2D *object, const char *path);
+
 void BLB_SetAnimation(BLB_Object2D *object, BLB_Texture **textures, float frame_time, size_t textures_count);
 
 void BLB_StartAnimation(BLB_Object2D *object);

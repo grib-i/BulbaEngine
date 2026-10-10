@@ -9,7 +9,7 @@
 #endif
 
 /*
- * Debug mode on viseble ligt and camera
+ * Debug mode on viseble ligt, camera and audio
  */
 bool BLB_DEBUG = false;
 
@@ -138,10 +138,14 @@ void BLB_InitConfig(void) {
   char root[BLB_PATH_MAX];
   char cache[BLB_PATH_MAX];
 
-  snprintf(local_dir, sizeof(local_dir), "%s/.local", home);
-  snprintf(share_dir, sizeof(share_dir), "%s/share", local_dir);
-  snprintf(root, sizeof(root), "%s/bulba", share_dir);
-  snprintf(cache, sizeof(cache), "%s/cache", root);
+  if (snprintf(local_dir, sizeof(local_dir), "%s/.local", home) >= (int)sizeof(local_dir))
+    return;
+  if (snprintf(share_dir, sizeof(share_dir), "%s/share", local_dir) >= (int)sizeof(share_dir))
+    return;
+  if (snprintf(root, sizeof(root), "%s/bulba", share_dir) >= (int)sizeof(root))
+    return;
+  if (snprintf(cache, sizeof(cache), "%s/cache", root) >= (int)sizeof(cache))
+    return;
 
   blb_make_directory(local_dir);
   blb_make_directory(share_dir);

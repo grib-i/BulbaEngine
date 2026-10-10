@@ -123,3 +123,35 @@ void BLB_Physics2DWorld_SetLayerCollision(BLB_Physics2DWorld *world, uint8_t lay
     b2Shape_SetFilter(collider->handle, blb_physics2d_make_filter(collider));
   }
 }
+
+void BLB_Physics2DWorld_SetDebugDraw(BLB_Physics2DWorld *world, bool enabled) {
+  if (world)
+    world->debug_draw_enabled = enabled;
+}
+
+bool BLB_Physics2DWorld_GetDebugDraw(const BLB_Physics2DWorld *world) { return world && world->debug_draw_enabled; }
+
+size_t BLB_Physics2DWorld_GetDebugColliderCount(const BLB_Physics2DWorld *world) {
+  const BLB_Box2DBackend *backend = blb_physics2d_get_backend_const(world);
+  return blb_physics2d_valid_world(world) && backend ? world->collider_count : 0;
+}
+
+bool BLB_Physics2DWorld_GetDebugCollider(const BLB_Physics2DWorld *world, size_t index, BLB_Physics2DDebugCollider *out_collider) {
+  const BLB_Box2DBackend *backend = blb_physics2d_get_backend_const(world);
+  if (!out_collider || !blb_physics2d_valid_world(world) || !backend || index >= world->collider_count || !backend->colliders)
+    return false;
+
+  const BLB_Collider2D *collider = backend->colliders[index];
+
+  if (!collider || !collider->body)
+    return false;
+
+  out_collider->shape = &collider->shape;
+  out_collider->position = BLB_Physics2D_BodyGetPosition(collider->body);
+  out_collider->rotation = BLB_Physics2D_BodyGetRotation(collider->body);
+  out_collider->active = collider->active && BLB_Physics2D_BodyIsActive(collider->body);
+  out_collider->trigger = collider->trigger;
+  return true;
+}
+
+const BLB_Physics2DShape *BLB_Physics2D_ColliderGetShape(const BLB_Collider2D *collider) { return collider ? &collider->shape : NULL; }

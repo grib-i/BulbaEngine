@@ -140,7 +140,9 @@ vec2 material_uv(uint slot) {
   if (authored_uv)
     return uv;
 
-  if (projection == 0u) {
+  if (projection == 5u) {
+    uv = in_uv;
+  } else if (projection == 0u) {
     vec3 extent =
       max(
         push_constants.uv_bounds_max.xyz -
@@ -437,6 +439,9 @@ vec2 cross_skybox_uv(
         );
     }
   }
+
+  if (face != 4u && face != 5u)
+    face_uv.y = 1.0 - face_uv.y;
 
   if (projection == 1u) {
     return vec2(
@@ -1263,7 +1268,7 @@ void main() {
           (2.0 * PI);
 
         float v =
-          0.5 +
+          0.5 -
           asin(
             clamp(
               direction.y,

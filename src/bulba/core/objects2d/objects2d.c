@@ -1,4 +1,5 @@
 #include "bulba/core/objects2d/objects2d.h"
+#include "bulba/core/render/material.h"
 
 #include <stdlib.h>
 
@@ -88,6 +89,25 @@ void BLB_Object2D_SetMaterial(BLB_Object2D *object, BLB_Material *material) {
   object->material = material;
 }
 
+int BLB_Object2D_SetMaterialFromFile(BLB_Object2D *object, const char *path) {
+  if (!object || !path || !path[0])
+    return -1;
+
+  BLB_Material *material = BLB_Material_Load(path, NULL, NULL, NULL, NULL);
+  if (!material)
+    return -1;
+
+  if (material->domain != BLB_MATERIAL_2D) {
+    BLB_Material_Release(material);
+    return -1;
+  }
+
+  BLB_Object2D_SetMaterial(object, material);
+  BLB_Material_Release(material);
+
+  return 0;
+}
+
 int BLB_Object2D_SetTexture(BLB_Object2D *object, BLB_Texture *texture) {
   if (!object)
     return -1;
@@ -121,7 +141,6 @@ void BLB_Object2D_FlipY(BLB_Object2D *object) {
 
   object->scale.y *= -1.0f;
 }
-
 
 void BLB_Object2D_SetHandler(BLB_Object2D *object, const BLB_ObjectHandler *handler) {
   if (!object)

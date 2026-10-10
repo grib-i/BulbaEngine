@@ -1,5 +1,5 @@
-#ifndef BLB_MODEL_LOADER_H
-#define BLB_MODEL_LOADER_H
+#ifndef BLB_MODEL_LOADER_OBJ_H
+#define BLB_MODEL_LOADER_OBJ_H
 
 #include "bulba/core/objects3d/objects3d.h"
 

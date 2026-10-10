@@ -235,8 +235,6 @@ Then link it with:
 target_link_libraries(MyGame PRIVATE BulbaEngine::BulbaEngine)
 ```
 
----
-
 ## 🛠️ CMake Dependencies
 
 BulbaEngine checks its required dependencies during configuration:

@@ -125,7 +125,10 @@ static int create_basic_pipeline(VULKAN *vulkan, const void *vertex_code, size_t
                                                    .rasterizerDiscardEnable = VK_FALSE,
                                                    .polygonMode = VK_POLYGON_MODE_FILL,
                                                    .cullMode = VK_CULL_MODE_NONE,
-                                                   .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+                                                   /* The main 3D camera projection flips NDC Y for Vulkan's
+                                                    * positive-height viewport. Keep gl_FrontFacing consistent
+                                                    * with the source winding after that projection flip. */
+                                                   .frontFace = is_2d ? VK_FRONT_FACE_COUNTER_CLOCKWISE : VK_FRONT_FACE_CLOCKWISE,
                                                    .depthBiasEnable = VK_FALSE,
                                                    .lineWidth = 1.0f};
 

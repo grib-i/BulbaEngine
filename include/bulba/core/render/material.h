@@ -1,8 +1,8 @@
 #ifndef BULBA_CORE_RENDER_MATERIAL_H
 #define BULBA_CORE_RENDER_MATERIAL_H
 
-#include "bulba/core/render_mode.h"
 #include "bulba/core/render/shader.h"
+#include "bulba/core/render_mode.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -21,11 +21,12 @@ typedef enum { BLB_TEXTURE_WRAP_REPEAT = 0, BLB_TEXTURE_WRAP_CLAMP_TO_EDGE = 1, 
 typedef enum { BLB_TEXTURE_FILTER_NEAREST = 0, BLB_TEXTURE_FILTER_LINEAR = 1 } BLB_TextureFilter;
 
 typedef enum {
-  BLB_TEXMAP_STRETCH = 0,          /* stretch over the object */
-  BLB_TEXMAP_CUBE_STRIP_H = 1,     /* cube faces in a horizontal strip */
-  BLB_TEXMAP_CUBE_STRIP_V = 2,     /* cube faces in a vertical strip */
-  BLB_TEXMAP_CUBE_CROSS = 3,       /* 4x3 cube cross */
-  BLB_TEXMAP_CUBE_CROSS_ROT = 4    /* rotated 3x4 cube cross */
+  BLB_TEXMAP_STRETCH = 0,        /* stretch over the object */
+  BLB_TEXMAP_CUBE_STRIP_H = 1,   /* cube faces in a horizontal strip */
+  BLB_TEXMAP_CUBE_STRIP_V = 2,   /* cube faces in a vertical strip */
+  BLB_TEXMAP_CUBE_CROSS = 3,     /* 4x3 cube cross */
+  BLB_TEXMAP_CUBE_CROSS_ROT = 4, /* rotated 3x4 cube cross */
+  BLB_TEXMAP_UV = 5
 } BLB_TextureProjection;
 
 typedef struct BLB_MaterialTexture {

@@ -4,11 +4,14 @@ if(NOT PROJECT_NAME)
   set(PROJECT_NAME "DEFAULT")
 endif()
 
-project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C)
+project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
 
@@ -47,7 +50,36 @@ find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(PNG REQUIRED)
+find_package(JPEG QUIET)
 find_package(Threads REQUIRED)
+find_package(assimp 5.4 CONFIG QUIET)
+
+if(NOT TARGET assimp::assimp AND NOT TARGET assimp)
+  set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+  set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+  set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+  set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+  set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+  set(ASSIMP_BUILD_ALL_EXPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+  set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)
+  set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "" FORCE)
+  set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)
+  FetchContent_Declare(
+    assimp
+    GIT_REPOSITORY https://github.com/assimp/assimp.git
+    GIT_TAG v5.4.3
+    GIT_SHALLOW TRUE
+  )
+  FetchContent_MakeAvailable(assimp)
+endif()
+
+if(TARGET assimp::assimp)
+  set(BLB_ASSIMP_TARGET assimp::assimp)
+elseif(TARGET assimp)
+  set(BLB_ASSIMP_TARGET assimp)
+else()
+  message(FATAL_ERROR "Assimp was not found or could not be built")
+endif()
 
 find_program(GLSLC glslc REQUIRED)
 
@@ -81,18 +113,32 @@ include(${CMAKE_SOURCE_DIR}/cmake/shaders.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/textures.cmake)
 
 target_link_libraries(
-  bulba_engine
-  PUBLIC
-  Vulkan::Vulkan
-  glfw
-  Freetype::Freetype
-  PNG::PNG
-  box2d::box2d
-  box3d::box3d
-  m
-  dl
-  Threads::Threads
+    bulba_engine
+    PUBLIC
+    Vulkan::Vulkan
+    glfw
+    Freetype::Freetype
+    PNG::PNG
+    ${BLB_ASSIMP_TARGET}
+    box2d::box2d
+    box3d::box3d
+    Threads::Threads
 )
+
+if(UNIX AND NOT APPLE)
+  target_link_libraries(
+        bulba_engine
+        PUBLIC
+        m
+        dl
+    )
+endif()
+
+
+if(JPEG_FOUND)
+  target_link_libraries(bulba_engine PRIVATE JPEG::JPEG)
+  target_compile_definitions(bulba_engine PRIVATE BLB_HAVE_JPEG=1)
+endif()
 
 if(UNIX AND NOT APPLE)
   target_link_libraries(

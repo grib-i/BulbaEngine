@@ -477,14 +477,6 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
   if (polygon->vertex_count == 0 || polygon->index_count < 3 || polygon->index_count % 3 != 0)
     return;
 
-  for (size_t i = 0; i < polygon->index_count; i++) {
-    if (polygon->indices[i] >= polygon->vertex_count)
-      return;
-  }
-
-  if (!ensure_polygon_normals((BLB_Polygon3D *)polygon))
-    return;
-
   VULKAN_RendererBeginMainPass(vulkan);
 
   if (!vulkan->main_render_pass_begun)
@@ -501,7 +493,20 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
   bool cached_geometry = find_cached_geometry_3d(vulkan, polygon, &vertex_start, &index_start);
 
   if (!cached_geometry) {
+    /* Stop early if this frame has no room; no need to scan an oversized
+     * mesh on every glow pass. */
     if (vulkan->vertex_cursor + polygon->vertex_count > VULKAN_MAX_VERTICES || vulkan->index_cursor + polygon->index_count > VULKAN_MAX_INDICES)
+      return;
+
+    /* Validate and prepare geometry only on the first draw this frame. Glow
+     * and other secondary passes reuse the same cached range, so rescanning a
+     * large FBX index array for every pass needlessly stalls the CPU. */
+    for (size_t i = 0; i < polygon->index_count; i++) {
+      if (polygon->indices[i] >= polygon->vertex_count)
+        return;
+    }
+
+    if (!ensure_polygon_normals((BLB_Polygon3D *)polygon))
       return;
 
     vertex_start = vulkan->vertex_cursor;
@@ -558,7 +563,10 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
   bound_material.base_texture_override = texture;
   VULKAN_RendererBindMaterial(vulkan, layout, &bound_material);
 
-  push_lighting(vulkan, layout, mvp, model_rows, material, 0);
+  /* Push constants must describe the same material/texture that was bound.
+   * In particular, material_texture_mask() reads this struct to tell the
+   * fragment shader which texture slots are present. */
+  push_lighting(vulkan, layout, mvp, model_rows, &bound_material, 0);
 
   vkCmdDrawIndexed(command, (uint32_t)polygon->index_count, 1, (uint32_t)index_start, 0, 0);
 }

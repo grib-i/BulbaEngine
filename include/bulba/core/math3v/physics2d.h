@@ -70,6 +70,14 @@ typedef struct BLB_RigidBody2D BLB_RigidBody2D;
 typedef struct BLB_Collider2D BLB_Collider2D;
 typedef struct BLB_Physics2DComponent BLB_Physics2DComponent;
 
+typedef struct {
+  const BLB_Physics2DShape *shape;
+  HMM_Vec2 position;
+  float rotation;
+  bool active;
+  bool trigger;
+} BLB_Physics2DDebugCollider;
+
 typedef struct BLB_Physics2DWorld {
   HMM_Vec2 gravity;
 
@@ -81,6 +89,7 @@ typedef struct BLB_Physics2DWorld {
 
   size_t body_count;
   size_t collider_count;
+  bool debug_draw_enabled;
 
   BLB_Physics2DBodyId next_body_id;
   BLB_Physics2DColliderId next_collider_id;
@@ -170,5 +179,10 @@ bool BLB_Physics2D_ColliderIsActive(const BLB_Collider2D *collider);
 void BLB_Physics2D_ColliderSetDensity(BLB_Collider2D *collider, float density);
 
 void BLB_Physics2DWorld_SetSubsteps(BLB_Physics2DWorld *world, int substeps);
+void BLB_Physics2DWorld_SetDebugDraw(BLB_Physics2DWorld *world, bool enabled);
+bool BLB_Physics2DWorld_GetDebugDraw(const BLB_Physics2DWorld *world);
+size_t BLB_Physics2DWorld_GetDebugColliderCount(const BLB_Physics2DWorld *world);
+bool BLB_Physics2DWorld_GetDebugCollider(const BLB_Physics2DWorld *world, size_t index, BLB_Physics2DDebugCollider *out_collider);
+const BLB_Physics2DShape *BLB_Physics2D_ColliderGetShape(const BLB_Collider2D *collider);
 
 #endif

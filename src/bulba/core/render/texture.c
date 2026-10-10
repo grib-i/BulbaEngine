@@ -2,8 +2,13 @@
 
 #include <png.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef BLB_HAVE_JPEG
+#include <jpeglib.h>
+#include <setjmp.h>
+#endif
 
 typedef struct {
   BLB_Texture *texture;
@@ -148,6 +153,96 @@ BLB_Texture *BLB_Texture_Create3D(uint32_t width, uint32_t height, uint32_t dept
   return texture;
 }
 
+#ifdef BLB_HAVE_JPEG
+typedef struct {
+  struct jpeg_error_mgr base;
+  jmp_buf jump;
+} BLB_TextureJPEGError;
+
+typedef struct {
+  struct jpeg_decompress_struct decoder;
+  BLB_TextureJPEGError error;
+  FILE *file;
+  unsigned char *rgba;
+  unsigned char *row;
+  int created;
+} BLB_TextureJPEGContext;
+
+static void texture_jpeg_error_exit(j_common_ptr decoder) {
+  BLB_TextureJPEGError *error = (BLB_TextureJPEGError *)decoder->err;
+  longjmp(error->jump, 1);
+}
+
+static BLB_Texture *texture_load_jpeg(const char *path) {
+  BLB_TextureJPEGContext *context = calloc(1, sizeof(*context));
+  if (!context)
+    return NULL;
+  context->file = fopen(path, "rb");
+  if (!context->file) {
+    free(context);
+    return NULL;
+  }
+  context->decoder.err = jpeg_std_error(&context->error.base);
+  context->error.base.error_exit = texture_jpeg_error_exit;
+  if (setjmp(context->error.jump)) {
+    if (context->created)
+      jpeg_destroy_decompress(&context->decoder);
+    fclose(context->file);
+    free(context->rgba);
+    free(context->row);
+    free(context);
+    return NULL;
+  }
+
+  jpeg_create_decompress(&context->decoder);
+  context->created = 1;
+  jpeg_stdio_src(&context->decoder, context->file);
+  if (jpeg_read_header(&context->decoder, TRUE) != JPEG_HEADER_OK)
+    longjmp(context->error.jump, 1);
+  context->decoder.out_color_space = JCS_RGB;
+  jpeg_start_decompress(&context->decoder);
+
+  const size_t width = (size_t)context->decoder.output_width;
+  const size_t height = (size_t)context->decoder.output_height;
+  const size_t components = (size_t)context->decoder.output_components;
+  if (width == 0 || height == 0 || components != 3u || width > SIZE_MAX / 4u ||
+      width * 4u > SIZE_MAX / height || width > SIZE_MAX / components)
+    longjmp(context->error.jump, 1);
+
+  const size_t rgba_size = width * height * 4u;
+  context->rgba = malloc(rgba_size);
+  context->row = malloc(width * components);
+  if (!context->rgba || !context->row)
+    longjmp(context->error.jump, 1);
+
+  while (context->decoder.output_scanline < context->decoder.output_height) {
+    JSAMPROW row = context->row;
+    const size_t y = (size_t)context->decoder.output_scanline;
+    if (jpeg_read_scanlines(&context->decoder, &row, 1) != 1)
+      longjmp(context->error.jump, 1);
+    unsigned char *destination = context->rgba + y * width * 4u;
+    for (size_t x = 0; x < width; ++x) {
+      destination[x * 4u + 0u] = context->row[x * 3u + 0u];
+      destination[x * 4u + 1u] = context->row[x * 3u + 1u];
+      destination[x * 4u + 2u] = context->row[x * 3u + 2u];
+      destination[x * 4u + 3u] = 255u;
+    }
+  }
+
+  const uint32_t image_width = (uint32_t)width;
+  const uint32_t image_height = (uint32_t)height;
+  jpeg_finish_decompress(&context->decoder);
+  jpeg_destroy_decompress(&context->decoder);
+  context->created = 0;
+  fclose(context->file);
+  BLB_Texture *texture = BLB_Texture_Create2D(image_width, image_height, context->rgba, rgba_size);
+  free(context->rgba);
+  free(context->row);
+  free(context);
+  return texture;
+}
+#endif
+
 BLB_Texture *BLB_Texture_Load2D(const char *path) {
   if (!path)
     return NULL;
@@ -163,8 +258,17 @@ BLB_Texture *BLB_Texture_Load2D(const char *path) {
 
   image.version = PNG_IMAGE_VERSION;
 
-  if (!png_image_begin_read_from_file(&image, path))
+  if (!png_image_begin_read_from_file(&image, path)) {
+    png_image_free(&image);
+#ifdef BLB_HAVE_JPEG
+    BLB_Texture *jpeg_texture = texture_load_jpeg(path);
+    if (jpeg_texture)
+      texture_cache_insert(jpeg_texture, path);
+    return jpeg_texture;
+#else
     return NULL;
+#endif
+  }
 
   image.format = PNG_FORMAT_RGBA;
 

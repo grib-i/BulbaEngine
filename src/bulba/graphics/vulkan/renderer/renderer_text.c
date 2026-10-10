@@ -645,4 +645,21 @@ void VULKAN_RendererDrawText(VULKAN *vulkan, const Font *font, const char *text,
   vkCmdPushConstants(command, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(data), &data);
 
   vkCmdDraw(command, (uint32_t)vertex_count, 1, 0, 0);
+
+  /* Text uses a different pipeline layout and a different vertex buffer from
+   * 2D/3D geometry. The geometry renderer caches these bindings, but the text
+   * path binds them directly. Invalidate the cache so the next geometry draw
+   * cannot accidentally reuse the text pipeline/buffer (which can produce
+   * black meshes and full-screen glyph/UV artefacts). Descriptor-set cache
+   * entries must also be invalidated because set 0 was rebound for the font
+   * under the text pipeline layout. */
+  vulkan->bound_pipeline = VK_NULL_HANDLE;
+  vulkan->bound_vertex_buffer = VK_NULL_HANDLE;
+  vulkan->bound_vertex_offset = 0;
+  vulkan->bound_index_buffer = VK_NULL_HANDLE;
+  vulkan->bound_material_set = VK_NULL_HANDLE;
+  vulkan->bound_material_layout = VK_NULL_HANDLE;
+  vulkan->bound_material_offset = 0;
+  vulkan->bound_light_set = VK_NULL_HANDLE;
+  vulkan->bound_light_layout = VK_NULL_HANDLE;
 }

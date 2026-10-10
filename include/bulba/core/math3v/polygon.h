@@ -26,6 +26,7 @@ typedef struct {
   size_t index_count;
   HMM_Vec3 normal;
   uint64_t geometry_hash;
+  bool dynamic_vertices;
 } BLB_Polygon3D;
 
 typedef struct {

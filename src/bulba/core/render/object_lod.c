@@ -23,7 +23,7 @@
 #define BLB_LOD_CACHE_LOAD_NUMERATOR 7u
 #define BLB_LOD_CACHE_LOAD_DENOMINATOR 10u
 #define BLB_LOD_CACHE_EVICT_AGE 2u
-#define BLB_LOD_DISK_VERSION 6u
+#define BLB_LOD_DISK_VERSION 7u
 
 typedef struct {
   bool occupied;
@@ -407,7 +407,7 @@ static Mesh *load_lod_disk_mesh(bool is_2d, uint64_t geometry_hash, int level, u
   BLB_LODDiskHeader header = {0};
   if (fread(&header, sizeof(header), 1, file) != 1 || memcmp(header.magic, "BULBLOD1", 8) != 0 || header.version != BLB_LOD_DISK_VERSION ||
       header.is_2d != (is_2d ? 1u : 0u) || header.level != level || header.geometry_hash != geometry_hash || header.error_bits != error_bits ||
-      header.reduction_bits != reduction_bits || header.vertex_count == 0 || header.index_count < 3 ||
+      header.reduction_bits != reduction_bits || header.vertex_count == 0 || header.index_count < 3 || header.index_count % 3u != 0 ||
       header.vertex_count > SIZE_MAX / sizeof(HMM_Vec3) || header.index_count > SIZE_MAX / sizeof(unsigned int)) {
     fclose(file);
     return NULL;
@@ -436,6 +436,26 @@ static Mesh *load_lod_disk_mesh(bool is_2d, uint64_t geometry_hash, int level, u
   }
 
   fclose(file);
+
+  for (size_t i = 0; i < mesh->vertex_count; ++i) {
+    HMM_Vec3 vertex = mesh->vertices[i];
+    if (!isfinite(vertex.x) || !isfinite(vertex.y) || !isfinite(vertex.z)) {
+      BLB_MeshDestroy(mesh);
+      return NULL;
+    }
+    if (mesh->uvs && (!isfinite(mesh->uvs[i].x) || !isfinite(mesh->uvs[i].y))) {
+      BLB_MeshDestroy(mesh);
+      return NULL;
+    }
+  }
+
+  for (size_t i = 0; i < mesh->index_count; ++i) {
+    if (mesh->indices[i] >= mesh->vertex_count) {
+      BLB_MeshDestroy(mesh);
+      return NULL;
+    }
+  }
+
   return mesh;
 }
 

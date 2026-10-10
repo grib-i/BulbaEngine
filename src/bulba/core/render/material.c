@@ -607,11 +607,12 @@ int BLB_MaterialTexture_SetTexture(BLB_Material *material, BLB_MaterialTexture *
 }
 
 void BLB_MaterialTexture_AdoptTexture(BLB_MaterialTexture *slot, BLB_Texture *texture) {
-  if (!slot)
+  if (!slot || slot->texture == texture)
     return;
 
   slot->texture = texture;
   slot->owned = texture != NULL;
+  texture_state_touch();
 }
 
 void BLB_MaterialTexture_SetTransform(BLB_MaterialTexture *texture, float offset_x, float offset_y, float scale_x, float scale_y, float rotation) {
@@ -639,7 +640,7 @@ void BLB_MaterialTexture_SetSampler(BLB_MaterialTexture *texture, BLB_TextureWra
 }
 
 void BLB_MaterialTexture_SetProjection(BLB_MaterialTexture *texture, BLB_TextureProjection projection) {
-  if (!texture || (int)projection < (int)BLB_TEXMAP_STRETCH || (int)projection > (int)BLB_TEXMAP_CUBE_CROSS_ROT)
+  if (!texture || (int)projection < (int)BLB_TEXMAP_STRETCH || (int)projection > (int)BLB_TEXMAP_UV)
     return;
   texture->projection = projection;
   texture_state_touch();
@@ -1045,7 +1046,7 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
         slot->uv_set = (int)parse_float_value(value, 0.0f);
       } else if (strcmp(clean_key, "projection") == 0) {
         int projection = (int)parse_float_value(value, (float)BLB_TEXMAP_STRETCH);
-        if (projection >= (int)BLB_TEXMAP_STRETCH && projection <= (int)BLB_TEXMAP_CUBE_CROSS_ROT)
+        if (projection >= (int)BLB_TEXMAP_STRETCH && projection <= (int)BLB_TEXMAP_UV)
           slot->projection = (BLB_TextureProjection)projection;
       } else if (strcmp(clean_key, "offset") == 0) {
         parse_float_list(value, slot->offset, 2);
@@ -1213,7 +1214,9 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
         have_shader_fragment = shader_fragment_path[0] != '\0';
       }
       /* Shader loading is deferred until the whole material is parsed so section order
-       * cannot accidentally force the shader into the wrong 2D/3D pipeline contract. */
+       * cannot accidentally force the shader into the wrong 2D/3D pipeline contract.
+       *
+       * Shader loading in runtime is planned in version 1.5.0*/
       continue;
     }
 

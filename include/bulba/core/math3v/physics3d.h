@@ -79,6 +79,14 @@ typedef struct BLB_RigidBody3D BLB_RigidBody3D;
 typedef struct BLB_Collider3D BLB_Collider3D;
 typedef struct BLB_Physics3DComponent BLB_Physics3DComponent;
 
+typedef struct {
+  const BLB_Physics3DShape *shape;
+  HMM_Vec3 position;
+  HMM_Quat rotation;
+  bool active;
+  bool trigger;
+} BLB_Physics3DDebugCollider;
+
 typedef struct BLB_Physics3DWorld {
   HMM_Vec3 gravity;
 
@@ -90,6 +98,7 @@ typedef struct BLB_Physics3DWorld {
 
   size_t body_count;
   size_t collider_count;
+  bool debug_draw_enabled;
 
   BLB_Physics3DBodyId next_body_id;
   BLB_Physics3DColliderId next_collider_id;
@@ -183,6 +192,10 @@ bool BLB_Physics3D_ColliderIsActive(const BLB_Collider3D *collider);
 void BLB_Physics3D_ColliderSetDensity(BLB_Collider3D *collider, float density);
 
 void BLB_Physics3DWorld_SetSubsteps(BLB_Physics3DWorld *world, int substeps);
+void BLB_Physics3DWorld_SetDebugDraw(BLB_Physics3DWorld *world, bool enabled);
+bool BLB_Physics3DWorld_GetDebugDraw(const BLB_Physics3DWorld *world);
+size_t BLB_Physics3DWorld_GetDebugColliderCount(const BLB_Physics3DWorld *world);
+bool BLB_Physics3DWorld_GetDebugCollider(const BLB_Physics3DWorld *world, size_t index, BLB_Physics3DDebugCollider *out_collider);
 
 const BLB_Physics3DShape *BLB_Physics3D_ColliderGetShape(const BLB_Collider3D *collider);
 float BLB_Physics3D_ColliderGetDensity(const BLB_Collider3D *collider);

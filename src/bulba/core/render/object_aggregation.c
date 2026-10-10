@@ -3,7 +3,6 @@
 #include "bulba/core/math3v/HandmadeMath.h"
 #include "bulba/core/math3v/physics3d.h"
 #include "bulba/core/render/mesh_simplification.h"
-#include "bulba/core/render/object_lod.h"
 #include "bulba/core/utils/config.h"
 #include <float.h>
 
@@ -117,14 +116,19 @@ static uint64_t hash_instance_key(uintptr_t polygon, uint64_t geometry_id, uintp
 
 static uint64_t source_signature(BLB_Object3D **objects, size_t object_count) {
   uint64_t hash = UINT64_C(1469598103934665603);
+
   hash ^= BLB_OBJECT_AGGREGATION ? 1u : 0u;
   hash *= UINT64_C(1099511628211);
+
   hash ^= (uint64_t)(uint32_t)BLB_OBJECT_AGGREGATION_MIN_OBJECTS;
   hash *= UINT64_C(1099511628211);
+
   hash ^= BLB_OBJECT_INSTANCING ? 1u : 0u;
   hash *= UINT64_C(1099511628211);
+
   hash ^= (uint64_t)(uint32_t)BLB_OBJECT_INSTANCING_MIN_OBJECTS;
   hash *= UINT64_C(1099511628211);
+
   for (size_t i = 0; i < object_count; ++i) {
     BLB_Object3D *object = objects ? objects[i] : NULL;
     uintptr_t values[5] = {
@@ -134,23 +138,31 @@ static uint64_t source_signature(BLB_Object3D **objects, size_t object_count) {
         (uintptr_t)(object ? object->texture : NULL),
         (uintptr_t)(object && object->material ? object->material->shader_program : NULL),
     };
+
     for (size_t v = 0; v < 5; ++v) {
       hash ^= hash_pointer(values[v]);
       hash *= UINT64_C(1099511628211);
     }
+
     if (object) {
       hash ^= object->geometry_id;
       hash *= UINT64_C(1099511628211);
+
       hash ^= object->lod_override ? 1u : 0u;
       hash *= UINT64_C(1099511628211);
+
       hash ^= (uint64_t)(uint32_t)object->lod_level;
       hash *= UINT64_C(1099511628211);
+
       hash ^= object->material ? object->material->revision : 0u;
       hash *= UINT64_C(1099511628211);
+
       hash ^= (uint64_t)object->layer;
       hash *= UINT64_C(1099511628211);
+
       hash ^= (uint64_t)(uint32_t)object_render_mode(object);
       hash *= UINT64_C(1099511628211);
+
       for (size_t c = 0; c < 4; ++c) {
         uint32_t bits;
         memcpy(&bits, &object->color.Elements[c], sizeof(bits));
@@ -351,32 +363,42 @@ static bool object_has_dynamic_physics(const BLB_Object3D *object) {
 }
 
 static bool object_can_aggregate(const BLB_Object3D *object) {
-  if (!object || !active_polygon(object) || !object->material)
+  if (!object || object->submesh_count > 0 || !active_polygon(object) || !object->material)
     return false;
+
   if (object_render_mode(object) != BLB_RENDER_OPAQUE)
     return false;
+
   if (object->material->shader_program)
     return false;
+
   if (fabsf(object->material->emission_strength) > 0.00001f || fabsf(object->material->glow_strength) > 0.00001f)
     return false;
+
   if (BLB_OBJECT_LOD && object->lod_override)
     return false;
+
   if (BLB_OBJECT_AGGREGATION_STATIC_ONLY &&
       (object_has_dynamic_physics(object) || object->optimization_dynamic || object->optimization_transform_dirty))
     return false;
+
   const BLB_Polygon3D *polygon = active_polygon(object);
   return polygon->vertex_count > 0 && polygon->indices && polygon->index_count >= 3;
 }
 
 static bool object_can_instance(const BLB_Object3D *object) {
-  if (!object || !active_polygon(object) || !object->material)
+  if (!object || object->submesh_count > 0 || !active_polygon(object) || !object->material)
     return false;
+
   if (object_render_mode(object) != BLB_RENDER_OPAQUE)
     return false;
+
   if (object->material->shader_program)
     return false;
+
   if (fabsf(object->material->emission_strength) > 0.00001f || fabsf(object->material->glow_strength) > 0.00001f)
     return false;
+
   const BLB_Polygon3D *polygon = active_polygon(object);
   return polygon->vertex_count > 0 && polygon->indices && polygon->index_count >= 3;
 }
@@ -384,6 +406,7 @@ static bool object_can_instance(const BLB_Object3D *object) {
 static bool instance_key_equal(const BLB_InstanceHashEntry *entry, const BLB_Object3D *object) {
   if (!entry || !object)
     return false;
+
   uintptr_t shader = object->material ? (uintptr_t)object->material->shader_program : 0;
   return entry->polygon == (uintptr_t)object->polygon && entry->geometry_id == object->geometry_id &&
          entry->material == (uintptr_t)object->material && entry->texture == (uintptr_t)object->texture && entry->shader == shader &&
@@ -393,25 +416,31 @@ static bool instance_key_equal(const BLB_InstanceHashEntry *entry, const BLB_Obj
 static BLB_RenderInstances3DGroup *find_instance_group_by_key(BLB_InstanceHashEntry *table, size_t capacity, const BLB_Object3D *object) {
   if (!table || !capacity || !object)
     return NULL;
+
   uintptr_t shader = object->material ? (uintptr_t)object->material->shader_program : 0;
   uint64_t hash = hash_instance_key((uintptr_t)object->polygon, object->geometry_id, (uintptr_t)object->material, (uintptr_t)object->texture, shader,
                                     object->layer, object_render_mode(object));
   size_t index = (size_t)(hash & (capacity - 1));
+
   while (table[index].used) {
     if (instance_key_equal(&table[index], object))
       return table[index].group;
+
     index = (index + 1) & (capacity - 1);
   }
+
   return NULL;
 }
 
 static bool insert_instance_group_key(BLB_InstanceHashEntry *table, size_t capacity, const BLB_Object3D *object, BLB_RenderInstances3DGroup *group) {
   if (!table || !capacity || !object || !group)
     return false;
+
   uintptr_t shader = object->material ? (uintptr_t)object->material->shader_program : 0;
   uint64_t hash = hash_instance_key((uintptr_t)object->polygon, object->geometry_id, (uintptr_t)object->material, (uintptr_t)object->texture, shader,
                                     object->layer, object_render_mode(object));
   size_t index = (size_t)(hash & (capacity - 1));
+
   while (table[index].used)
     index = (index + 1) & (capacity - 1);
   table[index].used = true;
@@ -422,8 +451,10 @@ static bool insert_instance_group_key(BLB_InstanceHashEntry *table, size_t capac
   table[index].shader = shader;
   table[index].layer = object->layer;
   table[index].render_mode = object_render_mode(object);
+
   memcpy(table[index].color, &object->color, sizeof(table[index].color));
   table[index].group = group;
+
   return true;
 }
 
@@ -464,11 +495,14 @@ static void update_instance_group_bounds(BLB_RenderInstances3DGroup *group) {
 
     float scale = fmaxf(fabsf(object->scale.x), fmaxf(fabsf(object->scale.y), fabsf(object->scale.z)));
     float radius = local_radius * scale;
+
     HMM_Vec3 min = HMM_SubV3(object->position, HMM_V3(radius, radius, radius));
     HMM_Vec3 max = HMM_AddV3(object->position, HMM_V3(radius, radius, radius));
+
     min_bounds.x = fminf(min_bounds.x, min.x);
     min_bounds.y = fminf(min_bounds.y, min.y);
     min_bounds.z = fminf(min_bounds.z, min.z);
+
     max_bounds.x = fmaxf(max_bounds.x, max.x);
     max_bounds.y = fmaxf(max_bounds.y, max.y);
     max_bounds.z = fmaxf(max_bounds.z, max.z);
@@ -487,14 +521,18 @@ static void update_instance_group_bounds(BLB_RenderInstances3DGroup *group) {
 static bool instance_group_add_object(BLB_RenderInstances3DGroup *group, BLB_Object3D *object) {
   if (!group || !object)
     return false;
+
   if (group->object_count >= group->object_capacity) {
     size_t capacity = group->object_capacity ? group->object_capacity * 2 : 16;
     BLB_Object3D **objects = realloc(group->objects, capacity * sizeof(*objects));
+
     if (!objects)
       return false;
+
     group->objects = objects;
     group->object_capacity = capacity;
   }
+
   group->objects[group->object_count++] = object;
   object->optimization_instance_group = group;
   return true;
@@ -503,9 +541,12 @@ static bool instance_group_add_object(BLB_RenderInstances3DGroup *group, BLB_Obj
 static bool append_instance_group(BLB_ObjectAggregation3D *aggregation, BLB_RenderInstances3DGroup *group) {
   if (!aggregation || !group)
     return false;
+
   BLB_RenderInstances3DGroup **groups = realloc(aggregation->instance_groups, (aggregation->instance_group_count + 1) * sizeof(*groups));
+
   if (!groups)
     return false;
+
   aggregation->instance_groups = groups;
   aggregation->instance_groups[aggregation->instance_group_count++] = group;
   return true;
@@ -514,10 +555,12 @@ static bool append_instance_group(BLB_ObjectAggregation3D *aggregation, BLB_Rend
 static void destroy_instance_group(BLB_RenderInstances3DGroup *group) {
   if (!group)
     return;
+
   for (size_t i = 0; i < group->object_count; ++i) {
     if (group->objects[i] && group->objects[i]->optimization_instance_group == group)
       group->objects[i]->optimization_instance_group = NULL;
   }
+
   free(group->objects);
   free(group);
 }
@@ -763,11 +806,13 @@ static bool build_hsa_lods(BLB_RenderObjects3DCluster *cluster) {
   size_t levels = BLB_OBJECT_LOD && BLB_OBJECT_LOD_LEVELS > 0 ? (size_t)BLB_OBJECT_LOD_LEVELS + 1u : 1u;
   Mesh **lods = calloc(levels, sizeof(*lods));
   float *lod_errors = calloc(levels, sizeof(*lod_errors));
+
   if (!lods || !lod_errors) {
     free(lods);
     free(lod_errors);
     return false;
   }
+
   lods[0] = cluster->mesh;
   cluster->lods = lods;
   cluster->lod_errors = lod_errors;
@@ -777,37 +822,45 @@ static bool build_hsa_lods(BLB_RenderObjects3DCluster *cluster) {
 
 bool BLB_ObjectAggregation3D_EnsureLOD(BLB_ObjectAggregation3D *aggregation, BLB_RenderObjects3DCluster *cluster, size_t level) {
   (void)aggregation;
+
   if (!cluster || level == 0 || !BLB_OBJECT_LOD || !cluster->lods || level >= (size_t)(BLB_OBJECT_LOD_LEVELS + 1))
     return level == 0 && cluster != NULL;
+
   if (cluster->lod_count > level && cluster->lods[level])
     return true;
 
   size_t target = cluster->lod_count;
   if (target == 0)
     target = 1;
+
   Mesh *current = cluster->lods[target - 1];
   while (target <= level) {
     if (!current)
       return false;
+
     float error = BLB_OBJECT_LOD_ERROR * powf(2.0f, (float)(target - 1));
     if (error <= 0.0f)
       error = 0.000001f;
+
     Mesh *next = BLB_MeshSimplifyQEMWithReduction(current, error, BLB_OBJECT_LOD_REDUCTION);
     if ((!next || next->index_count >= current->index_count)) {
       BLB_MeshDestroy(next);
       float fallback = fmaxf(BLB_OBJECT_LOD_FALLBACK_ERROR, error);
       next = BLB_MeshSimplifyQEMWithReduction(current, fallback, BLB_OBJECT_LOD_REDUCTION);
     }
+
     if (!next || next->index_count >= current->index_count) {
       BLB_MeshDestroy(next);
       break;
     }
+
     cluster->lods[target] = next;
     cluster->lod_errors[target] = mesh_diagonal(next);
     cluster->lod_count = target + 1u;
     current = next;
     ++target;
   }
+
   return cluster->lod_count > level && cluster->lods[level] != NULL;
 }
 
@@ -821,6 +874,7 @@ static bool build_object_map(BLB_ObjectAggregation3D *aggregation) {
     if (cluster)
       total_objects += cluster->object_count;
   }
+
   for (size_t i = 0; i < aggregation->instance_group_count; i++) {
     BLB_RenderInstances3DGroup *group = aggregation->instance_groups[i];
     if (group && group->enabled)
@@ -837,8 +891,10 @@ static bool build_object_map(BLB_ObjectAggregation3D *aggregation) {
 
   for (size_t i = 0; i < aggregation->cluster_count; i++) {
     BLB_RenderObjects3DCluster *cluster = aggregation->clusters[i];
+
     if (!cluster || cluster->object_count < 2)
       continue;
+
     for (size_t j = 0; j < cluster->object_count; j++) {
       BLB_Object3D *object = cluster->objects[j];
       size_t index = (size_t)(hash_pointer((uintptr_t)object) & (aggregation->map_capacity - 1));
