@@ -239,7 +239,7 @@ static bool framebuffer_mouse_coordinates(const BLB_Handlers *handlers, float *s
   *width = (float)framebuffer_width;
   *height = (float)framebuffer_height;
   *screen_x = (float)(handlers->mouse_x * (double)framebuffer_width / (double)window_width);
-  *screen_y = (float)(handlers->mouse_y * (double)framebuffer_height / (double)window_height);
+  *screen_y = (float)framebuffer_height - (float)(handlers->mouse_y * (double)framebuffer_height / (double)window_height);
 
   return true;
 }
@@ -260,7 +260,7 @@ static bool screen_ray(const BLB_CameraCache *camera_cache, HMM_Vec3 *origin, HM
 
   const HMM_Mat4 inv_vp = HMM_InvGeneralM4(camera_cache->view_projection);
   const float nx = screen_x / width * 2.0f - 1.0f;
-  const float ny = 1.0f - screen_y / height * 2.0f;
+  const float ny = screen_y / height * 2.0f - 1.0f;
   const HMM_Vec4 near_clip = HMM_V4(nx, ny, 0.0f, 1.0f);
   const HMM_Vec4 far_clip = HMM_V4(nx, ny, 1.0f, 1.0f);
   const HMM_Vec4 near_world = HMM_MulM4V4(inv_vp, near_clip);
@@ -348,16 +348,6 @@ typedef struct {
   HMM_Vec3 ray_direction;
 } ObjectHit;
 
-static int object_hit_priority(const ObjectHit *hit) {
-  if (!hit || !hit->hit)
-    return -1;
-
-  if (hit->type == BLB_OBJECT_HANDLER_2D && hit->screen_space)
-    return 2;
-
-  return 1;
-}
-
 static bool better_hit(const ObjectHit *candidate, const ObjectHit *best) {
   if (!candidate || !candidate->hit)
     return false;
@@ -365,14 +355,14 @@ static bool better_hit(const ObjectHit *candidate, const ObjectHit *best) {
   if (!best || !best->hit)
     return true;
 
-  const int candidate_priority = object_hit_priority(candidate);
-  const int best_priority = object_hit_priority(best);
-
-  if (candidate_priority != best_priority)
-    return candidate_priority > best_priority;
-
   if (candidate->layer != best->layer)
     return candidate->layer > best->layer;
+
+  if (candidate->type == best->type)
+    return candidate->distance < best->distance;
+
+  if (candidate->screen_space != best->screen_space)
+    return candidate->screen_space;
 
   return candidate->distance < best->distance;
 }
@@ -460,10 +450,8 @@ static ObjectHit find_hit(BLB_Handlers *handlers, BLB_Scene *scene) {
 
     const HMM_Mat4 model = model_3d(object);
     const HMM_Mat4 inv_model = HMM_InvGeneralM4(model);
-
     const HMM_Vec4 local_origin4 = HMM_MulM4V4(inv_model, HMM_V4(ray.origin.x, ray.origin.y, ray.origin.z, 1.0f));
     const HMM_Vec4 local_direction4 = HMM_MulM4V4(inv_model, HMM_V4(ray.direction.x, ray.direction.y, ray.direction.z, 0.0f));
-
     const HMM_Vec3 local_origin = HMM_V3(local_origin4.x, local_origin4.y, local_origin4.z);
     const HMM_Vec3 local_direction = HMM_V3(local_direction4.x, local_direction4.y, local_direction4.z);
 
@@ -648,7 +636,6 @@ void BLB_HandlersProcessObjects(BLB_Handlers *handlers, BLB_Scene *scene) {
       continue;
 
     ObjectHit capture_hit = current;
-
     capture_hit.object = captured;
     capture_hit.handler = handler;
     capture_hit.type = type;
@@ -664,7 +651,6 @@ void BLB_HandlersProcessObjects(BLB_Handlers *handlers, BLB_Scene *scene) {
     }
 
     const BLB_ObjectEvent event = make_object_event(handlers, scene, &capture_hit, BLB_OBJECT_HANDLER_HOLD, button, state->mods, true, inside);
-
     invoke(handler, BLB_OBJECT_HANDLER_HOLD, &event);
   }
 
