@@ -1,3 +1,4 @@
+#include "bulba/handlers/keyboard.h"
 #include "test_common.h"
 #include "tests.h"
 
@@ -8,7 +9,7 @@
 #define PH3D_LAYER_DEFAULT 0
 
 #define PH3D_GRAVITY_X 0.0f
-#define PH3D_GRAVITY_Y -9.81f
+#define PH3D_GRAVITY_Y 9.81f
 #define PH3D_GRAVITY_Z 0.0f
 #define PH3D_FIXED_TIMESTEP (1.0f / 60.0f)
 #define PH3D_SUBSTEPS 4
@@ -159,12 +160,12 @@ int BLB_Test_ph3d(void) {
 
   BLB_Physics3DWorld_SetLayerCollision(world, 0, 0, true);
 
-  BLB_Object3D *floor = BLB_CreateCube3D(HMM_V3(14.0f, 1.0f, 14.0f), HMM_V3(0.0f, 16.0f, 0.0f), NULL, BLB_TEXMAP_STRETCH);
-  BLB_Object3D *cube1 = BLB_CreateCube3D(HMM_V3(2.0f, 2.0f, 2.0f), HMM_V3(-3.5f, 7.0f, 0.0f), NULL, BLB_TEXMAP_STRETCH);
-  BLB_Object3D *cube2 = BLB_CreateCube3D(HMM_V3(2.0f, 2.0f, 2.0f), HMM_V3(0.0f, 11.0f, 0.0f), NULL, BLB_TEXMAP_STRETCH);
-  BLB_Object3D *cube3 = BLB_CreateCube3D(HMM_V3(2.0f, 2.0f, 2.0f), HMM_V3(3.5f, 15.0f, 0.0f), NULL, BLB_TEXMAP_STRETCH);
-  BLB_Object3D *sphere1 = BLB_CreateSphere3D(HMM_V3(1.8f, 1.8f, 1.8f), HMM_V3(2.0f, 8.5f, 0.0f), 4, NULL, BLB_TEXMAP_STRETCH);
-  BLB_Object3D *sphere2 = BLB_CreateSphere3D(HMM_V3(1.8f, 1.8f, 1.8f), HMM_V3(-2.0f, 13.0f, 0.0f), 4, NULL, BLB_TEXMAP_STRETCH);
+  BLB_Object3D *floor = BLB_CreateCube3D(HMM_V3(14.0f, 1.0f, 14.0f), HMM_V3(0.0f, -2.0f, 0.0f), NULL, BLB_TEXMAP_STRETCH);
+  BLB_Object3D *cube1 = BLB_CreateCube3D(HMM_V3(2.0f, 2.0f, 2.0f), HMM_V3(-3.5f, 2.0f, 0.0f), NULL, BLB_TEXMAP_STRETCH);
+  BLB_Object3D *cube2 = BLB_CreateCube3D(HMM_V3(2.0f, 2.0f, 2.0f), HMM_V3(0.0f, 5.0f, 0.0f), NULL, BLB_TEXMAP_STRETCH);
+  BLB_Object3D *cube3 = BLB_CreateCube3D(HMM_V3(2.0f, 2.0f, 2.0f), HMM_V3(3.5f, 8.0f, 0.0f), NULL, BLB_TEXMAP_STRETCH);
+  BLB_Object3D *sphere1 = BLB_CreateSphere3D(HMM_V3(1.8f, 1.8f, 1.8f), HMM_V3(2.0f, 3.5f, 0.0f), 4, NULL, BLB_TEXMAP_STRETCH);
+  BLB_Object3D *sphere2 = BLB_CreateSphere3D(HMM_V3(1.8f, 1.8f, 1.8f), HMM_V3(-2.0f, 6.5f, 0.0f), 4, NULL, BLB_TEXMAP_STRETCH);
 
   BLB_RigidBody3D *floor_body = NULL;
   if (floor) {
@@ -224,6 +225,9 @@ int BLB_Test_ph3d(void) {
 
     if (frame > 0)
       continue;
+
+    if (BLB_KeyboardPressed(&app.window->handlers, BLB_KEY_F3))
+      BLB_Physics3DWorld_SetDebugDraw(world, !BLB_Physics3DWorld_GetDebugDraw(world));
 
     BLB_Physics3DWorld_Step(world, delta_time);
 
@@ -347,7 +351,7 @@ int BLB_TestPhysicsObjectCount(size_t count, BLB_TestObjectType type) {
   BLB_Material_SetPBR(shared_material, 0.12f, 0.38f);
   BLB_Material_SetSpecular(shared_material, 0.85f, 0.92f, 0.96f, 1.0f);
 
-  BLB_Object3D *floor = BLB_CreateCube3D(HMM_V3(floor_width, 1.0f, floor_depth), HMM_V3(0.0f, -floor_y, 0.0f), NULL, BLB_TEXMAP_STRETCH);
+  BLB_Object3D *floor = BLB_CreateCube3D(HMM_V3(floor_width, 1.0f, floor_depth), HMM_V3(0.0f, floor_y, 0.0f), NULL, BLB_TEXMAP_STRETCH);
 
   BLB_RigidBody3D *floor_body = NULL;
 
@@ -486,6 +490,9 @@ int BLB_TestPhysicsObjectCount(size_t count, BLB_TestObjectType type) {
 
     if (frame > 0)
       continue;
+
+    if (BLB_KeyboardPressed(&app.window->handlers, BLB_KEY_F3))
+      BLB_Physics3DWorld_SetDebugDraw(world, !BLB_Physics3DWorld_GetDebugDraw(world));
 
     BLB_Physics3DWorld_Step(world, dt);
 

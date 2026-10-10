@@ -1,6 +1,7 @@
 #include "bulba/core/math3v/physics2d.h"
 #include "bulba/core/objects2d/square.h"
 #include "bulba/core/scene.h"
+#include "bulba/handlers/keyboard.h"
 #include "test_common.h"
 #include "tests.h"
 
@@ -49,7 +50,8 @@ int BLB_TestPhysicsObjectCount2D(size_t count, BLB_TestObject2DType type) {
     BLB_TestContext_Shutdown(&app);
     return -1;
   }
-  BLB_Physics2DWorld_SetGravity(world, HMM_V2(0.0f, 9.81f));
+
+  BLB_Physics2DWorld_SetGravity(world, HMM_V2(0.0f, -9.81f));
   BLB_Physics2DWorld_SetFixedTimestep(world, 1.0f / 60.0f);
   BLB_Physics2DWorld_SetSubsteps(world, 4);
   BLB_Physics2DWorld_SetLayerCollision(world, 0, 0, true);
@@ -73,7 +75,7 @@ int BLB_TestPhysicsObjectCount2D(size_t count, BLB_TestObject2DType type) {
   const float floor_y = -(height * 0.5f + 2.0f);
   const float floor_width = fmaxf(16.0f, width * 0.6f + 8.0f);
 
-  BLB_Object2D *floor = BLB_CreateSquare2D(HMM_V2(floor_width, 1.0f), HMM_V2(0.0f, -floor_y), NULL, false);
+  BLB_Object2D *floor = BLB_CreateSquare2D(HMM_V2(floor_width, 1.0f), HMM_V2(0.0f, floor_y), NULL, false);
   BLB_RigidBody2D *floor_body = NULL;
   if (!floor || setup_body2d(world, floor, BLB_TEST_OBJECT2D_SQUARE, BLB_PHYSICS2D_STATIC, HMM_V2(floor_width * 0.5f, 0.5f), 0.0f, 0.6f, 0.0f,
                              &floor_body) != 0) {
@@ -157,6 +159,8 @@ int BLB_TestPhysicsObjectCount2D(size_t count, BLB_TestObject2DType type) {
       break;
     if (frame > 0)
       continue;
+    if (BLB_KeyboardPressed(&app.window->handlers, BLB_KEY_F3))
+      BLB_Physics2DWorld_SetDebugDraw(world, !BLB_Physics2DWorld_GetDebugDraw(world));
     BLB_Physics2DWorld_Step(world, delta_time);
     for (size_t i = 0; i < count; ++i) {
       if (!objects[i] || !bodies[i])
