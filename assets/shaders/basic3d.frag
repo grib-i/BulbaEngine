@@ -440,9 +440,6 @@ vec2 cross_skybox_uv(
     }
   }
 
-  if (face != 4u && face != 5u)
-    face_uv.y = 1.0 - face_uv.y;
-
   if (projection == 1u) {
     return vec2(
       (
@@ -1268,7 +1265,7 @@ void main() {
           (2.0 * PI);
 
         float v =
-          0.5 -
+          0.5 +
           asin(
             clamp(
               direction.y,

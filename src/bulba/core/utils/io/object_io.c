@@ -115,7 +115,7 @@ static int BLB_ObjectFile_WriteHeader(FILE *file, BLB_ObjectFileType type) {
   return BLB_ObjectFile_Write(file, &header, sizeof(header), 1);
 }
 
-static int BLB_ObjectFile_ReadHeader(FILE *file, BLB_ObjectFileType expected_type) {
+static int BLB_ObjectFile_ReadHeader(FILE *file, BLB_ObjectFileType expected_type, uint32_t *version) {
   BLB_ObjectFileHeader header;
   char expected_magic[4] = {'B', (char)('0' + expected_type), 'O', '\0'};
 
@@ -125,12 +125,14 @@ static int BLB_ObjectFile_ReadHeader(FILE *file, BLB_ObjectFileType expected_typ
   if (memcmp(header.magic, expected_magic, sizeof(expected_magic)) != 0)
     return -2;
 
-  if (header.version != BLB_OBJECT_FILE_VERSION)
+  if (header.version == 0 || header.version > BLB_OBJECT_FILE_VERSION)
     return -3;
 
   if (header.type != (uint32_t)expected_type)
     return -4;
 
+  if (version)
+    *version = header.version;
   return 0;
 }
 
@@ -1151,7 +1153,7 @@ static int BLB_ObjectFile_Write3DData(FILE *file, const BLB_Object3D *object) {
       BLB_ObjectFile_Write(file, &object->emission, sizeof(object->emission), 1) != 0 ||
       BLB_ObjectFile_Write(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
       BLB_ObjectFile_Write(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_WriteBool(file, object->visible) != 0 ||
-      BLB_ObjectFile_WriteBool(file, object->delta_time != NULL) != 0)
+      BLB_ObjectFile_WriteBool(file, object->camera_attached) != 0 || BLB_ObjectFile_WriteBool(file, object->delta_time != NULL) != 0)
     return -1;
 
   if (object->delta_time && BLB_ObjectFile_Write(file, object->delta_time, sizeof(*object->delta_time), 1) != 0)
@@ -1178,7 +1180,7 @@ static int BLB_ObjectFile_Write3DData(FILE *file, const BLB_Object3D *object) {
   return 0;
 }
 
-static int BLB_ObjectFile_Read3DData(FILE *file, BLB_Object3D *object, BLB_Scene *scene) {
+static int BLB_ObjectFile_Read3DData(FILE *file, BLB_Object3D *object, BLB_Scene *scene, uint32_t version) {
   uint64_t entity_id;
   uint64_t component_mask;
   uint32_t type;
@@ -1193,8 +1195,12 @@ static int BLB_ObjectFile_Read3DData(FILE *file, BLB_Object3D *object, BLB_Scene
       BLB_ObjectFile_Read(file, &object->glow, sizeof(object->glow), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->emission, sizeof(object->emission), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_ReadBool(file, &object->visible) != 0 ||
-      BLB_ObjectFile_ReadBool(file, &delta_time_present) != 0)
+      BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_ReadBool(file, &object->visible) != 0)
+    return -1;
+
+  if (version >= 2 && BLB_ObjectFile_ReadBool(file, &object->camera_attached) != 0)
+    return -1;
+  if (BLB_ObjectFile_ReadBool(file, &delta_time_present) != 0)
     return -1;
 
   if (type > BLB_OBJECT_POLYGON3D)
@@ -1286,6 +1292,7 @@ int BLB_Object3D_Save(const BLB_Object3D *object, const char *path) {
     result |= BLB_ObjectFile_Write(file, &object->roundness, sizeof(object->roundness), 1);
     result |= BLB_ObjectFile_Write(file, &object->layer, sizeof(object->layer), 1);
     result |= BLB_ObjectFile_WriteBool(file, object->visible);
+    result |= BLB_ObjectFile_WriteBool(file, object->camera_attached);
     result |= BLB_ObjectFile_WriteBool(file, object->delta_time != NULL);
 
     BLB_ObjectFile_Log("SAVE", "core", result);
@@ -1365,7 +1372,8 @@ BLB_Object3D *BLB_Object3D_Load(const char *path, BLB_Scene *scene) {
     return NULL;
   }
 
-  int result = BLB_ObjectFile_ReadHeader(file, BLB_OBJECT_FILE_3D);
+  uint32_t object_file_version = 0;
+  int result = BLB_ObjectFile_ReadHeader(file, BLB_OBJECT_FILE_3D, &object_file_version);
   BLB_ObjectFile_Log("LOAD", "header", result);
 
   if (result != 0) {
@@ -1389,7 +1397,7 @@ BLB_Object3D *BLB_Object3D_Load(const char *path, BLB_Scene *scene) {
     return NULL;
   }
 
-  result = BLB_ObjectFile_Read3DData(file, object, scene);
+  result = BLB_ObjectFile_Read3DData(file, object, scene, object_file_version);
   BLB_ObjectFile_Log("LOAD", "data", result);
 
   if (result == 0 && fgetc(file) != EOF) {
@@ -1443,7 +1451,7 @@ static int BLB_ObjectFile_Write2DData(FILE *file, const BLB_Object2D *object) {
       BLB_ObjectFile_Write(file, &object->emission, sizeof(object->emission), 1) != 0 ||
       BLB_ObjectFile_Write(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
       BLB_ObjectFile_Write(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_WriteBool(file, object->visible) != 0 ||
-      BLB_ObjectFile_WriteBool(file, object->screen_space) != 0 || BLB_ObjectFile_WriteBool(file, object->delta_time != NULL) != 0)
+      BLB_ObjectFile_WriteBool(file, object->camera_attached) != 0 || BLB_ObjectFile_WriteBool(file, object->delta_time != NULL) != 0)
     return -1;
 
   if (object->delta_time && BLB_ObjectFile_Write(file, object->delta_time, sizeof(*object->delta_time), 1) != 0)
@@ -1457,7 +1465,7 @@ static int BLB_ObjectFile_Write2DData(FILE *file, const BLB_Object2D *object) {
   return 0;
 }
 
-static int BLB_ObjectFile_Read2DData(FILE *file, BLB_Object2D *object) {
+static int BLB_ObjectFile_Read2DData(FILE *file, BLB_Object2D *object, uint32_t version) {
   uint64_t entity_id;
   uint64_t component_mask;
   uint32_t type;
@@ -1472,8 +1480,22 @@ static int BLB_ObjectFile_Read2DData(FILE *file, BLB_Object2D *object) {
       BLB_ObjectFile_Read(file, &object->glow, sizeof(object->glow), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->emission, sizeof(object->emission), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_ReadBool(file, &object->visible) != 0 ||
-      BLB_ObjectFile_ReadBool(file, &object->screen_space) != 0 || BLB_ObjectFile_ReadBool(file, &delta_time_present) != 0)
+      BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_ReadBool(file, &object->visible) != 0)
+    return -1;
+
+  if (version >= 3) {
+    if (BLB_ObjectFile_ReadBool(file, &object->camera_attached) != 0)
+      return -1;
+  } else {
+    bool legacy_screen_space = false;
+    if (BLB_ObjectFile_ReadBool(file, &legacy_screen_space) != 0)
+      return -1;
+    if (version >= 2 && BLB_ObjectFile_ReadBool(file, &object->camera_attached) != 0)
+      return -1;
+    object->camera_attached = object->camera_attached || legacy_screen_space;
+  }
+
+  if (BLB_ObjectFile_ReadBool(file, &delta_time_present) != 0)
     return -1;
 
   if (type < BLB_OBJECT_SQUARE || type > BLB_OBJECT_TEXT)
@@ -1578,7 +1600,8 @@ BLB_Object2D *BLB_Object2D_Load(const char *path, BLB_Scene *scene) {
     return NULL;
   }
 
-  int result = BLB_ObjectFile_ReadHeader(file, BLB_OBJECT_FILE_2D);
+  uint32_t object_file_version = 0;
+  int result = BLB_ObjectFile_ReadHeader(file, BLB_OBJECT_FILE_2D, &object_file_version);
   BLB_ObjectFile_Log("LOAD", "header", result);
 
   if (result != 0) {
@@ -1602,7 +1625,7 @@ BLB_Object2D *BLB_Object2D_Load(const char *path, BLB_Scene *scene) {
     return NULL;
   }
 
-  result = BLB_ObjectFile_Read2DData(file, object);
+  result = BLB_ObjectFile_Read2DData(file, object, object_file_version);
   BLB_ObjectFile_Log("LOAD", "2d_data", result);
 
   if (result == 0 && fgetc(file) != EOF) {

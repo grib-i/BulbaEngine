@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 int main(void) {
-  BLB_DEBUG = true;
+  BLB_DEBUG = false;
 
   DEBUG_InitStdIO();
   BLB_Init();

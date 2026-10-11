@@ -446,6 +446,9 @@ void BLB_Object3D_SetHandler(BLB_Object3D *object, const BLB_ObjectHandler *hand
 
   *object->handler = *handler;
   object->handler->captured_buttons = 0;
+  object->handler->down_buttons = 0;
+  object->handler->pressed_buttons = 0;
+  object->handler->released_buttons = 0;
   object->handler->hovered = false;
   object->handler->enabled = true;
 }

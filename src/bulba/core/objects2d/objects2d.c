@@ -33,6 +33,14 @@ void BLB_Object2D_SetPosition(BLB_Object2D *object, HMM_Vec2 position) {
   object->position = position;
 }
 
+void BLB_Object2D_SetCameraAttached(BLB_Object2D *object, bool attached) {
+  if (!object)
+    return;
+  object->camera_attached = attached;
+}
+
+bool BLB_Object2D_IsCameraAttached(const BLB_Object2D *object) { return object && object->camera_attached; }
+
 void BLB_Object2D_Rotate(BLB_Object2D *object, float velocity) {
   if (!object)
     return;
@@ -159,6 +167,9 @@ void BLB_Object2D_SetHandler(BLB_Object2D *object, const BLB_ObjectHandler *hand
 
   *object->handler = *handler;
   object->handler->captured_buttons = 0;
+  object->handler->down_buttons = 0;
+  object->handler->pressed_buttons = 0;
+  object->handler->released_buttons = 0;
   object->handler->hovered = false;
   object->handler->enabled = true;
 }

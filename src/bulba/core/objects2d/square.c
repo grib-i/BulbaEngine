@@ -24,7 +24,7 @@ static void BLB_SquareFreePolygon(void) {
   polygon = NULL;
 }
 
-BLB_Object2D *BLB_CreateSquare2D(HMM_Vec2 scale, HMM_Vec2 position, BLB_Texture *texture, bool screen_space) {
+BLB_Object2D *BLB_CreateSquare2D(HMM_Vec2 scale, HMM_Vec2 position, BLB_Texture *texture, bool camera_attached) {
 
   BLB_Object2D *object = calloc(1, sizeof(*object));
 
@@ -111,7 +111,7 @@ BLB_Object2D *BLB_CreateSquare2D(HMM_Vec2 scale, HMM_Vec2 position, BLB_Texture 
 
   object->color = HMM_V4(255.0f, 255.0f, 255.0f, 255.0f);
   object->visible = true;
-  object->screen_space = screen_space;
+  object->camera_attached = camera_attached;
 
   object->entity_id = BLB_INVALID_ENTITY_ID;
 
@@ -125,8 +125,10 @@ BLB_Object2D *BLB_CreateSquare2D(HMM_Vec2 scale, HMM_Vec2 position, BLB_Texture 
   }
 
   object->animation = calloc(1, sizeof(*object->animation));
-  if (object->animation == NULL)
-    goto fail;
+  if (object->animation == NULL) {
+    BLB_DestroySquare2D(object);
+    return NULL;
+  }
 
   BLB_Object2D_Transform(object, position, object->rotation, scale);
 
@@ -169,5 +171,6 @@ void BLB_DestroySquare2D(BLB_Object2D *object) {
 
   free(object->animation);
   free(object->handler);
+  free(object->delta_time);
   free(object);
 }

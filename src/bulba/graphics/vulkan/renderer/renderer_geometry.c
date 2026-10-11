@@ -99,7 +99,7 @@ static void identity_rows(float rows[12]) {
 }
 
 static bool find_cached_geometry_3d(VULKAN *vulkan, const BLB_Polygon3D *polygon, size_t *vertex_start, size_t *index_start) {
-  if (!vulkan || !polygon || !vertex_start || !index_start)
+  if (!vulkan || !polygon || !vertex_start || !index_start || polygon->dynamic_vertices)
     return false;
 
   for (size_t i = 0; i < vulkan->geometry_cache_count; ++i) {
@@ -116,7 +116,7 @@ static bool find_cached_geometry_3d(VULKAN *vulkan, const BLB_Polygon3D *polygon
 }
 
 static void cache_geometry_3d(VULKAN *vulkan, const BLB_Polygon3D *polygon, size_t vertex_start, size_t index_start) {
-  if (!vulkan || !polygon || vulkan->geometry_cache_count >= VULKAN_MAX_GEOMETRY_CACHE_ENTRIES)
+  if (!vulkan || !polygon || polygon->dynamic_vertices || vulkan->geometry_cache_count >= VULKAN_MAX_GEOMETRY_CACHE_ENTRIES)
     return;
 
   vulkan->geometry_cache[vulkan->geometry_cache_count++] = (VULKAN_GeometryCacheEntry){

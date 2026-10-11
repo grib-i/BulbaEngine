@@ -29,6 +29,16 @@ static void focus_cb(GLFWwindow *window, int focused) {
     return;
   handlers->focused = focused != 0;
   handlers->focus_changed = true;
+  if (!handlers->focused) {
+    for (size_t i = 0; i < BLB_HANDLER_KEY_COUNT; ++i) {
+      handlers->keyboard[i].released = handlers->keyboard[i].released || handlers->keyboard[i].down;
+      handlers->keyboard[i].down = false;
+    }
+    for (size_t i = 0; i < BLB_HANDLER_MOUSE_BUTTON_COUNT; ++i) {
+      handlers->mouse_buttons[i].released = handlers->mouse_buttons[i].released || handlers->mouse_buttons[i].down;
+      handlers->mouse_buttons[i].down = false;
+    }
+  }
   BLB_HandlersQueueEvent(handlers,
                          (BLB_HandlerEvent){.type = BLB_EVENT_WINDOW_FOCUS, .data.focus = {.focused = handlers->focused, .time = event_time()}});
 }

@@ -59,7 +59,7 @@ typedef struct BLB_Object2D {
   unsigned short layer;
 
   bool visible;
-  bool screen_space;
+  bool camera_attached;
 
   BLB_ObjectHandler *handler;
   void *optimization_instance_group;
@@ -68,6 +68,8 @@ typedef struct BLB_Object2D {
 void BLB_Object2D_Move(BLB_Object2D *object, HMM_Vec2 velocity);
 
 void BLB_Object2D_SetPosition(BLB_Object2D *object, HMM_Vec2 position);
+void BLB_Object2D_SetCameraAttached(BLB_Object2D *object, bool attached);
+bool BLB_Object2D_IsCameraAttached(const BLB_Object2D *object);
 
 void BLB_Object2D_Rotate(BLB_Object2D *object, float angular_velocity);
 

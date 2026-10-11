@@ -1,12 +1,12 @@
 #include "bulba/core/objects2d/audio2d.h"
 #include "bulba/core/objects2d/square.h"
-#include "bulba/core/render/material.h"
 #include "bulba/core/utils/audio.h"
 #include "bulba/core/utils/config.h"
 
 #include "volume_off_256dp.h"
 #include "volume_up_256dp.h"
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -57,21 +57,20 @@ BLB_Audio2D *BLB_LoadAudio2D(BLB_IO_Audio *io_audio, const char *path, bool play
     return NULL;
   }
 
-  audio->result = malloc(sizeof(ma_result));
+  audio->result = malloc(sizeof(*audio->result));
   if (!audio->result) {
+    free(audio->sound);
     free(audio);
     return NULL;
   }
 
-  audio->io_audio = malloc(sizeof(BLB_IO_Audio));
-  if (!io_audio) {
-    free(audio);
-    return NULL;
-  }
+  // The audio engine is borrowed; this object must not allocate or free a copy.
   audio->io_audio = io_audio;
 
   audio->path = strdup(path);
   if (!audio->path) {
+    free(audio->result);
+    free(audio->sound);
     free(audio);
     return NULL;
   }
@@ -89,18 +88,26 @@ BLB_Audio2D *BLB_LoadAudio2D(BLB_IO_Audio *io_audio, const char *path, bool play
 
   if (result != MA_SUCCESS) {
     free(audio->path);
+    free(audio->result);
+    free(audio->sound);
     free(audio);
     return NULL;
   }
 
-  audio->obj = BLB_CreateSquare2D(HMM_V2(1.0f, 1.0f), position, NULL, BLB_TEXMAP_STRETCH);
+  audio->obj = BLB_CreateSquare2D(HMM_V2(1.0f, 1.0f), position, NULL, false);
   if (!audio->obj) {
+    ma_sound_uninit(audio->sound);
     free(audio->path);
+    free(audio->result);
+    free(audio->sound);
     free(audio);
     return NULL;
   }
 
   audio->obj->visible = false;
+
+  BLB_ConfigureAudio(audio);
+  audio->play = play && ma_sound_start(audio->sound) == MA_SUCCESS;
 
   if (BLB_DEBUG) {
     audio->audio_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_volume_up_256dp_width, BLB_TEXTURE_volume_up_256dp_height,
@@ -109,11 +116,10 @@ BLB_Audio2D *BLB_LoadAudio2D(BLB_IO_Audio *io_audio, const char *path, bool play
     audio->audio_off_debug_texture = BLB_Texture_Create2D(BLB_TEXTURE_volume_off_256dp_width, BLB_TEXTURE_volume_off_256dp_height,
                                                           BLB_TEXTURE_volume_off_256dp_pixels, BLB_TEXTURE_volume_off_256dp_pixel_size);
 
-    BLB_Object2D_SetTexture(audio->obj, play ? audio->audio_debug_texture : audio->audio_off_debug_texture);
+    BLB_Object2D_SetTexture(audio->obj, audio->play ? audio->audio_debug_texture : audio->audio_off_debug_texture);
     audio->obj->visible = true;
   }
 
-  BLB_ConfigureAudio(audio);
   return audio;
 }
 
@@ -123,8 +129,18 @@ void BLB_DestroyAudio2D(BLB_IO_Audio *io_audio, BLB_Audio2D *audio) {
   if (!audio)
     return;
 
-  ma_sound_uninit(audio->sound);
+  if (audio->sound) {
+    ma_sound_uninit(audio->sound);
+    free(audio->sound);
+  }
+  if (audio->obj)
+    BLB_DestroySquare2D(audio->obj);
+  if (audio->audio_debug_texture)
+    BLB_Texture_Release(audio->audio_debug_texture);
+  if (audio->audio_off_debug_texture)
+    BLB_Texture_Release(audio->audio_off_debug_texture);
 
+  free(audio->result);
   free(audio->path);
   free(audio);
 }
@@ -159,7 +175,7 @@ void BLB_SetPosition_Audio2D(BLB_Audio2D *audio, HMM_Vec2 position) {
   if (!audio)
     return;
 
-  audio->obj->position = position;
+  BLB_Object2D_SetPosition(audio->obj, position);
 
   ma_sound_set_position(audio->sound, position.x, position.y, 0.0f);
 }
@@ -176,7 +192,11 @@ void BLB_SetRotation_Audio2D(BLB_Audio2D *audio, HMM_Vec2 rotation) {
     return;
 
   ma_sound_set_direction(audio->sound, rotation.x, rotation.y, 0.0f);
-  BLB_Object2D_Rotate(audio->obj, rotation.x - rotation.y);
+
+  // The direction vector determines an absolute facing angle; this is a
+  // setter, not angular velocity, so do not apply delta_time or accumulate it.
+  if (HMM_LenV2(rotation) > 1e-7f)
+    BLB_Object2D_SetRotation(audio->obj, atan2f(rotation.y, rotation.x) * (180.0f / HMM_PI));
 }
 
 void BLB_SetAttenuation_Audio2D(BLB_Audio2D *audio, float attenuation) {

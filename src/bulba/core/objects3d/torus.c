@@ -345,5 +345,6 @@ void BLB_DestroyTorus3D(BLB_Object3D *object) {
   object->geometry_id = 0;
 
   free(object->handler);
+  free(object->delta_time);
   free(object);
 }

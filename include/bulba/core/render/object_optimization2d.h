@@ -19,7 +19,7 @@ typedef struct BLB_RenderInstances2DGroup {
   unsigned short layer;
   BLB_RenderMode render_mode;
   unsigned char color[4];
-  bool screen_space;
+  bool camera_attached;
   bool enabled;
   bool rendered;
   BLB_RenderInstanceData *batch;

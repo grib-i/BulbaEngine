@@ -45,7 +45,7 @@ static size_t circle_get_segments(int level_of_detail) {
   return lod_segments[index];
 }
 
-BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of_detail, BLB_Texture *texture, bool screen_space) {
+BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of_detail, BLB_Texture *texture, bool camera_attached) {
   BLB_Object2D *object = calloc(1, sizeof(*object));
 
   if (object == NULL)
@@ -153,7 +153,7 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
 
   object->color = HMM_V4(255.0f, 255.0f, 255.0f, 255.0f);
   object->visible = true;
-  object->screen_space = screen_space;
+  object->camera_attached = camera_attached;
 
   object->entity_id = BLB_INVALID_ENTITY_ID;
 
@@ -167,8 +167,10 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
   }
 
   object->animation = calloc(1, sizeof(*object->animation));
-  if (object->animation == NULL)
-    goto fail;
+  if (object->animation == NULL) {
+    BLB_DestroyCircle2D(object);
+    return NULL;
+  }
 
   BLB_Object2D_Transform(object, position, object->rotation, scale);
 
@@ -211,5 +213,6 @@ void BLB_DestroyCircle2D(BLB_Object2D *object) {
 
   free(object->animation);
   free(object->handler);
+  free(object->delta_time);
   free(object);
 }

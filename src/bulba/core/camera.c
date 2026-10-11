@@ -28,6 +28,9 @@ BLB_Camera *BLB_CreateCamera(HMM_Vec3 p) {
 }
 
 void BLB_DestroyCamera(BLB_Camera *c) {
+  if (!c)
+    return;
+  free(c->delta_time);
   free(c->camera_cache);
   free(c);
 }

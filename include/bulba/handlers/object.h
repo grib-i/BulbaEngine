@@ -9,7 +9,18 @@
 struct BLB_Object2D;
 struct BLB_Object3D;
 
-typedef enum { BLB_OBJECT_HANDLER_CLICK = 0, BLB_OBJECT_HANDLER_HOLD = 1 } BLB_ObjectHandlerEventType;
+typedef enum {
+  BLB_OBJECT_HANDLER_CLICK = 0,
+  BLB_OBJECT_HANDLER_HOLD = 1,
+  BLB_OBJECT_HANDLER_PRESS = 2,
+  BLB_OBJECT_HANDLER_RELEASE = 3,
+  BLB_OBJECT_HANDLER_HOVER_ENTER = 4,
+  BLB_OBJECT_HANDLER_HOVER_LEAVE = 5,
+  BLB_OBJECT_HANDLER_DRAG_START = 6,
+  BLB_OBJECT_HANDLER_DRAG = 7,
+  BLB_OBJECT_HANDLER_DRAG_END = 8,
+  BLB_OBJECT_HANDLER_CANCEL = 9
+} BLB_ObjectHandlerEventType;
 
 typedef enum { BLB_OBJECT_HANDLER_2D = 1, BLB_OBJECT_HANDLER_3D = 2 } BLB_ObjectHandlerObjectType;
 
@@ -36,6 +47,9 @@ typedef struct {
   double mouse_dy;
 
   HMM_Vec2 world_position;
+  HMM_Vec2 screen_position;
+  HMM_Vec3 world_point;
+  HMM_Vec3 local_position;
 
   HMM_Vec3 ray_origin;
   HMM_Vec3 ray_direction;
@@ -49,6 +63,11 @@ typedef struct {
   bool hovered;
   bool captured;
   bool inside;
+  bool button_pressed;
+  bool button_down;
+  bool button_released;
+  bool dragging;
+  double hold_duration;
 } BLB_ObjectEvent;
 
 typedef void (*BLB_ObjectHandlerCallback)(const BLB_ObjectEvent *event, void *userdata);
@@ -56,6 +75,14 @@ typedef void (*BLB_ObjectHandlerCallback)(const BLB_ObjectEvent *event, void *us
 typedef struct {
   BLB_ObjectHandlerCallback on_click;
   BLB_ObjectHandlerCallback on_hold;
+  BLB_ObjectHandlerCallback on_press;
+  BLB_ObjectHandlerCallback on_release;
+  BLB_ObjectHandlerCallback on_hover_enter;
+  BLB_ObjectHandlerCallback on_hover_leave;
+  BLB_ObjectHandlerCallback on_drag_start;
+  BLB_ObjectHandlerCallback on_drag;
+  BLB_ObjectHandlerCallback on_drag_end;
+  BLB_ObjectHandlerCallback on_cancel;
 
   void *userdata;
 
@@ -65,12 +92,20 @@ typedef struct {
   HMM_Vec3 object_bounds_max;
 
   uint16_t captured_buttons;
+  uint16_t down_buttons;
+  uint16_t pressed_buttons;
+  uint16_t released_buttons;
 
   bool hovered;
   bool enabled;
 } BLB_ObjectHandler;
 
 void BLB_ObjectHandlerInit(BLB_ObjectHandler *handler);
+bool BLB_ObjectHandlerIsHovered(const BLB_ObjectHandler *handler);
+bool BLB_ObjectHandlerIsDown(const BLB_ObjectHandler *handler, int button);
+bool BLB_ObjectHandlerWasPressed(const BLB_ObjectHandler *handler, int button);
+bool BLB_ObjectHandlerWasReleased(const BLB_ObjectHandler *handler, int button);
+bool BLB_ObjectHandlerIsCaptured(const BLB_ObjectHandler *handler, int button);
 BLB_ObjectEvent BLB_ObjectEventZero(void);
 
 #endif

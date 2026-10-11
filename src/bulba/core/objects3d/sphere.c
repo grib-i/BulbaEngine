@@ -287,5 +287,6 @@ void BLB_DestroySphere3D(BLB_Object3D *object) {
   }
 
   free(object->handler);
+  free(object->delta_time);
   free(object);
 }

@@ -148,6 +148,8 @@ void BLB_DestroyScene(BLB_Scene *scene) {
   free(scene->particles2d);
   free(scene->particle_systems3d);
   free(scene->particle_systems2d);
+  free(scene->audio3d);
+  free(scene->audio2d);
 
   free(scene->name);
   free(scene);
@@ -233,7 +235,8 @@ int BLB_AddObject3D(BLB_Scene *scene, BLB_Object3D *object) {
   if (object->entity_id == BLB_INVALID_ENTITY_ID)
     object->entity_id = scene->next_entity_id++;
 
-  object->delta_time = &scene->delta_time;
+  if (object->delta_time)
+    *object->delta_time = scene->delta_time;
 
   ADD_ITEM(scene->objects3d, scene->object3d_count, BLB_Object3D, object);
 }
@@ -245,7 +248,8 @@ int BLB_AddObject2D(BLB_Scene *scene, BLB_Object2D *object) {
   if (object->entity_id == BLB_INVALID_ENTITY_ID)
     object->entity_id = scene->next_entity_id++;
 
-  object->delta_time = &scene->delta_time;
+  if (object->delta_time)
+    *object->delta_time = scene->delta_time;
 
   ADD_ITEM(scene->objects2d, scene->object2d_count, BLB_Object2D, object);
 }
@@ -257,7 +261,8 @@ int BLB_AddText2D(BLB_Scene *scene, BLB_Text2D *text) {
   if (text->entity_id == BLB_INVALID_ENTITY_ID)
     text->entity_id = scene->next_entity_id++;
 
-  text->delta_time = &scene->delta_time;
+  if (text->delta_time)
+    *text->delta_time = scene->delta_time;
 
   ADD_ITEM(scene->text2d, scene->text2d_count, BLB_Text2D, text);
 }
@@ -269,7 +274,8 @@ int BLB_AddLight3D(BLB_Scene *scene, BLB_Light3D *light) {
   if (light->object->entity_id == BLB_INVALID_ENTITY_ID)
     light->object->entity_id = scene->next_entity_id++;
 
-  light->object->delta_time = &scene->delta_time;
+  if (light->object->delta_time)
+    *light->object->delta_time = scene->delta_time;
 
   ADD_ITEM(scene->lights3d, scene->light3d_count, BLB_Light3D, light);
 }
@@ -281,7 +287,8 @@ int BLB_AddLight2D(BLB_Scene *scene, BLB_Light2D *light) {
   if (light->object->entity_id == BLB_INVALID_ENTITY_ID)
     light->object->entity_id = scene->next_entity_id++;
 
-  light->object->delta_time = &scene->delta_time;
+  if (light->object->delta_time)
+    *light->object->delta_time = scene->delta_time;
 
   ADD_ITEM(scene->lights2d, scene->light2d_count, BLB_Light2D, light);
 }

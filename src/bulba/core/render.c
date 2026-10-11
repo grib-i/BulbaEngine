@@ -30,6 +30,10 @@
 #define BLB_GLOW_STEPS_2D 8
 #endif
 
+#ifndef BLB_OBJECT2D_CAMERA_SPACE_DEPTH
+#define BLB_OBJECT2D_CAMERA_SPACE_DEPTH 1.0f
+#endif
+
 typedef struct {
   float base_color[4];
   float emission;
@@ -275,6 +279,9 @@ static BLB_RenderMode get_render_mode(void *object, int type) {
   if (type == 1 || type == 4 || type == 5)
     return object2d_render_mode((BLB_Object2D *)object);
 
+  if (type == 2)
+    return text2d_render_mode((BLB_Text2D *)object);
+
   return BLB_RENDER_OPAQUE;
 }
 
@@ -287,6 +294,9 @@ static int get_render_layer(void *object, int type) {
 
   if (type == 1 || type == 4 || type == 5)
     return ((BLB_Object2D *)object)->layer;
+
+  if (type == 2)
+    return ((BLB_Text2D *)object)->layer;
 
   return 0;
 }
@@ -588,6 +598,22 @@ static void build_model(HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale, HM
   *model = HMM_MulM4(HMM_Translate(position), HMM_MulM4(rotation_matrix, HMM_Scale(scale)));
 }
 
+static HMM_Mat4 object3d_model_matrix(const BLB_Object3D *object, const BLB_CameraCache *camera_cache, float scale_mul) {
+  HMM_Mat4 model = HMM_M4D(1.0f);
+
+  if (!object)
+    return model;
+
+  build_model(object->position, object->rotation, HMM_MulV3F(object->scale, scale_mul), &model);
+
+  if (object->camera_attached && camera_cache && camera_cache->valid) {
+    HMM_Mat4 camera_world = HMM_InvGeneralM4(camera_cache->view);
+    model = HMM_MulM4(camera_world, model);
+  }
+
+  return model;
+}
+
 static void extract_matrix_rows(const HMM_Mat4 *matrix, float rows[12]) {
   rows[0] = matrix->Elements[0][0];
   rows[1] = matrix->Elements[1][0];
@@ -805,6 +831,12 @@ static bool object2d_visible_to_camera(const BLB_Object2D *object, const BLB_Cam
   if (!object || !object->visible || !polygon || !polygon->vertices || polygon->vertex_count == 0)
     return false;
 
+  (void)viewport_width;
+  (void)viewport_height;
+
+  if (object->camera_attached)
+    return camera_cache && camera_cache->valid;
+
   if (!BLB_OBJECT_CULLING)
     return true;
 
@@ -819,7 +851,7 @@ static bool object2d_visible_to_camera(const BLB_Object2D *object, const BLB_Cam
 
   radius *= fmaxf(fabsf(object->scale.x), fabsf(object->scale.y));
 
-  if (BLB_OBJECT_DISTANCE_CULLING && BLB_OBJECT_MAX_RENDER_DISTANCE > 0.0f && !object->screen_space) {
+  if (BLB_OBJECT_DISTANCE_CULLING && BLB_OBJECT_MAX_RENDER_DISTANCE > 0.0f) {
     float dx = object->position.x - camera_position.x;
     float dy = object->position.y - camera_position.y;
     float distance = sqrtf(dx * dx + dy * dy);
@@ -830,14 +862,6 @@ static bool object2d_visible_to_camera(const BLB_Object2D *object, const BLB_Cam
 
   if (!BLB_OBJECT_FRUSTUM_CULLING)
     return true;
-
-  if (object->screen_space) {
-    float margin = 1.0f + fmaxf(BLB_OBJECT_CULLING_MARGIN, 0.0f);
-    float r = radius * margin;
-
-    return object->position.x + r >= 0.0f && object->position.x - r <= viewport_width && object->position.y + r >= 0.0f &&
-           object->position.y - r <= viewport_height;
-  }
 
   return view_space_sphere_visible(camera_cache, HMM_V3(object->position.x, object->position.y, 0.0f), radius, BLB_OBJECT_CULLING_MARGIN);
 }
@@ -870,6 +894,9 @@ static bool cached_object2d_visible(BLB_RenderVisibilityCache *cache, BLB_Object
   if (!object || !object->visible)
     return false;
 
+  if (object->camera_attached)
+    return object2d_visible_to_camera(object, camera_cache, camera_position, viewport_width, viewport_height);
+
   if (!cache || (!BLB_OBJECT_CULLING && !BLB_OBJECT_FRUSTUM_CULLING && !BLB_OBJECT_DISTANCE_CULLING))
     return object->visible;
 
@@ -879,7 +906,7 @@ static bool cached_object2d_visible(BLB_RenderVisibilityCache *cache, BLB_Object
   if (!BLB_RenderVisibilityCache_Get(cache, BLB_VISIBILITY_OBJECT_2D, object, 0, &visible, &distance)) {
     visible = object2d_visible_to_camera(object, camera_cache, camera_position, viewport_width, viewport_height);
 
-    if (object->screen_space) {
+    if (object->camera_attached) {
       distance = 0.0f;
     } else {
       float dx = object->position.x - camera_position.x;
@@ -1139,6 +1166,26 @@ static BLB_RenderMaterial renderer_material_from_state(const BLB_RenderMaterialS
   return result;
 }
 
+static void renderer_material_force_overlay(BLB_RenderMaterial *material) {
+  if (!material)
+    return;
+
+  material->lighting_enabled = false;
+  material->unlit = true;
+  material->depth_enabled = false;
+  material->depth_write = false;
+}
+
+static float object3d_lod_distance(const BLB_Object3D *object, HMM_Vec3 camera_position) {
+  if (!object)
+    return 0.0f;
+
+  if (object->camera_attached)
+    return HMM_LenV3(object->position);
+
+  return HMM_LenV3(HMM_SubV3(object->position, camera_position));
+}
+
 static const BLB_Polygon3D *resolve_object_polygon3d(BLB_Object3D *object, HMM_Vec3 camera_position) {
   if (!object || !object->polygon)
     return NULL;
@@ -1146,7 +1193,7 @@ static const BLB_Polygon3D *resolve_object_polygon3d(BLB_Object3D *object, HMM_V
   if (object->type == BLB_OBJECT_CUSTOM_MODEL)
     return object->polygon;
 
-  float distance = HMM_LenV3(HMM_SubV3(object->position, camera_position));
+  float distance = object3d_lod_distance(object, camera_position);
   int level = BLB_Object3D_ResolveLODLevel(object, distance);
 
   if (level > 0)
@@ -1239,16 +1286,7 @@ static void draw_object3d_pass(BLB_Object3D *object, const BLB_Polygon3D *polygo
     return;
 
   (void)camera_position;
-  HMM_Vec3 pass_scale = HMM_MulV3F(object->scale, scale_mul);
-  HMM_Mat4 model;
-  build_model(object->position, object->rotation, pass_scale, &model);
-  if (object->camera_attached) {
-    /* object transform becomes a local offset from the camera. Inverting the
-     * view matrix yields the camera world transform, so the standard MVP path
-     * still handles depth and all normal material/render-layer behaviour. */
-    HMM_Mat4 camera_world = HMM_InvGeneralM4(camera_cache->view);
-    model = HMM_MulM4(camera_world, model);
-  }
+  HMM_Mat4 model = object3d_model_matrix(object, camera_cache, scale_mul);
   HMM_Mat4 mvp = HMM_MulM4(camera_cache->projection, HMM_MulM4(camera_cache->view, model));
   float model_rows[12];
   extract_matrix_rows(&model, model_rows);
@@ -1415,30 +1453,50 @@ static void draw_object3d(BLB_Object3D *object, BLB_Renderer *renderer, const BL
   draw_object3d_with_state(object, polygon, renderer, camera_cache, camera_position, &state);
 }
 
-static bool append_instance_data2d(BLB_RenderInstanceData *dst, const BLB_Object2D *object) {
+static bool append_instance_data2d(BLB_RenderInstanceData *dst, const BLB_Object2D *object, const BLB_CameraCache *camera_cache) {
   if (!dst || !object)
     return false;
 
   const float angle = HMM_AngleDeg(object->rotation);
   const float c = cosf(angle);
   const float s = sinf(angle);
-  const float sx = object->scale.x;
-  const float sy = object->scale.y;
+  HMM_Mat4 model = HMM_M4D(1.0f);
+  model.Elements[0][0] = c * object->scale.x;
+  model.Elements[0][1] = s * object->scale.x;
+  model.Elements[1][0] = -s * object->scale.y;
+  model.Elements[1][1] = c * object->scale.y;
+  model.Elements[3][0] = object->position.x;
+  model.Elements[3][1] = object->position.y;
+  model.Elements[3][2] = object->camera_attached ? -BLB_OBJECT2D_CAMERA_SPACE_DEPTH : 0.0f;
+
+  if (object->camera_attached) {
+    if (!camera_cache || !camera_cache->valid)
+      return false;
+    model = HMM_MulM4(HMM_InvGeneralM4(camera_cache->view), model);
+  }
 
   memset(dst, 0, sizeof(*dst));
-  dst->model[0] = c * sx;
-  dst->model[1] = s * sx;
-  dst->model[5] = c * sy;
-  dst->model[4] = -s * sy;
-  dst->model[10] = 1.0f;
-  dst->model[15] = 1.0f;
-  dst->model[12] = object->position.x;
-  dst->model[13] = object->position.y;
+  memcpy(dst->model, model.Elements, sizeof(dst->model));
   dst->color[0] = object->color.x / 255.0f;
   dst->color[1] = object->color.y / 255.0f;
   dst->color[2] = object->color.z / 255.0f;
   dst->color[3] = object->color.w / 255.0f;
   dst->entity_id = (uint32_t)object->entity_id;
+  return true;
+}
+
+static bool instanced_group2d_matches_attached(const BLB_RenderInstances2DGroup *group, bool camera_attached) {
+  if (!group || !group->enabled || group->camera_attached != camera_attached)
+    return false;
+  if (group->object_count < (size_t)(BLB_OBJECT_2D_INSTANCING_MIN_OBJECTS > 1 ? BLB_OBJECT_2D_INSTANCING_MIN_OBJECTS : 2))
+    return false;
+
+  for (size_t i = 0; i < group->object_count; ++i) {
+    BLB_Object2D *object = group->objects[i];
+    if (object && object->camera_attached != camera_attached)
+      return false;
+  }
+
   return true;
 }
 
@@ -1452,12 +1510,19 @@ static void draw_instanced_group2d(BLB_RenderInstances2DGroup *group, BLB_Render
   if (!source || !polygon || !source->material)
     return;
 
+  uint32_t viewport_width_u = 0;
+  uint32_t viewport_height_u = 0;
+  BLB_RendererGetViewport(renderer, &viewport_width_u, &viewport_height_u);
+  float width = (float)viewport_width_u;
+  float height = (float)viewport_height_u;
+
   size_t max_batch = BLB_OBJECT_INSTANCING_MAX_INSTANCES > 0 ? (size_t)BLB_OBJECT_INSTANCING_MAX_INSTANCES : 1u;
 
   if (max_batch > group->object_count)
     max_batch = group->object_count;
-
-  if (!group->batch || group->batch_capacity < max_batch)
+  if (group->batch_capacity < max_batch)
+    max_batch = group->batch_capacity;
+  if (!group->batch || max_batch == 0)
     return;
 
   BLB_RenderInstanceData *batch = group->batch;
@@ -1466,15 +1531,12 @@ static void draw_instanced_group2d(BLB_RenderInstances2DGroup *group, BLB_Render
   BLB_RenderMaterial material = renderer_material_from_state(&state, true);
   material.base_texture_override = source->texture;
 
-  uint32_t viewport_width_u = 0;
-  uint32_t viewport_height_u = 0;
-  BLB_RendererGetViewport(renderer, &viewport_width_u, &viewport_height_u);
-  float width = (float)viewport_width_u;
-  float height = (float)viewport_height_u;
   size_t count = 0;
 
   for (size_t i = 0; i < group->object_count; ++i) {
     BLB_Object2D *object = group->objects[i];
+    if (!object || !object->visible)
+      continue;
 
     if (BLB_OBJECT_CULLING || BLB_OBJECT_FRUSTUM_CULLING || BLB_OBJECT_DISTANCE_CULLING) {
       if (!cached_object2d_visible(scene->visibility_cache, object, camera_cache, scene->camera ? scene->camera->position : HMM_V3(0, 0, 0), width,
@@ -1483,15 +1545,16 @@ static void draw_instanced_group2d(BLB_RenderInstances2DGroup *group, BLB_Render
     }
 
     if (count == max_batch) {
-      BLB_RendererDrawBatchedPolygon2D(renderer, polygon, width, height, &material, source->texture, batch, count, group->screen_space);
+      BLB_RendererDrawInstancedPolygon2D(renderer, polygon, width, height, &material, source->texture, batch, count, false);
       count = 0;
     }
 
-    append_instance_data2d(&batch[count++], object);
+    if (append_instance_data2d(&batch[count], object, camera_cache))
+      ++count;
   }
 
   if (count > 0)
-    BLB_RendererDrawBatchedPolygon2D(renderer, polygon, width, height, &material, source->texture, batch, count, group->screen_space);
+    BLB_RendererDrawInstancedPolygon2D(renderer, polygon, width, height, &material, source->texture, batch, count, false);
 }
 
 static HMM_Vec3 safe_normalize_local(HMM_Vec3 value, HMM_Vec3 fallback) {
@@ -1524,6 +1587,8 @@ static void draw_particle2d(BLB_Particle2D *particle, BLB_Renderer *renderer, fl
   BLB_RenderMaterial material = renderer_material_from_state(&state, false);
   material.particle = true;
   material.base_texture_override = particle->texture;
+  if (particle->screen_space)
+    renderer_material_force_overlay(&material);
 
   BLB_RenderInstanceData instance = {0};
   HMM_Mat4 rotation = HMM_Rotate_RH(HMM_AngleDeg(particle->rotation), HMM_V3(0, 0, 1));
@@ -1760,6 +1825,8 @@ static void draw_particle_system2d(BLB_ParticleSystem2D *system, BLB_Renderer *r
   BLB_RenderMaterial material = renderer_material_from_state(&state, false);
   material.base_texture_override = system->texture ? system->texture : first->texture;
   material.particle = true;
+  if (system->screen_space)
+    renderer_material_force_overlay(&material);
 
   size_t max_batch = BLB_PARTICLE_INSTANCING_MAX_INSTANCES > 0 ? (size_t)BLB_PARTICLE_INSTANCING_MAX_INSTANCES : 1u;
   if (max_batch > visible_count)
@@ -1809,6 +1876,9 @@ static void draw_object2d_pass(BLB_Object2D *object, BLB_Renderer *renderer, con
   if (!object || !renderer || !polygon || !state)
     return;
 
+  if ((object->camera_attached) && (!camera_cache || !camera_cache->valid))
+    return;
+
   BLB_RenderMaterialState pass = *state;
   const bool glow_pass = glow_mul < 0.9999f;
 
@@ -1829,6 +1899,7 @@ static void draw_object2d_pass(BLB_Object2D *object, BLB_Renderer *renderer, con
   }
 
   BLB_RenderMaterial material = renderer_material_from_state(&pass, !glow_pass);
+
   const size_t count = polygon->vertex_count;
 
   if (count == 0)
@@ -1850,10 +1921,11 @@ static void draw_object2d_pass(BLB_Object2D *object, BLB_Renderer *renderer, con
   const float c = cosf(angle);
   const float s = sinf(angle);
 
-  const HMM_Mat4 *vp = NULL;
+  const HMM_Mat4 *vp = camera_cache && camera_cache->valid ? &camera_cache->view_projection : NULL;
+  HMM_Mat4 camera_world = HMM_M4D(1.0f);
 
-  if (!object->screen_space && camera_cache && camera_cache->valid)
-    vp = &camera_cache->view_projection;
+  if (object->camera_attached)
+    camera_world = HMM_InvGeneralM4(camera_cache->view);
 
   BLB_Texture *texture = object->texture;
 
@@ -1871,10 +1943,21 @@ static void draw_object2d_pass(BLB_Object2D *object, BLB_Renderer *renderer, con
     const float y = polygon->vertices[i].y * object->scale.y * scale_mul;
     const float transformed_x = x * c - y * s;
     const float transformed_y = x * s + y * c;
-    const float world_x = object->position.x + transformed_x;
-    const float world_y = object->position.y + transformed_y;
+    const float local_x = object->position.x + transformed_x;
+    const float local_y = object->position.y + transformed_y;
 
-    world_positions[i] = HMM_V2(world_x, world_y);
+    HMM_Vec4 world_position = (object->camera_attached) ? HMM_MulM4V4(camera_world, HMM_V4(local_x, local_y, -BLB_OBJECT2D_CAMERA_SPACE_DEPTH, 1.0f))
+                                                        : HMM_V4(local_x, local_y, 0.0f, 1.0f);
+
+    if (fabsf(world_position.w) > 0.000001f && fabsf(world_position.w - 1.0f) > 0.000001f) {
+      const float inv_w = 1.0f / world_position.w;
+      world_position.x *= inv_w;
+      world_position.y *= inv_w;
+      world_position.z *= inv_w;
+      world_position.w = 1.0f;
+    }
+
+    world_positions[i] = HMM_V2(world_position.x, world_position.y);
 
     if (has_uvs) {
       uvs[i] = polygon->uvs[i];
@@ -1883,12 +1966,11 @@ static void draw_object2d_pass(BLB_Object2D *object, BLB_Renderer *renderer, con
         uvs[i].y = 1.0f - uvs[i].y;
     }
 
-    if (object->screen_space || !vp) {
-      vertices[i] = HMM_V2(world_x, world_y);
+    if (!vp) {
+      vertices[i] = HMM_V2(local_x, local_y);
       continue;
     }
 
-    HMM_Vec4 world_position = HMM_V4(world_x, world_y, 0.0f, 1.0f);
     HMM_Vec4 clip = HMM_MulM4V4(*vp, world_position);
 
     if (fabsf(clip.w) <= 0.000001f) {
@@ -2046,7 +2128,7 @@ static void draw_instanced_group3d(BLB_RenderInstances3DGroup *group, BLB_Render
 
   BLB_Object3D *source = NULL;
   for (size_t i = 0; i < group->object_count; ++i) {
-    if (group->objects[i] && group->objects[i]->visible) {
+    if (group->objects[i] && group->objects[i]->visible && !group->objects[i]->camera_attached) {
       source = group->objects[i];
       break;
     }
@@ -2093,7 +2175,7 @@ static void draw_instanced_group3d(BLB_RenderInstances3DGroup *group, BLB_Render
 
   for (size_t i = 0; i < group->object_count; ++i) {
     BLB_Object3D *object = group->objects[i];
-    if (!object || !object->visible)
+    if (!object || !object->visible || object->camera_attached)
       continue;
 
     update_object_motion_state(object, scene);
@@ -2175,7 +2257,7 @@ static void draw_instanced_group3d_shadow(BLB_RenderInstances3DGroup *group, BLB
 
   BLB_Object3D *source = NULL;
   for (size_t i = 0; i < group->object_count; ++i) {
-    if (group->objects[i] && group->objects[i]->visible) {
+    if (group->objects[i] && group->objects[i]->visible && !group->objects[i]->camera_attached) {
       source = group->objects[i];
       break;
     }
@@ -2211,7 +2293,7 @@ static void draw_instanced_group3d_shadow(BLB_RenderInstances3DGroup *group, BLB
   size_t count = 0;
   for (size_t i = 0; i < group->object_count; ++i) {
     BLB_Object3D *object = group->objects[i];
-    if (!object || !object->visible)
+    if (!object || !object->visible || object->camera_attached)
       continue;
 
     bool dynamic = object_should_use_instance_path(object);
@@ -2276,10 +2358,22 @@ static int select_aggregated_lod3d(const BLB_RenderObjects3DCluster *cluster, HM
   return level;
 }
 
+static bool cluster_has_camera_attached_object(const BLB_RenderObjects3DCluster *cluster) {
+  if (!cluster || !cluster->objects)
+    return false;
+
+  for (size_t i = 0; i < cluster->object_count; ++i) {
+    if (cluster->objects[i] && cluster->objects[i]->camera_attached)
+      return true;
+  }
+
+  return false;
+}
+
 static void draw_aggregated_cluster3d(BLB_RenderObjects3DCluster *cluster, BLB_Renderer *renderer, const BLB_CameraCache *camera_cache,
                                       BLB_Scene *scene) {
-  if (!cluster || cluster->dirty || !cluster->mesh || !renderer || !camera_cache || !camera_cache->valid || !scene || !scene->camera ||
-      cluster->object_count == 0)
+  if (!cluster || cluster->dirty || !cluster->mesh || cluster_has_camera_attached_object(cluster) || !renderer || !camera_cache ||
+      !camera_cache->valid || !scene || !scene->camera || cluster->object_count == 0)
     return;
 
   if (!cluster_visible_to_camera(cluster, camera_cache, scene->camera->position))
@@ -2325,15 +2419,16 @@ static uint64_t render_object3d_generation(BLB_Object3D **objects, size_t count)
   uint64_t hash = UINT64_C(1469598103934665603);
   for (size_t i = 0; i < count; ++i) {
     BLB_Object3D *object = objects ? objects[i] : NULL;
-    uintptr_t values[6] = {
+    uintptr_t values[7] = {
         (uintptr_t)object,
         (uintptr_t)(object ? object->polygon : NULL),
         (uintptr_t)(object ? object->material : NULL),
         (uintptr_t)(object ? object->texture : NULL),
         object ? object->geometry_id : 0,
         (BLB_OBJECT_AGGREGATION_REBUILD_ON_TRANSFORM_CHANGE && object) ? object->transform_revision : 0,
+        object ? (uintptr_t)object->camera_attached : 0,
     };
-    for (size_t j = 0; j < 6; ++j) {
+    for (size_t j = 0; j < 7; ++j) {
       hash ^= (uint64_t)values[j];
       hash *= UINT64_C(1099511628211);
     }
@@ -2488,7 +2583,7 @@ static void audio2d_play(BLB_Audio2D *audio2d) {
 }
 
 static void audio3d_surround_play(BLB_Audio3D *audio3d, BLB_Scene *scene) {
-  if (!audio3d || !audio3d->sound)
+  if (!audio3d || !audio3d->sound || !scene || !scene->camera)
     return;
 
   ma_engine *engine = &audio3d->io_audio->engine;
@@ -2510,7 +2605,7 @@ static void audio3d_surround_play(BLB_Audio3D *audio3d, BLB_Scene *scene) {
 }
 
 static void audio2d_surround_play(BLB_Audio2D *audio2d, BLB_Scene *scene) {
-  if (!audio2d || !audio2d->sound)
+  if (!audio2d || !audio2d->sound || !scene || !scene->camera)
     return;
 
   ma_engine_listener_set_position(&audio2d->io_audio->engine, 0, scene->camera->position.x, scene->camera->position.y, scene->camera->position.z);
@@ -2939,6 +3034,18 @@ static int prepare_instance_capacity(BLB_Scene *scene, BLB_Renderer *renderer, u
     }
   }
 
+  if (BLB_OBJECT_2D_INSTANCING && scene->object_optimization2d) {
+    const size_t minimum = (size_t)(BLB_OBJECT_2D_INSTANCING_MIN_OBJECTS > 1 ? BLB_OBJECT_2D_INSTANCING_MIN_OBJECTS : 2);
+    for (size_t i = 0; i < scene->object_optimization2d->group_count; ++i) {
+      BLB_RenderInstances2DGroup *group = scene->object_optimization2d->groups[i];
+      if (!group || !group->enabled || group->object_count < minimum)
+        continue;
+      if (group->object_count > SIZE_MAX - required_instance_count)
+        return -1;
+      required_instance_count += group->object_count;
+    }
+  }
+
   if (required_instance_count == 0)
     return 0;
 
@@ -3001,7 +3108,7 @@ static void draw_shadows(BLB_Scene *scene, BLB_Renderer *renderer, uint32_t shad
       for (size_t i = 0; i < scene->object_aggregation3d->cluster_count; ++i) {
         BLB_RenderObjects3DCluster *cluster = scene->object_aggregation3d->clusters[i];
 
-        if (!cluster || cluster->dirty || !cluster->mesh)
+        if (!cluster || cluster->dirty || !cluster->mesh || cluster_has_camera_attached_object(cluster))
           continue;
 
         if (cluster->bounds) {
@@ -3025,7 +3132,7 @@ static void draw_shadows(BLB_Scene *scene, BLB_Renderer *renderer, uint32_t shad
 
       BLB_Object3D *object = scene->objects3d[i];
 
-      if (!object || !object->visible || !active_polygon3d(object))
+      if (!object || !object->visible || !active_polygon3d(object) || object->camera_attached)
         continue;
 
       if (object3d_render_mode(object) != BLB_RENDER_OPAQUE)
@@ -3045,7 +3152,7 @@ static void draw_shadows(BLB_Scene *scene, BLB_Renderer *renderer, uint32_t shad
           continue;
         }
 
-        if (cluster && !cluster->dirty && !dynamic)
+        if (cluster && !cluster->dirty && !dynamic && !cluster_has_camera_attached_object(cluster))
           continue;
       }
 
@@ -3134,42 +3241,63 @@ static bool physics_debug_reserve(BLB_Polygon3D *polygon, size_t *vertex_capacit
   return true;
 }
 
-static bool physics_debug_add_line(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, HMM_Vec3 a, HMM_Vec3 b) {
+static bool physics_debug_add_line(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, HMM_Vec3 a, HMM_Vec3 b,
+                                   const BLB_CameraCache *camera_cache) {
   HMM_Vec3 delta = HMM_SubV3(b, a);
   float length = HMM_LenV3(delta);
   if (length <= 0.00001f)
     return true;
 
-  if (!physics_debug_reserve(polygon, vertex_capacity, index_capacity, 8, 36))
+  if (!physics_debug_reserve(polygon, vertex_capacity, index_capacity, 4, 6))
     return false;
 
   HMM_Vec3 direction = HMM_MulV3F(delta, 1.0f / length);
-  HMM_Vec3 reference = fabsf(direction.y) < 0.85f ? HMM_V3(0.0f, 1.0f, 0.0f) : HMM_V3(1.0f, 0.0f, 0.0f);
-  HMM_Vec3 axis_a = HMM_NormV3(HMM_Cross(direction, reference));
-  HMM_Vec3 axis_b = HMM_NormV3(HMM_Cross(direction, axis_a));
-  float thickness = fmaxf(0.003f, fminf(0.025f, length * 0.025f));
+  HMM_Vec3 midpoint = HMM_MulV3F(HMM_AddV3(a, b), 0.5f);
+  HMM_Vec3 camera_position = HMM_V3(0.0f, 0.0f, 0.0f);
+  HMM_Vec3 camera_up = HMM_V3(0.0f, 1.0f, 0.0f);
+  HMM_Vec3 camera_right = HMM_V3(1.0f, 0.0f, 0.0f);
 
-  HMM_Vec3 offsets[4] = {
-      HMM_MulV3F(HMM_AddV3(axis_a, axis_b), thickness),
-      HMM_MulV3F(HMM_AddV3(HMM_MulV3F(axis_a, -1.0f), axis_b), thickness),
-      HMM_MulV3F(HMM_SubV3(HMM_MulV3F(axis_a, -1.0f), axis_b), thickness),
-      HMM_MulV3F(HMM_SubV3(axis_a, axis_b), thickness),
-  };
-
-  size_t base = polygon->vertex_count;
-  for (size_t i = 0; i < 4; ++i) {
-    polygon->vertices[base + i] = HMM_AddV3(a, offsets[i]);
-    polygon->vertices[base + 4 + i] = HMM_AddV3(b, offsets[i]);
+  if (camera_cache && camera_cache->valid) {
+    HMM_Mat4 camera_world = HMM_InvGeneralM4(camera_cache->view);
+    HMM_Vec4 position4 = HMM_MulM4V4(camera_world, HMM_V4(0.0f, 0.0f, 0.0f, 1.0f));
+    HMM_Vec4 up4 = HMM_MulM4V4(camera_world, HMM_V4(0.0f, 1.0f, 0.0f, 0.0f));
+    HMM_Vec4 right4 = HMM_MulM4V4(camera_world, HMM_V4(1.0f, 0.0f, 0.0f, 0.0f));
+    if (fabsf(position4.w) > 1e-7f)
+      camera_position = HMM_V3(position4.x / position4.w, position4.y / position4.w, position4.z / position4.w);
+    camera_up = HMM_NormV3(HMM_V3(up4.x, up4.y, up4.z));
+    camera_right = HMM_NormV3(HMM_V3(right4.x, right4.y, right4.z));
   }
-  polygon->vertex_count += 8;
 
-  static const unsigned int triangles[36] = {
-      0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7,
-  };
+  HMM_Vec3 view_direction = HMM_NormV3(HMM_SubV3(camera_position, midpoint));
+  HMM_Vec3 side = HMM_Cross(direction, view_direction);
+  if (HMM_LenV3(side) < 1e-6f)
+    side = HMM_Cross(direction, camera_up);
+  if (HMM_LenV3(side) < 1e-6f)
+    side = HMM_Cross(direction, camera_right);
+  if (HMM_LenV3(side) < 1e-6f)
+    return false;
 
-  for (size_t i = 0; i < 36; ++i)
-    polygon->indices[polygon->index_count + i] = (unsigned int)(base + triangles[i]);
-  polygon->index_count += 36;
+  const float camera_distance = HMM_LenV3(HMM_SubV3(camera_position, midpoint));
+  const float half_width = fmaxf(0.0005f, fminf(0.008f, camera_distance * 0.0012f));
+  side = HMM_MulV3F(HMM_NormV3(side), half_width);
+  HMM_Vec3 depth_offset = HMM_MulV3F(view_direction, half_width * 0.2f);
+  a = HMM_AddV3(a, depth_offset);
+  b = HMM_AddV3(b, depth_offset);
+
+  const size_t base = polygon->vertex_count;
+  polygon->vertices[base] = HMM_SubV3(a, side);
+  polygon->vertices[base + 1] = HMM_SubV3(b, side);
+  polygon->vertices[base + 2] = HMM_AddV3(b, side);
+  polygon->vertices[base + 3] = HMM_AddV3(a, side);
+  polygon->vertex_count += 4;
+
+  polygon->indices[polygon->index_count] = (unsigned int)base;
+  polygon->indices[polygon->index_count + 1] = (unsigned int)(base + 1);
+  polygon->indices[polygon->index_count + 2] = (unsigned int)(base + 2);
+  polygon->indices[polygon->index_count + 3] = (unsigned int)base;
+  polygon->indices[polygon->index_count + 4] = (unsigned int)(base + 2);
+  polygon->indices[polygon->index_count + 5] = (unsigned int)(base + 3);
+  polygon->index_count += 6;
   return true;
 }
 
@@ -3240,7 +3368,7 @@ static HMM_Vec3 physics_debug_half_extents(const BLB_Physics3DShape *shape, HMM_
 }
 
 static bool physics_debug_draw_box(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, HMM_Vec3 half, HMM_Vec3 position,
-                                   HMM_Quat rotation) {
+                                   HMM_Quat rotation, const BLB_CameraCache *camera_cache) {
   HMM_Vec3 corners[8];
   for (unsigned int i = 0; i < 8; ++i) {
     HMM_Vec3 local = HMM_V3((i & 1u) ? half.x : -half.x, (i & 2u) ? half.y : -half.y, (i & 4u) ? half.z : -half.z);
@@ -3253,7 +3381,7 @@ static bool physics_debug_draw_box(BLB_Polygon3D *polygon, size_t *vertex_capaci
         continue;
 
       unsigned int other = i | (1u << axis);
-      if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, corners[i], corners[other]))
+      if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, corners[i], corners[other], camera_cache))
         return false;
     }
   }
@@ -3261,7 +3389,7 @@ static bool physics_debug_draw_box(BLB_Polygon3D *polygon, size_t *vertex_capaci
 }
 
 static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, float radius, float half_height,
-                                      bool capsule, HMM_Vec3 position, HMM_Quat rotation) {
+                                      bool capsule, HMM_Vec3 position, HMM_Quat rotation, const BLB_CameraCache *camera_cache) {
   const unsigned int segments = 16;
   const float tau = (float)(HMM_PI * 2.0);
   float levels[2] = {0.0f, 0.0f};
@@ -3280,7 +3408,7 @@ static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_cap
       HMM_Vec3 p0 = HMM_V3(radius * cosf(a0), levels[level], radius * sinf(a0));
       HMM_Vec3 p1 = HMM_V3(radius * cosf(a1), levels[level], radius * sinf(a1));
       if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, physics_debug_transform_point(p0, position, rotation),
-                                  physics_debug_transform_point(p1, position, rotation)))
+                                  physics_debug_transform_point(p1, position, rotation), camera_cache))
         return false;
     }
   }
@@ -3291,7 +3419,7 @@ static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_cap
       HMM_Vec3 low = HMM_V3(ring_points[i].x, -half_height, ring_points[i].z);
       HMM_Vec3 high = HMM_V3(ring_points[i].x, half_height, ring_points[i].z);
       if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, physics_debug_transform_point(low, position, rotation),
-                                  physics_debug_transform_point(high, position, rotation)))
+                                  physics_debug_transform_point(high, position, rotation), camera_cache))
         return false;
     }
 
@@ -3310,7 +3438,7 @@ static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_cap
           }
 
           if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, physics_debug_transform_point(p0, position, rotation),
-                                      physics_debug_transform_point(p1, position, rotation)))
+                                      physics_debug_transform_point(p1, position, rotation), camera_cache))
             return false;
         }
       }
@@ -3331,7 +3459,7 @@ static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_cap
         }
 
         if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, physics_debug_transform_point(p0, position, rotation),
-                                    physics_debug_transform_point(p1, position, rotation)))
+                                    physics_debug_transform_point(p1, position, rotation), camera_cache))
           return false;
       }
     }
@@ -3341,10 +3469,11 @@ static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_cap
 
 static void draw_physics_debug_colliders3d(BLB_Scene *scene, BLB_Renderer *renderer, const BLB_CameraCache *camera_cache) {
   BLB_Physics3DWorld *world = scene ? scene->physics_world3d : NULL;
-  if (!world || !BLB_Physics3DWorld_GetDebugDraw(world) || !renderer || !camera_cache || !camera_cache->valid)
+  if (!world || (!BLB_DEBUG && !BLB_Physics3DWorld_GetDebugDraw(world)) || !renderer || !camera_cache || !camera_cache->valid)
     return;
 
   BLB_Polygon3D polygon = {0};
+  polygon.dynamic_vertices = true;
   size_t vertex_capacity = 0;
   size_t index_capacity = 0;
   size_t count = BLB_Physics3DWorld_GetDebugColliderCount(world);
@@ -3358,10 +3487,10 @@ static void draw_physics_debug_colliders3d(BLB_Scene *scene, BLB_Renderer *rende
     bool ok = true;
     if (shape->type == BLB_PHYSICS3D_SHAPE_SPHERE) {
       ok = physics_debug_draw_sphere(&polygon, &vertex_capacity, &index_capacity, shape->data.sphere.radius, 0.0f, false, collider.position,
-                                     collider.rotation);
+                                     collider.rotation, camera_cache);
     } else if (shape->type == BLB_PHYSICS3D_SHAPE_CAPSULE) {
       ok = physics_debug_draw_sphere(&polygon, &vertex_capacity, &index_capacity, shape->data.capsule.radius, shape->data.capsule.half_height, true,
-                                     collider.position, collider.rotation);
+                                     collider.position, collider.rotation, camera_cache);
     } else if (shape->type != BLB_PHYSICS3D_SHAPE_PLANE && shape->type != BLB_PHYSICS3D_SHAPE_COMPOUND) {
 
       HMM_Vec3 local_center = HMM_V3(0.0f, 0.0f, 0.0f);
@@ -3371,7 +3500,7 @@ static void draw_physics_debug_colliders3d(BLB_Scene *scene, BLB_Renderer *rende
       if (HMM_LenV3(local_center) > 0.000001f)
         center = physics_debug_transform_point(local_center, collider.position, collider.rotation);
 
-      ok = physics_debug_draw_box(&polygon, &vertex_capacity, &index_capacity, half, center, collider.rotation);
+      ok = physics_debug_draw_box(&polygon, &vertex_capacity, &index_capacity, half, center, collider.rotation, camera_cache);
     }
     if (!ok)
       break;
@@ -3409,13 +3538,13 @@ static HMM_Vec3 physics_debug_transform_point2d(HMM_Vec2 local, HMM_Vec2 positio
 }
 
 static bool physics_debug_draw_segment2d(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, HMM_Vec2 a, HMM_Vec2 b,
-                                         HMM_Vec2 position, float rotation) {
+                                         HMM_Vec2 position, float rotation, const BLB_CameraCache *camera_cache) {
   return physics_debug_add_line(polygon, vertex_capacity, index_capacity, physics_debug_transform_point2d(a, position, rotation),
-                                physics_debug_transform_point2d(b, position, rotation));
+                                physics_debug_transform_point2d(b, position, rotation), camera_cache);
 }
 
 static bool physics_debug_draw_circle2d(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, float radius, HMM_Vec2 position,
-                                        float rotation, HMM_Vec2 center) {
+                                        float rotation, HMM_Vec2 center, const BLB_CameraCache *camera_cache) {
   const unsigned int segments = 32;
   for (unsigned int i = 0; i < segments; ++i) {
     float a0 = (float)(HMM_PI * 2.0) * (float)i / (float)segments;
@@ -3423,14 +3552,14 @@ static bool physics_debug_draw_circle2d(BLB_Polygon3D *polygon, size_t *vertex_c
     HMM_Vec2 p0 = HMM_V2(center.x + radius * cosf(a0), center.y + radius * sinf(a0));
     HMM_Vec2 p1 = HMM_V2(center.x + radius * cosf(a1), center.y + radius * sinf(a1));
 
-    if (!physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, p0, p1, position, rotation))
+    if (!physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, p0, p1, position, rotation, camera_cache))
       return false;
   }
   return true;
 }
 
 static bool physics_debug_draw_capsule2d(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, float radius, float half_height,
-                                         HMM_Vec2 position, float rotation) {
+                                         HMM_Vec2 position, float rotation, const BLB_CameraCache *camera_cache) {
   const unsigned int segments = 16;
   for (unsigned int i = 0; i < segments; ++i) {
     float a0 = (float)HMM_PI * (float)i / (float)segments;
@@ -3445,23 +3574,24 @@ static bool physics_debug_draw_capsule2d(BLB_Polygon3D *polygon, size_t *vertex_
     HMM_Vec2 bottom0 = HMM_V2(radius * cosf(b0), -half_height + radius * sinf(b0));
     HMM_Vec2 bottom1 = HMM_V2(radius * cosf(b1), -half_height + radius * sinf(b1));
 
-    if (!physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, top0, top1, position, rotation) ||
-        !physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, bottom0, bottom1, position, rotation))
+    if (!physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, top0, top1, position, rotation, camera_cache) ||
+        !physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, bottom0, bottom1, position, rotation, camera_cache))
       return false;
   }
 
   return physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, HMM_V2(-radius, -half_height), HMM_V2(-radius, half_height), position,
-                                      rotation) &&
+                                      rotation, camera_cache) &&
          physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, HMM_V2(radius, -half_height), HMM_V2(radius, half_height), position,
-                                      rotation);
+                                      rotation, camera_cache);
 }
 
 static void draw_physics_debug_colliders2d(BLB_Scene *scene, BLB_Renderer *renderer, const BLB_CameraCache *camera_cache) {
   BLB_Physics2DWorld *world = scene ? scene->physics_world2d : NULL;
-  if (!world || !BLB_Physics2DWorld_GetDebugDraw(world) || !renderer || !camera_cache || !camera_cache->valid)
+  if (!world || (!BLB_DEBUG && !BLB_Physics2DWorld_GetDebugDraw(world)) || !renderer || !camera_cache || !camera_cache->valid)
     return;
 
   BLB_Polygon3D polygon = {0};
+  polygon.dynamic_vertices = true;
   size_t vertex_capacity = 0;
   size_t index_capacity = 0;
   size_t count = BLB_Physics2DWorld_GetDebugColliderCount(world);
@@ -3476,32 +3606,32 @@ static void draw_physics_debug_colliders2d(BLB_Scene *scene, BLB_Renderer *rende
 
     if (shape->type == BLB_PHYSICS2D_SHAPE_CIRCLE) {
       ok = physics_debug_draw_circle2d(&polygon, &vertex_capacity, &index_capacity, shape->data.circle.radius, collider.position, collider.rotation,
-                                       HMM_V2(0.0f, 0.0f));
+                                       HMM_V2(0.0f, 0.0f), camera_cache);
     } else if (shape->type == BLB_PHYSICS2D_SHAPE_BOX) {
       HMM_Vec2 half = shape->data.box.half_extents;
       HMM_Vec2 corners[4] = {HMM_V2(-half.x, -half.y), HMM_V2(half.x, -half.y), HMM_V2(half.x, half.y), HMM_V2(-half.x, half.y)};
       for (size_t j = 0; j < 4 && ok; ++j)
         ok = physics_debug_draw_segment2d(&polygon, &vertex_capacity, &index_capacity, corners[j], corners[(j + 1u) % 4u], collider.position,
-                                          collider.rotation);
+                                          collider.rotation, camera_cache);
     } else if (shape->type == BLB_PHYSICS2D_SHAPE_CAPSULE) {
       ok = physics_debug_draw_capsule2d(&polygon, &vertex_capacity, &index_capacity, shape->data.capsule.radius, shape->data.capsule.half_height,
-                                        collider.position, collider.rotation);
+                                        collider.position, collider.rotation, camera_cache);
     } else if (shape->type == BLB_PHYSICS2D_SHAPE_SEGMENT) {
       ok = physics_debug_draw_segment2d(&polygon, &vertex_capacity, &index_capacity, shape->data.segment.point1, shape->data.segment.point2,
-                                        collider.position, collider.rotation);
+                                        collider.position, collider.rotation, camera_cache);
     } else if (shape->type == BLB_PHYSICS2D_SHAPE_POLYGON) {
       const HMM_Vec2 *vertices = shape->data.polygon.vertices;
       size_t vertex_count = shape->data.polygon.vertex_count;
       for (size_t j = 0; vertices && j < vertex_count && ok; ++j)
         ok = physics_debug_draw_segment2d(&polygon, &vertex_capacity, &index_capacity, vertices[j], vertices[(j + 1u) % vertex_count],
-                                          collider.position, collider.rotation);
+                                          collider.position, collider.rotation, camera_cache);
     } else if (shape->type == BLB_PHYSICS2D_SHAPE_CHAIN) {
       const HMM_Vec2 *vertices = shape->data.chain.vertices;
       size_t vertex_count = shape->data.chain.vertex_count;
       size_t edge_count = shape->data.chain.loop ? vertex_count : (vertex_count > 0 ? vertex_count - 1u : 0u);
       for (size_t j = 0; vertices && j < edge_count && ok; ++j)
         ok = physics_debug_draw_segment2d(&polygon, &vertex_capacity, &index_capacity, vertices[j], vertices[(j + 1u) % vertex_count],
-                                          collider.position, collider.rotation);
+                                          collider.position, collider.rotation, camera_cache);
     }
 
     if (!ok)
@@ -3533,10 +3663,181 @@ static void draw_physics_debug_colliders2d(BLB_Scene *scene, BLB_Renderer *rende
   free(polygon.normals);
 }
 
+typedef struct {
+  unsigned int a;
+  unsigned int b;
+} BLB_DebugEdge;
+
+static int debug_edge_compare(const void *left, const void *right) {
+  const BLB_DebugEdge *a = left;
+  const BLB_DebugEdge *b = right;
+  if (a->a != b->a)
+    return a->a < b->a ? -1 : 1;
+  if (a->b != b->b)
+    return a->b < b->b ? -1 : 1;
+  return 0;
+}
+
+static bool debug_handler_add_object2d(BLB_Polygon3D *lines, size_t *vertex_capacity, size_t *index_capacity, const BLB_Object2D *object,
+                                       const BLB_CameraCache *camera_cache) {
+  if (!object || !object->polygon || !object->polygon->vertices || object->polygon->vertex_count < 2)
+    return true;
+
+  HMM_Mat4 model = HMM_M4D(1.0f);
+  const float angle = HMM_AngleDeg(object->rotation);
+  const float c = cosf(angle);
+  const float s = sinf(angle);
+  model.Elements[0][0] = c * object->scale.x;
+  model.Elements[0][1] = s * object->scale.x;
+  model.Elements[1][0] = -s * object->scale.y;
+  model.Elements[1][1] = c * object->scale.y;
+  model.Elements[3][0] = object->position.x;
+  model.Elements[3][1] = object->position.y;
+  if (object->camera_attached) {
+    if (!camera_cache || !camera_cache->valid)
+      return true;
+    model.Elements[3][2] = -BLB_OBJECT2D_CAMERA_SPACE_DEPTH;
+    model = HMM_MulM4(HMM_InvGeneralM4(camera_cache->view), model);
+  }
+
+  const BLB_Polygon2D *polygon = object->polygon;
+  if (polygon->indices && polygon->index_count >= 3 && polygon->index_count % 3 == 0) {
+    if (polygon->index_count > SIZE_MAX / sizeof(BLB_DebugEdge))
+      return false;
+
+    BLB_DebugEdge *edges = malloc(polygon->index_count * sizeof(*edges));
+    if (!edges)
+      return false;
+
+    size_t edge_count = 0;
+    for (size_t i = 0; i + 2 < polygon->index_count; i += 3) {
+      const unsigned int ids[3] = {polygon->indices[i], polygon->indices[i + 1], polygon->indices[i + 2]};
+      if (ids[0] >= polygon->vertex_count || ids[1] >= polygon->vertex_count || ids[2] >= polygon->vertex_count)
+        continue;
+
+      for (size_t edge = 0; edge < 3; ++edge) {
+        unsigned int a = ids[edge];
+        unsigned int b = ids[(edge + 1u) % 3u];
+        if (a == b)
+          continue;
+        edges[edge_count++] = (BLB_DebugEdge){.a = a < b ? a : b, .b = a < b ? b : a};
+      }
+    }
+
+    qsort(edges, edge_count, sizeof(*edges), debug_edge_compare);
+    bool ok = true;
+    for (size_t i = 0; i < edge_count && ok;) {
+      size_t next = i + 1;
+      while (next < edge_count && edges[next].a == edges[i].a && edges[next].b == edges[i].b)
+        ++next;
+
+      if (next == i + 1) {
+        const HMM_Vec2 a = polygon->vertices[edges[i].a];
+        const HMM_Vec2 b = polygon->vertices[edges[i].b];
+        const HMM_Vec4 a4 = HMM_MulM4V4(model, HMM_V4(a.x, a.y, 0.0f, 1.0f));
+        const HMM_Vec4 b4 = HMM_MulM4V4(model, HMM_V4(b.x, b.y, 0.0f, 1.0f));
+        ok = physics_debug_add_line(lines, vertex_capacity, index_capacity, HMM_V3(a4.x, a4.y, a4.z), HMM_V3(b4.x, b4.y, b4.z), camera_cache);
+      }
+      i = next;
+    }
+    free(edges);
+    return ok;
+  }
+
+  for (size_t i = 0; i < polygon->vertex_count; ++i) {
+    const HMM_Vec2 a = polygon->vertices[i];
+    const HMM_Vec2 b = polygon->vertices[(i + 1u) % polygon->vertex_count];
+    const HMM_Vec4 a4 = HMM_MulM4V4(model, HMM_V4(a.x, a.y, 0.0f, 1.0f));
+    const HMM_Vec4 b4 = HMM_MulM4V4(model, HMM_V4(b.x, b.y, 0.0f, 1.0f));
+    if (!physics_debug_add_line(lines, vertex_capacity, index_capacity, HMM_V3(a4.x, a4.y, a4.z), HMM_V3(b4.x, b4.y, b4.z), camera_cache))
+      return false;
+  }
+  return true;
+}
+
+static bool debug_handler_add_object3d(BLB_Polygon3D *lines, size_t *vertex_capacity, size_t *index_capacity, const BLB_Object3D *object,
+                                       const BLB_CameraCache *camera_cache) {
+  if (!object || !object->polygon || !object->polygon->vertices || object->polygon->vertex_count == 0)
+    return true;
+
+  const BLB_Polygon3D *source = object->polygon;
+  HMM_Vec3 min_v = source->vertices[0];
+  HMM_Vec3 max_v = source->vertices[0];
+  for (size_t i = 1; i < source->vertex_count; ++i) {
+    const HMM_Vec3 v = source->vertices[i];
+    min_v.x = fminf(min_v.x, v.x);
+    min_v.y = fminf(min_v.y, v.y);
+    min_v.z = fminf(min_v.z, v.z);
+    max_v.x = fmaxf(max_v.x, v.x);
+    max_v.y = fmaxf(max_v.y, v.y);
+    max_v.z = fmaxf(max_v.z, v.z);
+  }
+
+  const HMM_Vec3 corners[8] = {
+      HMM_V3(min_v.x, min_v.y, min_v.z), HMM_V3(max_v.x, min_v.y, min_v.z), HMM_V3(min_v.x, max_v.y, min_v.z), HMM_V3(max_v.x, max_v.y, min_v.z),
+      HMM_V3(min_v.x, min_v.y, max_v.z), HMM_V3(max_v.x, min_v.y, max_v.z), HMM_V3(min_v.x, max_v.y, max_v.z), HMM_V3(max_v.x, max_v.y, max_v.z),
+  };
+  static const unsigned int edge_indices[12][2] = {
+      {0, 1}, {0, 2}, {0, 4}, {1, 3}, {1, 5}, {2, 3}, {2, 6}, {3, 7}, {4, 5}, {4, 6}, {5, 7}, {6, 7},
+  };
+
+  const HMM_Mat4 model = object3d_model_matrix(object, camera_cache, 1.0f);
+  for (size_t i = 0; i < 12; ++i) {
+    const HMM_Vec3 a = corners[edge_indices[i][0]];
+    const HMM_Vec3 b = corners[edge_indices[i][1]];
+    const HMM_Vec4 a4 = HMM_MulM4V4(model, HMM_V4(a.x, a.y, a.z, 1.0f));
+    const HMM_Vec4 b4 = HMM_MulM4V4(model, HMM_V4(b.x, b.y, b.z, 1.0f));
+    if (!physics_debug_add_line(lines, vertex_capacity, index_capacity, HMM_V3(a4.x, a4.y, a4.z), HMM_V3(b4.x, b4.y, b4.z), camera_cache))
+      return false;
+  }
+  return true;
+}
+
+static void draw_handler_debug_hitboxes(BLB_Scene *scene, BLB_Renderer *renderer, const BLB_CameraCache *camera_cache) {
+  if (!scene || !renderer || !camera_cache || !camera_cache->valid)
+    return;
+
+  BLB_Polygon3D lines = {0};
+  lines.dynamic_vertices = true;
+  size_t vertex_capacity = 0;
+  size_t index_capacity = 0;
+  bool ok = true;
+
+  for (int i = 0; i < scene->object2d_count && ok; ++i) {
+    BLB_Object2D *object = scene->objects2d[i];
+    if (object && object->visible && object->handler && object->handler->enabled)
+      ok = debug_handler_add_object2d(&lines, &vertex_capacity, &index_capacity, object, camera_cache);
+  }
+  for (int i = 0; i < scene->object3d_count && ok; ++i) {
+    BLB_Object3D *object = scene->objects3d[i];
+    if (object && object->visible && object->handler && object->handler->enabled)
+      ok = debug_handler_add_object3d(&lines, &vertex_capacity, &index_capacity, object, camera_cache);
+  }
+
+  if (ok && lines.vertex_count && lines.index_count) {
+    HMM_Mat4 view_projection = HMM_MulM4(camera_cache->projection, camera_cache->view);
+    const float color[4] = {1.0f, 0.1f, 0.8f, 1.0f};
+    BLB_RenderMaterialState state = {0};
+    memcpy(state.base_color, color, sizeof(color));
+    state.lighting_enabled = false;
+    state.unlit = true;
+    state.depth_enabled = false;
+    state.depth_write = false;
+    state.double_sided = true;
+    state.alpha_mode = BLB_ALPHA_OPAQUE;
+    state.render_mode = BLB_RENDER_ADDITIVE;
+    BLB_RenderMaterial material = renderer_material_from_state(&state, false);
+    float model_rows[12] = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+    BLB_RendererDrawPolygon3D(renderer, &lines, &view_projection.Elements[0][0], model_rows, color[0], color[1], color[2], color[3], &material, NULL);
+  }
+
+  free(lines.vertices);
+  free(lines.indices);
+  free(lines.normals);
+}
+
 static void draw_render_objects(BLB_Scene *scene, BLB_Renderer *renderer, BLB_RenderVisibilityCache *visibility_cache, float viewport_width,
                                 float viewport_height) {
-  float aspect = viewport_height != 0.0f ? viewport_width / viewport_height : 1.0f;
-
   BLB_ObjectAggregation3D_ResetDrawState(scene->object_aggregation3d);
   BLB_ObjectOptimization2D_ResetDrawState(scene->object_optimization2d);
 
@@ -3606,7 +3907,7 @@ static void draw_render_objects(BLB_Scene *scene, BLB_Renderer *renderer, BLB_Re
           break;
         }
 
-        if (cluster && !cluster->dirty && !dynamic && cluster->object_count >= 2) {
+        if (cluster && !cluster->dirty && !dynamic && cluster->object_count >= 2 && !cluster_has_camera_attached_object(cluster)) {
           if (!cluster->rendered) {
             draw_aggregated_cluster3d(cluster, renderer, scene->camera->camera_cache, scene);
 
@@ -3626,10 +3927,9 @@ static void draw_render_objects(BLB_Scene *scene, BLB_Renderer *renderer, BLB_Re
       BLB_Object2D *object = scene->objects2d[indices[1]];
       if (scene->camera && scene->camera->camera_cache && scene->object_optimization2d) {
         BLB_RenderInstances2DGroup *group = BLB_ObjectOptimization2D_FindGroup(scene->object_optimization2d, object);
-        if (group && group->enabled) {
+        if (group && instanced_group2d_matches_attached(group, object && object->camera_attached)) {
           if (!group->rendered) {
             draw_instanced_group2d(group, renderer, scene->camera->camera_cache, scene);
-
             group->rendered = true;
           }
           break;
@@ -3645,8 +3945,6 @@ static void draw_render_objects(BLB_Scene *scene, BLB_Renderer *renderer, BLB_Re
     }
 
     case 2:
-      if (scene->camera)
-        draw_text2d(scene->text2d[indices[2]], renderer, scene->camera, aspect);
       break;
 
     case 3:
@@ -3661,63 +3959,141 @@ static void draw_render_objects(BLB_Scene *scene, BLB_Renderer *renderer, BLB_Re
       }
       break;
 
-    case 4:
-      if (scene->lights2d[indices[4]] && scene->lights2d[indices[4]]->object && scene->camera && scene->camera->camera_cache &&
-          cached_object2d_visible(visibility_cache, scene->lights2d[indices[4]]->object, scene->camera->camera_cache, scene->camera->position,
-                                  viewport_width, viewport_height)) {
+    case 4: {
+      BLB_Light2D *light = scene->lights2d[indices[4]];
+      if (!light || !light->object)
+        break;
 
-        draw_object2d(scene->lights2d[indices[4]]->object, renderer, scene->camera->camera_cache);
-        if (scene->lights2d[indices[4]]->enabled)
-          BLB_Object2D_SetTexture(scene->lights2d[indices[4]]->object, scene->lights2d[indices[4]]->light_debug_texture);
+      BLB_Object2D *object = light->object;
+      bool visible =
+          scene->camera && scene->camera->camera_cache &&
+          cached_object2d_visible(visibility_cache, object, scene->camera->camera_cache, scene->camera->position, viewport_width, viewport_height);
+      if (visible) {
+        draw_object2d(object, renderer, scene->camera->camera_cache);
+        if (light->enabled)
+          BLB_Object2D_SetTexture(object, light->light_debug_texture);
         else
-          BLB_Object2D_SetTexture(scene->lights2d[indices[4]]->object, scene->lights2d[indices[4]]->light_off_debug_texture);
+          BLB_Object2D_SetTexture(object, light->light_off_debug_texture);
       }
       break;
+    }
 
-    case 5:
-      if (scene->audio2d[indices[5]] && scene->audio2d[indices[5]]->obj && scene->camera && scene->camera->camera_cache &&
-          cached_object2d_visible(visibility_cache, scene->audio2d[indices[5]]->obj, scene->camera->camera_cache, scene->camera->position,
-                                  viewport_width, viewport_height)) {
+    case 5: {
+      BLB_Audio2D *audio = scene->audio2d[indices[5]];
+      if (!audio)
+        break;
 
-        draw_object2d(scene->audio2d[indices[5]]->obj, renderer, scene->camera->camera_cache);
-      }
-      if (scene->audio2d[indices[5]]->play) {
-        if (scene->audio2d[indices[5]]->surround)
-          audio2d_surround_play(scene->audio2d[indices[5]], scene);
+      if (audio->obj && scene->camera && scene->camera->camera_cache &&
+          cached_object2d_visible(visibility_cache, audio->obj, scene->camera->camera_cache, scene->camera->position, viewport_width,
+                                  viewport_height))
+        draw_object2d(audio->obj, renderer, scene->camera->camera_cache);
+
+      if (audio->play) {
+        if (audio->surround && scene->camera)
+          audio2d_surround_play(audio, scene);
         else
-          audio2d_play(scene->audio2d[indices[5]]);
-      } else {
-        BLB_Object2D_SetTexture(scene->audio2d[indices[5]]->obj, scene->audio2d[indices[5]]->audio_off_debug_texture);
+          audio2d_play(audio);
+      } else if (audio->obj) {
+        BLB_Object2D_SetTexture(audio->obj, audio->audio_off_debug_texture);
       }
-
       break;
+    }
 
-    case 6:
+    case 6: {
       if (scene->audio3d[indices[6]] && scene->audio3d[indices[6]]->obj && scene->camera && scene->camera->camera_cache &&
           cached_object3d_visible(visibility_cache, scene->audio3d[indices[6]]->obj, scene->camera->camera_cache, scene->camera->position)) {
 
         draw_object3d(scene->audio3d[indices[6]]->obj, renderer, scene->camera->camera_cache, scene->camera->position);
       }
 
-      if (scene->audio3d[indices[6]]->play) {
-        BLB_Object3D_SetTexture(scene->audio3d[indices[6]]->obj, scene->audio3d[indices[6]]->audio_debug_texture);
-        if (scene->audio3d[indices[6]]->surround)
-          audio3d_surround_play(scene->audio3d[indices[6]], scene);
-        else
-          audio3d_play(scene->audio3d[indices[6]]);
-      } else {
-        BLB_Object3D_SetTexture(scene->audio3d[indices[6]]->obj, scene->audio3d[indices[6]]->audio_off_debug_texture);
+      BLB_Audio3D *audio = scene->audio3d[indices[6]];
+      if (audio && audio->obj) {
+        if (audio->play) {
+          BLB_Object3D_SetTexture(audio->obj, audio->audio_debug_texture);
+          if (audio->surround && scene->camera)
+            audio3d_surround_play(audio, scene);
+          else
+            audio3d_play(audio);
+        } else {
+          BLB_Object3D_SetTexture(audio->obj, audio->audio_off_debug_texture);
+        }
       }
-
       break;
+    }
     }
 
     indices[best]++;
   }
 
-  if (BLB_DEBUG) {
-    draw_physics_debug_colliders3d(scene, renderer, scene->camera ? scene->camera->camera_cache : NULL);
-    draw_physics_debug_colliders2d(scene, renderer, scene->camera ? scene->camera->camera_cache : NULL);
+  draw_physics_debug_colliders3d(scene, renderer, scene->camera ? scene->camera->camera_cache : NULL);
+  draw_physics_debug_colliders2d(scene, renderer, scene->camera ? scene->camera->camera_cache : NULL);
+  if (BLB_DEBUG)
+    draw_handler_debug_hitboxes(scene, renderer, scene->camera ? scene->camera->camera_cache : NULL);
+}
+
+static bool render_entry_is_screen_space(const BLB_Scene *scene, int type, size_t index) {
+  if (!scene)
+    return false;
+  return type == 2 && index < (size_t)scene->text2d_count && scene->text2d[index] != NULL;
+}
+
+static void draw_screen_space_objects(BLB_Scene *scene, BLB_Renderer *renderer, float viewport_width, float viewport_height) {
+  if (!scene || !renderer)
+    return;
+
+  float aspect = viewport_height > 0.0f ? viewport_width / viewport_height : 1.0f;
+  HMM_Vec3 camera_position = scene->camera ? scene->camera->position : HMM_V3(0.0f, 0.0f, 0.0f);
+  const BLB_CameraCache *camera_cache = scene->camera ? scene->camera->camera_cache : NULL;
+  size_t indices[7] = {0, 0, 0, 0, 0, 0, 0};
+  size_t counts[7] = {(size_t)scene->object3d_count, (size_t)scene->object2d_count, (size_t)scene->text2d_count, (size_t)scene->light3d_count,
+                      (size_t)scene->light2d_count,  (size_t)scene->audio2d_count,  (size_t)scene->audio3d_count};
+
+  for (;;) {
+    int best = -1;
+    void *best_object = NULL;
+    BLB_RenderMode best_mode = BLB_RENDER_OPAQUE;
+    int best_layer = 0;
+
+    for (int type = 1; type <= 5; ++type) {
+      if (type != 1 && type != 2 && type != 4 && type != 5)
+        continue;
+
+      while (indices[type] < counts[type] && !render_entry_is_screen_space(scene, type, indices[type]))
+        indices[type]++;
+      if (indices[type] >= counts[type])
+        continue;
+
+      void *object = get_render_object(scene, type, indices[type]);
+      if (!object) {
+        indices[type]++;
+        continue;
+      }
+
+      BLB_RenderMode mode = get_render_mode(object, type);
+      int layer = get_render_layer(object, type);
+      if (!best_object || mode < best_mode || (mode == best_mode && layer < best_layer)) {
+        best = type;
+        best_object = object;
+        best_mode = mode;
+        best_layer = layer;
+      }
+    }
+
+    if (best < 0)
+      break;
+
+    switch (best) {
+    case 1:
+    case 4:
+    case 5:
+      break;
+
+    case 2:
+      draw_text2d(scene->text2d[indices[2]], renderer, scene->camera, aspect);
+      break;
+    }
+
+    indices[best]++;
   }
 }
 
@@ -3816,6 +4192,7 @@ int BLB_DrawScene(BLB_Scene *scene, BLB_Renderer *renderer) {
     prepare_sort(scene);
     draw_render_objects(scene, renderer, visibility_cache, viewport_width, viewport_height);
     draw_particles(scene, renderer, viewport_width, viewport_height);
+    draw_screen_space_objects(scene, renderer, viewport_width, viewport_height);
     debug_scene_visibility(scene);
   }
 

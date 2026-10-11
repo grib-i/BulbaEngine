@@ -43,9 +43,9 @@ int BLB_TestSpriteSheet(void) {
   }
 
   const size_t columns = 4;
-  const float slot_width = 300.0f;
-  const float slot_height = 270.0f;
-  const float max_sprite_size = 230.0f;
+  const float slot_width = 0.38f;
+  const float slot_height = 0.27f;
+  const float max_sprite_size = 0.22f;
 
   for (size_t i = 0; i < count; ++i) {
     uint32_t width = BLB_Texture_GetWidth(textures[i]);
@@ -62,7 +62,7 @@ int BLB_TestSpriteSheet(void) {
     size_t row = i / columns;
     size_t column = i % columns;
 
-    HMM_Vec2 position = HMM_V2(slot_width * 0.5f + (float)column * slot_width, 70.0f + slot_height * 0.5f + (float)row * slot_height);
+    HMM_Vec2 position = HMM_V2(-0.57f + (float)column * slot_width, 0.405f - (float)row * slot_height);
 
     objects[i] = BLB_CreateSquare2D(HMM_V2(sprite_width, sprite_height), position, textures[i], true);
     if (!objects[i])
@@ -77,9 +77,9 @@ int BLB_TestSpriteSheet(void) {
     uint32_t height = BLB_Texture_GetHeight(sheet_texture);
 
     float max_dim = (float)(width > height ? width : height);
-    float scale = max_dim > 0.0f ? 180.0f / max_dim : 1.0f;
+    float scale = max_dim > 0.0f ? 0.10f / max_dim : 1.0f;
 
-    BLB_Object2D *sheet = BLB_CreateSquare2D(HMM_V2((float)width * scale, (float)height * scale), HMM_V2(600.0f, 830.0f), sheet_texture, true);
+    BLB_Object2D *sheet = BLB_CreateSquare2D(HMM_V2((float)width * scale, (float)height * scale), HMM_V2(0.0f, -0.60f), sheet_texture, true);
     if (!sheet)
       goto fail;
 

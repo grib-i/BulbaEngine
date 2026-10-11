@@ -1366,7 +1366,7 @@ int BLB_Object3D_ResolveLODLevel(const BLB_Object3D *object, float distance) {
 int BLB_Object2D_ResolveLODLevel(const BLB_Object2D *object, float distance) {
   if (!object)
     return 0;
-  if (object->screen_space) {
+  if (object->camera_attached) {
     if (!BLB_OBJECT_LOD || !object->lod_override)
       return 0;
     return clamp_lod_level(object->lod_level);

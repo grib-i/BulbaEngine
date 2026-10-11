@@ -134,7 +134,7 @@ static uint64_t transform_key(BLB_VisibilityObjectKind kind, const void *object)
   if (kind == BLB_VISIBILITY_OBJECT_2D) {
     const BLB_Object2D *value = object;
     const uint32_t bits[] = {float_bits(value->position.x), float_bits(value->position.y), float_bits(value->rotation), float_bits(value->scale.x),
-                             float_bits(value->scale.y),    value->screen_space ? 1u : 0u, value->visible ? 1u : 0u};
+                             float_bits(value->scale.y),    value->camera_attached ? 1u : 0u, value->visible ? 1u : 0u};
 
     for (size_t i = 0; i < sizeof(bits) / sizeof(bits[0]); ++i)
       hash = hash_u32(hash ^ ((uint64_t)i << 32), bits[i]);
