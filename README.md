@@ -244,8 +244,9 @@ find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(PNG REQUIRED)
-
-find_program(GLSLC glslc REQUIRED)
+find_package(JPEG QUIET)
+find_package(Threads REQUIRED)
+find_package(assimp 5.4 CONFIG QUIET)
 ```
 
 If one of the required dependencies is missing, CMake stops with an error instead of producing an incomplete build.
@@ -310,9 +311,9 @@ Stable releases are merged into `main`.
 | --------------- | ------------- |
 | **Core**        | 🟢 Active     |
 | **Math**        | 🟢 Active     |
-| **Renderer**    | 🟡 Developing |
-| **Physics**     | 🟡 Planned    |
-| **Audio**       | 🟡 Planned    |
+| **Renderer**    | 🟢 Active     |
+| **Physics**     | 🟢 Active     |
+| **Audio**       | 🟢 Active     |
 | **Scripting**   | 🟡 Developing |
 | **WebAssembly** | 🟡 Planned    |
 
