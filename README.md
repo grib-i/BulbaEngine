@@ -174,17 +174,12 @@ BulbaEngine currently requires:
 | **CMake**      | Build system            |
 | **C compiler** | Building the engine     |
 
-### Ubuntu / Debian
+### Ubuntu / Debian / Windows (powershell)
 
 ```bash
-sudo apt install \
-    build-essential \
-    cmake \
-    libvulkan-dev \
-    libglfw3-dev \
-    libfreetype6-dev \
-    libpng-dev \
-    glslc
+sudo apt update && sudo apt install -y \
+    build-essential cmake libvulkan-dev libglfw3-dev \
+    libfreetype6-dev libpng-dev libjpeg-dev libassimp-dev glslc
 ```
 
 ---
