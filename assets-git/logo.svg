@@ -1,63 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title" shape-rendering="crispEdges">
+  <title id="title">BulbaEngine pixel cube</title>
   <defs>
-    <linearGradient id="skin" x1="150" y1="90" x2="390" y2="450" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#DFA05A"/>
-      <stop offset="0.55" stop-color="#C9823C"/>
-      <stop offset="1" stop-color="#A96232"/>
+    <linearGradient id="top" x1="8" y1="4" x2="56" y2="31" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF0BD"/><stop offset=".62" stop-color="#F4C46A"/><stop offset="1" stop-color="#D9913A"/>
     </linearGradient>
-    <linearGradient id="light" x1="130" y1="120" x2="300" y2="320" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#F4C77E" stop-opacity="0.9"/>
-      <stop offset="1" stop-color="#F4C77E" stop-opacity="0"/>
+    <linearGradient id="left" x1="8" y1="18" x2="32" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F6C66F"/><stop offset="1" stop-color="#B66A2A"/>
     </linearGradient>
+    <linearGradient id="right" x1="32" y1="32" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D9903B"/><stop offset="1" stop-color="#78411F"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.5"/></filter>
   </defs>
-
-  <path
-    d="M258 42
-       C206 38 160 51 124 83
-       C87 116 76 165 69 216
-       C62 266 46 319 61 367
-       C76 417 115 458 166 477
-       C219 497 282 491 331 472
-       C386 452 429 416 446 366
-       C463 316 451 264 443 218
-       C435 170 427 117 391 84
-       C357 53 306 46 258 42 Z"
-    fill="url(#skin)"
-    stroke="#472918"
-    stroke-width="15"
-    stroke-linejoin="round"
-  />
-
-  <path
-    d="M159 91
-       C122 122 108 174 101 224
-       C94 274 88 331 108 368
-       C129 406 163 423 200 417
-       C242 410 270 378 297 347
-       C327 312 348 276 352 230
-       C357 179 344 135 316 108
-       C278 72 197 61 159 91 Z"
-    fill="url(#light)"
-  />
-
-  <g fill="#70401F">
-    <ellipse cx="145" cy="183" rx="18" ry="10" transform="rotate(-23 145 183)"/>
-    <ellipse cx="302" cy="126" rx="22" ry="13" transform="rotate(-17 302 126)"/>
-    <ellipse cx="397" cy="205" rx="10" ry="15" transform="rotate(18 397 205)"/>
-    <ellipse cx="119" cy="282" rx="12" ry="9" transform="rotate(24 119 282)"/>
-    <ellipse cx="225" cy="327" rx="19" ry="10" transform="rotate(-17 225 327)"/>
-    <ellipse cx="374" cy="316" rx="20" ry="11" transform="rotate(-20 374 316)"/>
-    <ellipse cx="151" cy="392" rx="13" ry="9" transform="rotate(41 151 392)"/>
-    <ellipse cx="296" cy="415" rx="14" ry="9" transform="rotate(-18 296 415)"/>
-    <ellipse cx="398" cy="391" rx="11" ry="8" transform="rotate(-26 398 391)"/>
-    <ellipse cx="255" cy="106" rx="9" ry="6" transform="rotate(-28 255 106)"/>
-    <ellipse cx="178" cy="257" rx="8" ry="6" transform="rotate(12 178 257)"/>
-  </g>
-
-  <g fill="#98602F" opacity="0.75">
-    <ellipse cx="208" cy="150" rx="7" ry="5" transform="rotate(12 208 150)"/>
-    <ellipse cx="343" cy="244" rx="8" ry="5" transform="rotate(-17 343 244)"/>
-    <ellipse cx="266" cy="452" rx="8" ry="5" transform="rotate(16 266 452)"/>
-    <ellipse cx="100" cy="345" rx="7" ry="5" transform="rotate(-20 100 345)"/>
-  </g>
+  <path d="M30 4h4v3h6v3h6v3h6v3h4v3h4v3h-4v3h-6v3h-6v3h-6v3h-4v-3h-6v-3h-6v-3h-6v-3h-4v-3h-4v-3h4v-3h6v-3h6v-3h6z" fill="#E5A04B" opacity=".16" filter="url(#glow)"/>
+  <!-- Stepped side faces -->
+  <path d="M8 16h4v3h6v3h6v3h6v3h2v30h-4v-3h-6v-3h-6v-3h-4v-3h-4z" fill="url(#left)" stroke="#F6C878" stroke-width="1"/>
+  <path d="M56 16h4v27h-4v3h-4v3h-6v3h-6v3h-4v-3h-2V28h2v-3h6v-3h6v-3h6z" fill="url(#right)" stroke="#D58B3E" stroke-width="1"/>
+  <!-- Shorter diamond top: the proportions match a classic isometric cube. -->
+  <path d="M30 4h4v3h6v3h6v3h6v3h4v3h-4v3h-6v3h-6v3h-6v3h-4v-3h-6v-3h-6v-3h-6v-3h-4v-3h4v-3h6v-3h6v-3h6z" fill="url(#top)" stroke="#FFE6A2" stroke-width="1"/>
+  <path d="M32 31v27" stroke="#FFE9AF" stroke-opacity=".72" stroke-width="1.5"/>
+  <path d="M14 16h4v3h6v3h6v3h-4v-3h-6v-3h-6z" fill="#FFF5D4" opacity=".45"/>
+  <path d="M42 31h4v-3h6v-3h4v3h-4v3h-6v3h-4z" fill="#4A2711" opacity=".24"/>
 </svg>

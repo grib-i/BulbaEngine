@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420" fill="none">
+ <defs>
+  <linearGradient id="top" x1="102" y1="64" x2="310" y2="198" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF0B8"/><stop offset="1" stop-color="#E6A94E"/></linearGradient>
+  <linearGradient id="left" x1="84" y1="151" x2="211" y2="345" gradientUnits="userSpaceOnUse"><stop stop-color="#F4BD61"/><stop offset="1" stop-color="#A65C22"/></linearGradient>
+  <linearGradient id="right" x1="211" y1="148" x2="343" y2="335" gradientUnits="userSpaceOnUse"><stop stop-color="#D98A35"/><stop offset="1" stop-color="#713D24"/></linearGradient>
+  <filter id="shadow" x="20" y="20" width="380" height="390" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="13"/></filter>
+ </defs>
+ <ellipse cx="213" cy="333" rx="118" ry="25" fill="#E7A54A" opacity=".23" filter="url(#shadow)"/>
+ <path d="M210 49 352 126 210 207 68 126 210 49Z" fill="url(#top)" stroke="#FFE6A2" stroke-width="3" stroke-linejoin="round"/>
+ <path d="M68 126 210 207V369L68 287V126Z" fill="url(#left)" stroke="#F6C878" stroke-width="3" stroke-linejoin="round"/>
+ <path d="M352 126 210 207V369L352 287V126Z" fill="url(#right)" stroke="#E5A04D" stroke-width="3" stroke-linejoin="round"/>
+ <path d="M210 49V207M68 126 210 207 352 126M210 207V369" stroke="#FFF1C8" stroke-opacity=".75" stroke-width="2"/>
+ <path d="m104 147 70 40v104l-70-41V147Z" fill="#FFE3A0" opacity=".16"/>
+ <path d="m247 226 69-40v95l-69 40v-95Z" fill="#160F09" opacity=".14"/>
+ <path d="m129 111 81-45 82 45-82 47-81-47Z" stroke="#FFF7D9" stroke-opacity=".7" stroke-width="2"/>
+</svg>
