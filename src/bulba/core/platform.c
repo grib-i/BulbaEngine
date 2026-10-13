@@ -4,6 +4,7 @@
 
 #include "bulba/core/platform.h"
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,6 +30,32 @@ double BLB_Platform_TimeSeconds(void) {
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
   return (double)ts.tv_sec + (double)ts.tv_nsec / 1000000000.0;
+#endif
+}
+
+void BLB_Platform_SleepSeconds(double seconds) {
+  if (!(seconds > 0.0))
+    return;
+
+#ifdef _WIN32
+  double milliseconds = seconds * 1000.0;
+  if (milliseconds < 1.0)
+    milliseconds = 1.0;
+  if (milliseconds > (double)MAXDWORD)
+    milliseconds = (double)MAXDWORD;
+  Sleep((DWORD)(milliseconds + 0.5));
+#else
+  struct timespec request;
+  request.tv_sec = (time_t)seconds;
+  request.tv_nsec = (long)((seconds - (double)request.tv_sec) * 1000000000.0);
+  if (request.tv_nsec < 0)
+    request.tv_nsec = 0;
+  if (request.tv_nsec >= 1000000000L) {
+    request.tv_sec++;
+    request.tv_nsec -= 1000000000L;
+  }
+  while (nanosleep(&request, &request) != 0 && errno == EINTR) {
+  }
 #endif
 }
 

@@ -47,11 +47,10 @@ int BLB_TestSound(void) {
 
   BLB_Audio3D *audio3d = BLB_LoadAudio3D(io_audio, "assets/tests/sounds/blackpensil.mp3", true, true, true, HMM_V3(0.0f, 0.0f, -300.0f));
 
-  BLB_Object3D *g =
-      BLB_LoadModelFBX("assets/tests/models/adventurer.fbx", HMM_V3(0.05f, 0.05f, 0.05f), HMM_V3(0.0f, 0.0f, -300.0f), NULL, BLB_TEXMAP_STRETCH);
+  // BLB_Object3D *g =
+  //     BLB_LoadModelFBX("assets/tests/models/adventurer.fbx", HMM_V3(0.05f, 0.05f, 0.05f), HMM_V3(0.0f, 0.0f, -300.0f), NULL, BLB_TEXMAP_STRETCH);
 
-  // BLB_Object3D *g = BLB_LoadModelGLB("assets/tests/models/music_player.glb", HMM_V3(4.4f, 4.4f, 4.4f), HMM_V3(0, 0, -300), NULL,
-  // BLB_TEXMAP_STRETCH);
+  BLB_Object3D *g = BLB_LoadModelGLB("assets/tests/models/music_player.glb", HMM_V3(4.4f, 4.4f, 4.4f), HMM_V3(0, 0, -300), NULL, BLB_TEXMAP_STRETCH);
 
   // BLB_Object3D *g = BLB_LoadModelOBJ("assets/tests/models/music_player.obj", HMM_V3(4.4f, 4.4f, 4.4f), HMM_V3(0, 0, -300), NULL,
   // BLB_TEXMAP_STRETCH);
@@ -106,7 +105,7 @@ int BLB_TestSound(void) {
     if (app.camera->position.z > -280.0f) {
       BLB_Camera_Move(app.camera, HMM_V3(0.0f, 0.0f, -40.0f));
     } else {
-      // BLB_Camera_Rotate(app.camera, HMM_V3(40, 40, 0));
+      BLB_Camera_Rotate(app.camera, HMM_V3(40, 40, 0));
     }
 
     if (BLB_TestContext_Draw(&app) < 0)

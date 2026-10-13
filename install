@@ -6,6 +6,8 @@ export LC_ALL=C.UTF-8
 PROJECT="bulba"
 BUILD_TYPE="Debug"
 CLEAN=0
+ASAN=0
+GPROF=0
 VALGRIND=0
 MONITOR=0
 
@@ -32,6 +34,9 @@ for arg in "$@"; do
         clean)          CLEAN=1 ;;
         valgrind)       VALGRIND=1 ;;
         ltrack|ltraces) MONITOR=1 ;;
+        asan)           ASAN=1 ;;
+        gprof)          GPROF=1 ;;
+
         *)
             echo "Usage: ./install [debug|release] [clean] [valgrind] [ltrack|ltraces]"
             exit 1

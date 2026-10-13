@@ -10,13 +10,27 @@ cmake --build build/linux-debug -j
 ./build/linux-debug/bulba
 ```
 
-## Windows
+## Windows (MSVC x64)
+
+Prerequisites:
+
+- Visual Studio 2022 with **Desktop development with C++** (MSVC x64 and Windows SDK).
+- CMake and the Vulkan SDK; `VULKAN_SDK` must be set and `%VULKAN_SDK%\Bin\glslc.exe` must exist.
+- [vcpkg](https://github.com/microsoft/vcpkg), with `VCPKG_ROOT` set to its root folder (for example, `C:\vcpkg`). The project manifest installs GLFW, FreeType, PNG, JPEG and Assimp dependencies automatically during CMake configuration.
+
+Run from the repository root in a terminal where `VULKAN_SDK` and `VCPKG_ROOT` are available:
 
 ```bat
-build.bat Debug
+install.bat debug
 ```
 
-The Windows build expects a working CMake toolchain, GLFW, Vulkan SDK and FreeType installation available to CMake. The engine does not use POSIX-only timing or dynamic-library APIs directly.
+This configures with the Visual Studio 2022 generator, builds the Debug sample application, and starts it. To build and install the Release DLL to `C:\Bulba`, run:
+
+```bat
+install.bat release
+```
+
+GitHub Actions uses the same MSVC x64 generator and `x64-windows-static` vcpkg triplet. Windows uses Win32 thread and timing APIs; the POSIX implementations remain enabled on Linux.
 
 ## Android
 

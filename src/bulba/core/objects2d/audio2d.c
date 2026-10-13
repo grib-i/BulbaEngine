@@ -1,5 +1,6 @@
 #include "bulba/core/objects2d/audio2d.h"
 #include "bulba/core/objects2d/square.h"
+#include "bulba/core/platform.h"
 #include "bulba/core/utils/audio.h"
 #include "bulba/core/utils/config.h"
 
@@ -67,7 +68,7 @@ BLB_Audio2D *BLB_LoadAudio2D(BLB_IO_Audio *io_audio, const char *path, bool play
   // The audio engine is borrowed; this object must not allocate or free a copy.
   audio->io_audio = io_audio;
 
-  audio->path = strdup(path);
+  audio->path = BLB_Platform_DuplicateString(path);
   if (!audio->path) {
     free(audio->result);
     free(audio->sound);
@@ -192,11 +193,6 @@ void BLB_SetRotation_Audio2D(BLB_Audio2D *audio, HMM_Vec2 rotation) {
     return;
 
   ma_sound_set_direction(audio->sound, rotation.x, rotation.y, 0.0f);
-
-  // The direction vector determines an absolute facing angle; this is a
-  // setter, not angular velocity, so do not apply delta_time or accumulate it.
-  if (HMM_LenV2(rotation) > 1e-7f)
-    BLB_Object2D_SetRotation(audio->obj, atan2f(rotation.y, rotation.x) * (180.0f / HMM_PI));
 }
 
 void BLB_SetAttenuation_Audio2D(BLB_Audio2D *audio, float attenuation) {

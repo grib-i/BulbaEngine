@@ -6,8 +6,7 @@ int BLB_TestParticles3D(void) {
   if (BLB_TestContext_Init(&app, 1200, 900, "BulbaEngine - Particles 3D", HMM_V3(0.0f, 0.0f, 13.0f), 7, 9, 15) != 0)
     return -1;
 
-  BLB_ParticleSystem3D *system = BLB_CreateParticleSystem3D(
-      HMM_V3(1.0f, 1.0f, 1.0f), HMM_V3(0.0f, -1.0f, 0.0f), 0, 4096, 2.4f, 0.9f, NULL);
+  BLB_ParticleSystem3D *system = BLB_CreateParticleSystem3D(HMM_V3(1.0f, 1.0f, 1.0f), HMM_V3(0.0f, -1.0f, 0.0f), 0, 4096, 2.4f, 0.9f, NULL);
   if (!system) {
     BLB_TestContext_Shutdown(&app);
     return -1;
@@ -24,7 +23,6 @@ int BLB_TestParticles3D(void) {
   system->rotation_speed = HMM_V3(0.0f, 0.0f, 110.0f);
   system->looping = true;
 
-
   if (!BLB_ParticleSystem3D_SetCount(system, 320)) {
     BLB_DestroyParticleSystem3D(system);
     BLB_TestContext_Shutdown(&app);
@@ -37,9 +35,9 @@ int BLB_TestParticles3D(void) {
     return -1;
   }
 
-  BLB_Particle3D *single = BLB_CreateParticle3D(
-      (BLB_ParticleID){.id = BLB_INVALID_PARTICLE_ID}, HMM_V3(-2.5f, 0.0f, 0.0f), HMM_V3(0.8f, 1.7f, 0.0f), HMM_V3(0.52f, 0.52f, 0.0f),
-      HMM_V3(0.0f, 0.0f, 0.0f), HMM_V4(255.0f, 210.0f, 90.0f, 235.0f), 3.5f, 3.5f, NULL, NULL);
+  BLB_Particle3D *single =
+      BLB_CreateParticle3D((BLB_ParticleID){.id = BLB_INVALID_PARTICLE_ID}, HMM_V3(-2.5f, 0.0f, 0.0f), HMM_V3(0.8f, 1.7f, 0.0f),
+                           HMM_V3(0.52f, 0.52f, 0.0f), HMM_V3(0.0f, 0.0f, 0.0f), HMM_V4(255.0f, 210.0f, 90.0f, 235.0f), 3.5f, 3.5f, NULL, NULL);
 
   if (single) {
     single->rotation_speed = HMM_V3(0.0f, 0.0f, 70.0f);

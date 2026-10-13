@@ -1,7 +1,6 @@
 #include "bulba/core/utils/fps.h"
 #include "bulba/core/platform.h"
 
-#include <time.h>
 
 int BLB_InitFPS(BLB_FPS *f, BLB_Renderer *renderer, int limit, bool vsync) {
   if (!f || !renderer)
@@ -32,22 +31,8 @@ void BLB_UpdateFPS(BLB_FPS *f) {
       double elapsed = now - f->last_time;
       double sleep_time = target - elapsed;
 
-      if (sleep_time > 0.0) {
-        struct timespec ts;
-
-        ts.tv_sec = (time_t)sleep_time;
-        ts.tv_nsec = (long)((sleep_time - (double)ts.tv_sec) * 1000000000.0);
-
-        if (ts.tv_nsec < 0)
-          ts.tv_nsec = 0;
-
-        if (ts.tv_nsec >= 1000000000L) {
-          ts.tv_sec++;
-          ts.tv_nsec -= 1000000000L;
-        }
-
-        nanosleep(&ts, NULL);
-      }
+      if (sleep_time > 0.0)
+        BLB_Platform_SleepSeconds(sleep_time);
     }
 
     now = BLB_Platform_TimeSeconds();

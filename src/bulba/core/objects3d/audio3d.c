@@ -1,6 +1,7 @@
 #include "bulba/core/objects3d/audio3d.h"
 #include "bulba/core/objects3d/cube.h"
 #include "bulba/core/objects3d/objects3d.h"
+#include "bulba/core/platform.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/utils/config.h"
 
@@ -65,7 +66,7 @@ BLB_Audio3D *BLB_LoadAudio3D(BLB_IO_Audio *io_audio, const char *path, bool play
   }
   audio->io_audio = io_audio;
 
-  audio->path = strdup(path);
+  audio->path = BLB_Platform_DuplicateString(path);
   if (!audio->path) {
     free(audio->result);
     free(audio->sound);

@@ -4,6 +4,9 @@
 #include <stddef.h>
 
 #ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h>
 typedef HMODULE BLB_PlatformLibrary;
 #else
@@ -11,6 +14,7 @@ typedef void *BLB_PlatformLibrary;
 #endif
 
 double BLB_Platform_TimeSeconds(void);
+void BLB_Platform_SleepSeconds(double seconds);
 char *BLB_Platform_DuplicateString(const char *value);
 BLB_PlatformLibrary BLB_Platform_LoadLibrary(const char *path);
 void *BLB_Platform_LoadSymbol(BLB_PlatformLibrary library, const char *name);

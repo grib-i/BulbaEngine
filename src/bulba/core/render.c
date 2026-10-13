@@ -1,4 +1,5 @@
 #include "bulba/core/render.h"
+#include "bulba/core/platform.h"
 
 #include "bulba/core/math3v/HandmadeMath.h"
 #include "bulba/core/math3v/lights.h"
@@ -1376,7 +1377,10 @@ static void draw_skybox(BLB_Skybox *skybox, BLB_Renderer *renderer, const BLB_Ca
 
   float x_scale = fabsf(camera_cache->projection.Elements[0][0]) > 0.000001f ? 1.0f / fabsf(camera_cache->projection.Elements[0][0]) : 1.0f;
 
-  float y_scale = fabsf(camera_cache->projection.Elements[1][1]) > 0.000001f ? 1.0f / camera_cache->projection.Elements[1][1] : 1.0f;
+  /* The Vulkan projection flips its Y coefficient. Use its magnitude here;
+   * screen-to-ray Y orientation is handled explicitly in the skybox shader. */
+  float projection_y_scale = fabsf(camera_cache->projection.Elements[1][1]);
+  float y_scale = projection_y_scale > 0.000001f ? 1.0f / projection_y_scale : 1.0f;
 
   float model_rows[12] = {right.x * x_scale, right.y * x_scale, right.z * x_scale, 0.0f, up.x * y_scale, up.y * y_scale, up.z * y_scale, 0.0f,
                           forward.x,         forward.y,         forward.z,         0.0f};
@@ -2622,11 +2626,7 @@ static void audio2d_surround_play(BLB_Audio2D *audio2d, BLB_Scene *scene) {
 }
 
 // helpers in BLB_DrawScene
-static double debug_time_ms(void) {
-  struct timespec ts;
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
-}
+static double debug_time_ms(void) { return BLB_Platform_TimeSeconds() * 1000.0; }
 
 static void debug_aggregation(BLB_Scene *scene) {
   if (!scene) {

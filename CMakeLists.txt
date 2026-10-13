@@ -32,6 +32,7 @@ set(BOX2D_PROFILE OFF CACHE BOOL "" FORCE)
 set(BOX2D_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 set(BOX2D_VALIDATE OFF CACHE BOOL "" FORCE)
 set(BOX2D_COMPILE_WARNING_AS_ERROR OFF CACHE BOOL "" FORCE)
+
 FetchContent_Declare(
   box2d
   GIT_REPOSITORY https://github.com/erincatto/box2d.git
@@ -45,6 +46,7 @@ set(BOX3D_SAMPLES OFF CACHE BOOL "" FORCE)
 set(BOX3D_BENCHMARKS OFF CACHE BOOL "" FORCE)
 set(BOX3D_DOCS OFF CACHE BOOL "" FORCE)
 set(BOX3D_PROFILE OFF CACHE BOOL "" FORCE)
+
 FetchContent_Declare(
   box3d
   GIT_REPOSITORY https://github.com/erincatto/box3d.git
@@ -71,12 +73,14 @@ if(NOT TARGET assimp::assimp AND NOT TARGET assimp)
   set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)
   set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "" FORCE)
   set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)
+
   FetchContent_Declare(
     assimp
     GIT_REPOSITORY https://github.com/assimp/assimp.git
     GIT_TAG v5.4.3
     GIT_SHALLOW TRUE
   )
+
   FetchContent_MakeAvailable(assimp)
 endif()
 
@@ -241,9 +245,7 @@ elseif(UNIX AND NOT APPLE)
   set(CPACK_DEBIAN_PACKAGE_MAINTAINER "BulbaEngine maintainers")
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
   set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS ON)
-  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
-    "${CMAKE_SOURCE_DIR}/packaging/linux/postinst;${CMAKE_SOURCE_DIR}/packaging/linux/postrm"
-  )
+  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging/linux/postinst;${CMAKE_SOURCE_DIR}/packaging/linux/postrm")
 endif()
 
 include(CPack)
