@@ -6,7 +6,12 @@
 #include "bulba/core/render/texture.h"
 #include "bulba/core/utils/object.h"
 
+#ifdef _WIN32
+#define _USE_MATH_DEFINES
+#else
 #define _GNU_SOURCE
+#endif
+
 #include <math.h>
 
 #include <stdbool.h>
