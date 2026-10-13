@@ -14,6 +14,7 @@ jobs:
   linux:
     name: Linux / .so / .deb
     runs-on: ubuntu-24.04
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -28,6 +29,10 @@ jobs:
             pkg-config \
             dpkg-dev \
             nasm \
+            autoconf \
+            autoconf-archive \
+            automake \
+            libtool \
             libvulkan-dev \
             glslc \
             xorg-dev \
@@ -38,18 +43,23 @@ jobs:
             libgl1-mesa-dev \
             libglu1-mesa-dev
 
-      - name: Bootstrap vcpkg for static third-party libraries
+      - name: Bootstrap vcpkg
         run: |
           git clone --depth 1 https://github.com/microsoft/vcpkg.git "$RUNNER_TEMP/vcpkg"
           "$RUNNER_TEMP/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
 
-      - name: Configure with static vcpkg dependencies
+      - name: Configure Linux build
         run: |
           PROJECT_DIR=.
+
           if [ ! -f "$PROJECT_DIR/CMakeLists.txt" ] && [ -f engine/CMakeLists.txt ]; then
             PROJECT_DIR=engine
           fi
-          cmake -S "$PROJECT_DIR" -B build -G Ninja \
+
+          cmake \
+            -S "$PROJECT_DIR" \
+            -B build \
+            -G Ninja \
             "-DCMAKE_TOOLCHAIN_FILE=$RUNNER_TEMP/vcpkg/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-linux \
             -DPROJECT_NAME=BulbaEngine \
@@ -57,14 +67,20 @@ jobs:
             -DBLB_BUILD_SHARED=ON \
             -DBLB_BUILD_APP=ON
 
-      - name: Build library and application
+      - name: Build Linux library and application
         run: cmake --build build --parallel
 
       - name: Create Debian package
-        run: cpack --config build/CPackConfig.cmake -G DEB
+        run: |
+          mkdir -p build/packages
+          cpack \
+            --config build/CPackConfig.cmake \
+            -G DEB \
+            -B build/packages
 
       - name: Install into staging directory
-        run: cmake --install build --prefix "$GITHUB_WORKSPACE/stage"
+        run: |
+          cmake --install build --prefix "$GITHUB_WORKSPACE/stage"
 
       - name: Upload Linux outputs
         uses: actions/upload-artifact@v7
@@ -79,11 +95,12 @@ jobs:
   windows:
     name: Windows / .dll / .exe installer
     runs-on: windows-2022
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Install Vulkan SDK (includes glslc)
+      - name: Install Vulkan SDK
         uses: jakoch/install-vulkan-sdk-action@v1.7.0
         with:
           vulkan_version: 1.4.304.1
@@ -94,7 +111,7 @@ jobs:
       - name: Install NSIS
         uses: negrutiu/nsis-install@v2
 
-      - name: Configure with static vcpkg dependencies
+      - name: Configure Windows build
         shell: pwsh
         run: |
           if (Test-Path "CMakeLists.txt") {
@@ -104,22 +121,66 @@ jobs:
           } else {
             throw "Could not find CMakeLists.txt in repository root or engine/"
           }
-          cmake -S $projectDir -B build -G "Visual Studio 17 2022" -A x64 `
-            "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+
+          if (-not $env:VCPKG_INSTALLATION_ROOT) {
+            throw "VCPKG_INSTALLATION_ROOT is not set on this runner."
+          }
+
+          $toolchain = Join-Path $env:VCPKG_INSTALLATION_ROOT "scripts/buildsystems/vcpkg.cmake"
+
+          if (-not (Test-Path $toolchain)) {
+            throw "vcpkg toolchain was not found: $toolchain"
+          }
+
+          cmake `
+            -S $projectDir `
+            -B build `
+            -G "Visual Studio 17 2022" `
+            -A x64 `
+            "-DCMAKE_TOOLCHAIN_FILE=$toolchain" `
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
             -DPROJECT_NAME=BulbaEngine `
             -DBLB_BUILD_SHARED=ON `
             -DBLB_BUILD_APP=ON
 
-      - name: Build library and application
-        run: cmake --build build --config Release --parallel
+          if ($LASTEXITCODE -ne 0) {
+            throw "CMake configuration failed."
+          }
+
+      - name: Build Windows library and application
+        shell: pwsh
+        run: |
+          cmake --build build --config Release --parallel
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Windows build failed."
+          }
 
       - name: Create Windows installer
-        run: cpack --config build/CPackConfig.cmake -C Release -G NSIS
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "build/packages" | Out-Null
+
+          cpack `
+            --config build/CPackConfig.cmake `
+            -C Release `
+            -G NSIS `
+            -B build/packages
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to create Windows installer."
+          }
 
       - name: Install into staging directory
         shell: pwsh
-        run: cmake --install build --config Release --prefix "$PWD/stage"
+        run: |
+          $stageDir = Join-Path $env:GITHUB_WORKSPACE "stage"
+
+          cmake --install build --config Release --prefix $stageDir
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Windows installation failed."
+          }
 
       - name: Upload Windows outputs
         uses: actions/upload-artifact@v7
