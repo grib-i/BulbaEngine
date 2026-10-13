@@ -6,50 +6,50 @@ on:
       - "v*.*.*"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   linux:
     name: Build Linux release
     runs-on: ubuntu-24.04
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Install Linux build dependencies
+      - name: Install Linux dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential \
-            cmake \
-            ninja-build \
-            pkg-config \
-            dpkg-dev \
-            nasm \
-            libvulkan-dev \
-            glslc \
-            xorg-dev \
-            libxinerama-dev \
-            libxcursor-dev \
-            libxi-dev \
-            libxrandr-dev \
-            libgl1-mesa-dev \
-            libglu1-mesa-dev
+            build-essential cmake ninja-build pkg-config \
+            dpkg-dev nasm git curl zip unzip \
+            autoconf autoconf-archive automake libtool \
+            libvulkan-dev glslc xorg-dev \
+            libxinerama-dev libxcursor-dev libxi-dev \
+            libxrandr-dev libgl1-mesa-dev libglu1-mesa-dev
 
-      - name: Bootstrap vcpkg for static third-party libraries
+      - name: Bootstrap vcpkg
         run: |
           git clone --depth 1 https://github.com/microsoft/vcpkg.git "$RUNNER_TEMP/vcpkg"
           "$RUNNER_TEMP/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
 
-      - name: Configure with static vcpkg dependencies
+      - name: Configure
+        shell: bash
         run: |
-          PROJECT_DIR=.
+          set -euo pipefail
+
+          PROJECT_DIR="."
           if [ ! -f "$PROJECT_DIR/CMakeLists.txt" ] && [ -f engine/CMakeLists.txt ]; then
-            PROJECT_DIR=engine
+            PROJECT_DIR="engine"
           fi
+
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Building version $VERSION"
+
           cmake -S "$PROJECT_DIR" -B build -G Ninja \
             "-DCMAKE_TOOLCHAIN_FILE=$RUNNER_TEMP/vcpkg/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-linux \
+            "-DBLB_VERSION=$VERSION" \
             -DPROJECT_NAME=BulbaEngine \
             -DCMAKE_BUILD_TYPE=Release \
             -DBLB_BUILD_SHARED=ON \
@@ -58,25 +58,39 @@ jobs:
       - name: Build
         run: cmake --build build --parallel
 
-      - name: Package .deb
-        run: cpack --config build/CPackConfig.cmake -G DEB
+      - name: Package DEB
+        run: |
+          mkdir -p build/packages
+          cpack --config build/CPackConfig.cmake -G DEB -B "$GITHUB_WORKSPACE/build/packages"
+
+      - name: Install to staging directory
+        run: cmake --install build --prefix "$GITHUB_WORKSPACE/stage"
+
+      - name: Create Linux archive
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          tar -czf "$GITHUB_WORKSPACE/build/packages/BulbaEngine-${VERSION}-Linux-x86_64.tar.gz" \
+            -C "$GITHUB_WORKSPACE/stage" .
 
       - name: Upload Linux release files
         uses: actions/upload-artifact@v7
         with:
           name: release-linux
-          path: build/packages/*.deb
+          path: |
+            build/packages/*.deb
+            build/packages/*.tar.gz
           if-no-files-found: error
           retention-days: 3
 
   windows:
     name: Build Windows release
     runs-on: windows-2022
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Install Vulkan SDK (includes glslc)
+      - name: Install Vulkan SDK
         uses: jakoch/install-vulkan-sdk-action@v1.7.0
         with:
           vulkan_version: 1.4.304.1
@@ -87,7 +101,7 @@ jobs:
       - name: Install NSIS
         uses: negrutiu/nsis-install@v2
 
-      - name: Configure with static vcpkg dependencies
+      - name: Configure
         shell: pwsh
         run: |
           if (Test-Path "CMakeLists.txt") {
@@ -95,48 +109,128 @@ jobs:
           } elseif (Test-Path "engine/CMakeLists.txt") {
             $projectDir = "engine"
           } else {
-            throw "Could not find CMakeLists.txt in repository root or engine/"
+            throw "CMakeLists.txt not found."
           }
+
+          if (-not $env:VCPKG_INSTALLATION_ROOT) {
+            throw "VCPKG_INSTALLATION_ROOT is not set."
+          }
+
+          $toolchain = Join-Path $env:VCPKG_INSTALLATION_ROOT "scripts/buildsystems/vcpkg.cmake"
+          $version = $env:GITHUB_REF_NAME -replace '^v', ''
+
           cmake -S $projectDir -B build -G "Visual Studio 17 2022" -A x64 `
-            "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            "-DCMAKE_TOOLCHAIN_FILE=$toolchain" `
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            "-DBLB_VERSION=$version" `
             -DPROJECT_NAME=BulbaEngine `
             -DBLB_BUILD_SHARED=ON `
             -DBLB_BUILD_APP=ON
 
-      - name: Build
-        run: cmake --build build --config Release --parallel
+          if ($LASTEXITCODE -ne 0) {
+            throw "CMake configuration failed."
+          }
 
-      - name: Package Windows installer
-        run: cpack --config build/CPackConfig.cmake -C Release -G NSIS
+      - name: Build
+        shell: pwsh
+        run: |
+          cmake --build build --config Release --parallel
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Build failed."
+          }
+
+      - name: Package installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "build/packages" | Out-Null
+
+          cpack --config build/CPackConfig.cmake -C Release -G NSIS -B "$PWD/build/packages"
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "CPack failed."
+          }
+
+      - name: Install to staging directory
+        shell: pwsh
+        run: |
+          $stage = Join-Path $env:GITHUB_WORKSPACE "stage"
+          cmake --install build --config Release --prefix $stage
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Installation failed."
+          }
+
+      - name: Create Windows archive
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^v', ''
+          $archive = Join-Path $env:GITHUB_WORKSPACE "build/packages/BulbaEngine-$version-Windows-x64.zip"
+
+          Compress-Archive `
+            -Path "$env:GITHUB_WORKSPACE/stage/*" `
+            -DestinationPath $archive `
+            -CompressionLevel Optimal `
+            -Force
 
       - name: Upload Windows release files
         uses: actions/upload-artifact@v7
         with:
           name: release-windows
-          path: build/packages/*.exe
+          path: |
+            build/packages/*.exe
+            build/packages/*.zip
           if-no-files-found: error
           retention-days: 3
 
   publish:
     name: Publish GitHub Release
-    needs: [linux, windows]
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Download release packages
-        uses: actions/download-artifact@v7
-        with:
-          path: release-assets
-          merge-multiple: true
+    needs:
+      - linux
+      - windows
 
-      - name: Publish release and attach packages
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Linux files
+        uses: actions/download-artifact@v8
+        with:
+          name: release-linux
+          path: release-assets/linux
+
+      - name: Download Windows files
+        uses: actions/download-artifact@v8
+        with:
+          name: release-windows
+          path: release-assets/windows
+
+      - name: Publish release
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
+          GH_REPO: ${{ github.repository }}
         run: |
-          mapfile -t files < <(find release-assets -type f \( -name '*.deb' -o -name '*.exe' \) -print)
-          if [ "${#files[@]}" -eq 0 ]; then
-            echo "No .deb or .exe release files were found." >&2
+          set -euo pipefail
+          shopt -s nullglob
+
+          files=(
+            release-assets/linux/*.deb
+            release-assets/linux/*.tar.gz
+            release-assets/windows/*.exe
+            release-assets/windows/*.zip
+          )
+
+          if [ "${#files[@]}" -ne 4 ]; then
+            echo "ERROR: Expected four release files."
+            find release-assets -type f -print
             exit 1
           fi
-          gh release create "$GITHUB_REF_NAME" "${files[@]}" --title "BulbaEngine $GITHUB_REF_NAME" --generate-notes
+
+          gh release create "$GITHUB_REF_NAME" \
+            "${files[@]}" \
+            --title "BulbaEngine $GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag

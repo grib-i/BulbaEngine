@@ -10,7 +10,10 @@ if(NOT PROJECT_NAME)
   set(PROJECT_NAME "BulbaEngine")
 endif()
 
-project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C CXX)
+# Can be overridden by GitHub Actions when building a version tag.
+set(BLB_VERSION "0.1.0" CACHE STRING "BulbaEngine version")
+
+project(${PROJECT_NAME} VERSION "${BLB_VERSION}" LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -102,6 +105,7 @@ file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS
 )
 
 option(BLB_BUILD_SHARED "Build bulba_engine as a shared library" ON)
+
 if(BLB_BUILD_SHARED)
   add_library(bulba_engine SHARED ${ENGINE_SOURCES})
 else()
@@ -124,8 +128,8 @@ include("${CMAKE_SOURCE_DIR}/cmake/compiler.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/shaders.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/textures.cmake")
 
-# On Windows the vcpkg x64-windows-static triplet links these dependencies
-# statically where supported. Vulkan's loader remains a runtime dependency.
+# The Windows x64-windows-static triplet links dependencies statically
+# where supported. Vulkan's loader remains a runtime dependency.
 target_link_libraries(bulba_engine
   PUBLIC
     Vulkan::Vulkan
@@ -148,34 +152,52 @@ if(JPEG_FOUND)
 endif()
 
 include("${CMAKE_SOURCE_DIR}/cmake/options.cmake")
+
 target_compile_definitions(bulba_engine PUBLIC
   VULKAN_SHADOW_MAP_SIZE=${BLB_SHADOW_MAP_SIZE}
   BLB_GLOW_STEPS_3D=${BLB_GLOW_STEPS_3D}
   BLB_GLOW_STEPS_2D=${BLB_GLOW_STEPS_2D}
 )
 
-target_compile_definitions(bulba_engine PRIVATE $<$<CONFIG:Debug>:DEBUG>)
+target_compile_definitions(bulba_engine PRIVATE
+  $<$<CONFIG:Debug>:DEBUG>
+)
 
 # The checked-in src/main.c calls BLB_TestHandlers(), so test sources must be
 # linked in Release too. This target currently acts as a test/sample app.
 if(BLB_BUILD_APP)
   set(APP_SOURCES "${CMAKE_SOURCE_DIR}/src/main.c")
+
   file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/tests/*.c"
   )
+
   list(FILTER TEST_SOURCES EXCLUDE REGEX ".*/object_count_3d\\.c$")
   list(APPEND APP_SOURCES ${TEST_SOURCES})
 
   add_executable(${PROJECT_NAME} ${APP_SOURCES})
-  target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/tests")
+
+  target_include_directories(${PROJECT_NAME} PRIVATE
+    "${CMAKE_SOURCE_DIR}/tests"
+  )
+
   target_link_libraries(${PROJECT_NAME} PRIVATE bulba_engine)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:DEBUG>)
+
+  target_compile_definitions(${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Debug>:DEBUG>
+  )
 endif()
 
 include(GNUInstallDirs)
+
 if(UNIX AND NOT APPLE AND CMAKE_LIBRARY_ARCHITECTURE)
   # Debian multiarch library directory so the dynamic loader can find the .so.
-  set(CMAKE_INSTALL_LIBDIR "lib/${CMAKE_LIBRARY_ARCHITECTURE}" CACHE PATH "Library install directory" FORCE)
+  set(
+    CMAKE_INSTALL_LIBDIR
+    "lib/${CMAKE_LIBRARY_ARCHITECTURE}"
+    CACHE PATH "Library install directory"
+    FORCE
+  )
 endif()
 
 if(UNIX AND NOT APPLE AND BLB_BUILD_APP)
@@ -183,12 +205,15 @@ if(UNIX AND NOT APPLE AND BLB_BUILD_APP)
     INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}"
   )
 endif()
+
 if(UNIX AND NOT APPLE AND BLB_BUILD_SHARED)
-  set_target_properties(bulba_engine PROPERTIES INSTALL_RPATH "$ORIGIN")
+  set_target_properties(bulba_engine PROPERTIES
+    INSTALL_RPATH "$ORIGIN"
+  )
 endif()
 
-# Windows: place the application DLLs beside the EXE and collect runtime DLLs
-# required by the executable/library. Do not copy Windows system DLLs.
+# Windows: place application DLLs beside the EXE and collect runtime DLLs.
+# Do not copy Windows system DLLs.
 if(WIN32)
   install(TARGETS bulba_engine
     RUNTIME_DEPENDENCY_SET BulbaRuntimeDependencies
@@ -196,16 +221,24 @@ if(WIN32)
     LIBRARY DESTINATION "${CMAKE_INSTALL_BINDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   )
+
   if(BLB_BUILD_APP)
     install(TARGETS ${PROJECT_NAME}
       RUNTIME_DEPENDENCY_SET BulbaRuntimeDependencies
       RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
     )
   endif()
+
   install(RUNTIME_DEPENDENCY_SET BulbaRuntimeDependencies
-    DIRECTORIES "$ENV{VULKAN_SDK}/Bin" "$ENV{VULKAN_SDK}/Bin32"
-    PRE_EXCLUDE_REGEXES "api-ms-win-.*" "ext-ms-win-.*"
-    POST_EXCLUDE_REGEXES ".*[Ww]indows[/\\\\][Ss]ystem32[/\\\\].*" ".*[Ww]indows[/\\\\][Ss]ys[Ww][Oo][Ww]64[/\\\\].*"
+    DIRECTORIES
+      "$ENV{VULKAN_SDK}/Bin"
+      "$ENV{VULKAN_SDK}/Bin32"
+    PRE_EXCLUDE_REGEXES
+      "api-ms-win-.*"
+      "ext-ms-win-.*"
+    POST_EXCLUDE_REGEXES
+      ".*[Ww]indows[/\\\\][Ss]ystem32[/\\\\].*"
+      ".*[Ww]indows[/\\\\][Ss]ys[Ww][Oo][Ww]64[/\\\\].*"
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
   )
 else()
@@ -213,6 +246,7 @@ else()
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   )
+
   if(BLB_BUILD_APP)
     install(TARGETS ${PROJECT_NAME}
       RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
@@ -228,24 +262,36 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/include/"
 set(CPACK_PACKAGE_NAME "bulba-engine")
 set(CPACK_PACKAGE_VENDOR "BulbaEngine")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "BulbaEngine and its shared library")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+  "BulbaEngine and its shared library"
+)
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "BulbaEngine")
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/packages")
 
 if(WIN32)
   set(CPACK_GENERATOR "NSIS")
-  set(CPACK_PACKAGE_FILE_NAME "BulbaEngine-${PROJECT_VERSION}-Windows-x64")
+  set(
+    CPACK_PACKAGE_FILE_NAME
+    "BulbaEngine-${PROJECT_VERSION}-Windows-x64"
+  )
   set(CPACK_NSIS_DISPLAY_NAME "BulbaEngine ${PROJECT_VERSION}")
   set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
   set(CPACK_NSIS_MODIFY_PATH OFF)
+
 elseif(UNIX AND NOT APPLE)
   set(CPACK_GENERATOR "DEB")
-  set(CPACK_PACKAGE_FILE_NAME "bulba-engine-${PROJECT_VERSION}-Linux-x86_64")
+  set(
+    CPACK_PACKAGE_FILE_NAME
+    "bulba-engine-${PROJECT_VERSION}-Linux-x86_64"
+  )
   set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
   set(CPACK_DEBIAN_PACKAGE_MAINTAINER "BulbaEngine maintainers")
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
   set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS ON)
-  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging/linux/postinst;${CMAKE_SOURCE_DIR}/packaging/linux/postrm")
+  set(
+    CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
+    "${CMAKE_SOURCE_DIR}/packaging/linux/postinst;${CMAKE_SOURCE_DIR}/packaging/linux/postrm"
+  )
 endif()
 
 include(CPack)

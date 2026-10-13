@@ -1,10 +1,6 @@
 name: CI Build
 
 on:
-  push:
-    branches: ["**"]
-    tags: ["v*.*.*"]
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -19,81 +15,69 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Install Linux build dependencies
+      - name: Install Linux dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential \
-            cmake \
-            ninja-build \
-            pkg-config \
-            dpkg-dev \
-            nasm \
-            autoconf \
-            autoconf-archive \
-            automake \
-            libtool \
-            libvulkan-dev \
-            glslc \
-            xorg-dev \
-            libxinerama-dev \
-            libxcursor-dev \
-            libxi-dev \
-            libxrandr-dev \
-            libgl1-mesa-dev \
-            libglu1-mesa-dev
+            build-essential cmake ninja-build pkg-config \
+            dpkg-dev nasm git curl zip unzip \
+            autoconf autoconf-archive automake libtool \
+            libvulkan-dev glslc xorg-dev \
+            libxinerama-dev libxcursor-dev libxi-dev \
+            libxrandr-dev libgl1-mesa-dev libglu1-mesa-dev
 
       - name: Bootstrap vcpkg
         run: |
           git clone --depth 1 https://github.com/microsoft/vcpkg.git "$RUNNER_TEMP/vcpkg"
           "$RUNNER_TEMP/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
 
-      - name: Configure Linux build
+      - name: Configure
+        shell: bash
         run: |
-          PROJECT_DIR=.
+          set -euo pipefail
 
+          PROJECT_DIR="."
           if [ ! -f "$PROJECT_DIR/CMakeLists.txt" ] && [ -f engine/CMakeLists.txt ]; then
-            PROJECT_DIR=engine
+            PROJECT_DIR="engine"
           fi
 
-          cmake \
-            -S "$PROJECT_DIR" \
-            -B build \
-            -G Ninja \
+          cmake -S "$PROJECT_DIR" -B build -G Ninja \
             "-DCMAKE_TOOLCHAIN_FILE=$RUNNER_TEMP/vcpkg/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-linux \
+            -DBLB_VERSION=0.1.0 \
             -DPROJECT_NAME=BulbaEngine \
             -DCMAKE_BUILD_TYPE=Release \
             -DBLB_BUILD_SHARED=ON \
             -DBLB_BUILD_APP=ON
 
-      - name: Build Linux library and application
+      - name: Build
         run: cmake --build build --parallel
 
-      - name: Create Debian package
+      - name: Package DEB
         run: |
           mkdir -p build/packages
-          cpack \
-            --config build/CPackConfig.cmake \
-            -G DEB \
-            -B build/packages
+          cpack --config build/CPackConfig.cmake -G DEB -B "$GITHUB_WORKSPACE/build/packages"
 
-      - name: Install into staging directory
+      - name: Install to staging directory
+        run: cmake --install build --prefix "$GITHUB_WORKSPACE/stage"
+
+      - name: Create Linux archive
         run: |
-          cmake --install build --prefix "$GITHUB_WORKSPACE/stage"
+          tar -czf "$GITHUB_WORKSPACE/build/packages/BulbaEngine-Linux-x86_64.tar.gz" \
+            -C "$GITHUB_WORKSPACE/stage" .
 
-      - name: Upload Linux outputs
+      - name: Upload Linux artifacts
         uses: actions/upload-artifact@v7
         with:
           name: bulba-linux
           path: |
             build/packages/*.deb
-            stage/**
+            build/packages/*.tar.gz
           if-no-files-found: error
           retention-days: 14
 
   windows:
-    name: Windows / .dll / .exe installer
+    name: Windows / .dll / .exe
     runs-on: windows-2022
 
     steps:
@@ -111,7 +95,7 @@ jobs:
       - name: Install NSIS
         uses: negrutiu/nsis-install@v2
 
-      - name: Configure Windows build
+      - name: Configure
         shell: pwsh
         run: |
           if (Test-Path "CMakeLists.txt") {
@@ -119,26 +103,19 @@ jobs:
           } elseif (Test-Path "engine/CMakeLists.txt") {
             $projectDir = "engine"
           } else {
-            throw "Could not find CMakeLists.txt in repository root or engine/"
+            throw "CMakeLists.txt not found."
           }
 
           if (-not $env:VCPKG_INSTALLATION_ROOT) {
-            throw "VCPKG_INSTALLATION_ROOT is not set on this runner."
+            throw "VCPKG_INSTALLATION_ROOT is not set."
           }
 
           $toolchain = Join-Path $env:VCPKG_INSTALLATION_ROOT "scripts/buildsystems/vcpkg.cmake"
 
-          if (-not (Test-Path $toolchain)) {
-            throw "vcpkg toolchain was not found: $toolchain"
-          }
-
-          cmake `
-            -S $projectDir `
-            -B build `
-            -G "Visual Studio 17 2022" `
-            -A x64 `
+          cmake -S $projectDir -B build -G "Visual Studio 17 2022" -A x64 `
             "-DCMAKE_TOOLCHAIN_FILE=$toolchain" `
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DBLB_VERSION=0.1.0 `
             -DPROJECT_NAME=BulbaEngine `
             -DBLB_BUILD_SHARED=ON `
             -DBLB_BUILD_APP=ON
@@ -147,47 +124,51 @@ jobs:
             throw "CMake configuration failed."
           }
 
-      - name: Build Windows library and application
+      - name: Build
         shell: pwsh
         run: |
           cmake --build build --config Release --parallel
 
           if ($LASTEXITCODE -ne 0) {
-            throw "Windows build failed."
+            throw "Build failed."
           }
 
-      - name: Create Windows installer
+      - name: Package installer
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "build/packages" | Out-Null
 
-          cpack `
-            --config build/CPackConfig.cmake `
-            -C Release `
-            -G NSIS `
-            -B build/packages
+          cpack --config build/CPackConfig.cmake -C Release -G NSIS -B "$PWD/build/packages"
 
           if ($LASTEXITCODE -ne 0) {
-            throw "Failed to create Windows installer."
+            throw "CPack failed."
           }
 
-      - name: Install into staging directory
+      - name: Install to staging directory
         shell: pwsh
         run: |
-          $stageDir = Join-Path $env:GITHUB_WORKSPACE "stage"
-
-          cmake --install build --config Release --prefix $stageDir
+          $stage = Join-Path $env:GITHUB_WORKSPACE "stage"
+          cmake --install build --config Release --prefix $stage
 
           if ($LASTEXITCODE -ne 0) {
-            throw "Windows installation failed."
+            throw "Installation failed."
           }
 
-      - name: Upload Windows outputs
+      - name: Create Windows archive
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path "$env:GITHUB_WORKSPACE/stage/*" `
+            -DestinationPath "$env:GITHUB_WORKSPACE/build/packages/BulbaEngine-Windows-x64.zip" `
+            -CompressionLevel Optimal `
+            -Force
+
+      - name: Upload Windows artifacts
         uses: actions/upload-artifact@v7
         with:
           name: bulba-windows
           path: |
             build/packages/*.exe
-            stage/**
+            build/packages/*.zip
           if-no-files-found: error
           retention-days: 14
