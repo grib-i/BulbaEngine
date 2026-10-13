@@ -134,11 +134,26 @@ jobs:
       - name: Build
         shell: pwsh
         run: |
-          cmake --build build --config Release --parallel
+          cmake --build build --config Release --parallel 2 --verbose 2>&1 |
+            Tee-Object -FilePath build.log
 
-          if ($LASTEXITCODE -ne 0) {
-            throw "Build failed."
+          $buildExitCode = $LASTEXITCODE
+
+          if ($buildExitCode -ne 0) {
+            Write-Host "Build failed with exit code $buildExitCode"
+            Write-Host "Last 200 lines of build.log:"
+            Get-Content build.log -Tail 200
+            exit $buildExitCode
           }
+
+      - name: Upload Windows build log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-windows-build-log
+          path: build.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Package installer
         shell: pwsh
@@ -229,8 +244,16 @@ jobs:
             exit 1
           fi
 
-          gh release create "$GITHUB_REF_NAME" \
-            "${files[@]}" \
-            --title "BulbaEngine $GITHUB_REF_NAME" \
-            --generate-notes \
-            --verify-tag
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release already exists. Updating assets."
+
+            gh release upload "$GITHUB_REF_NAME" \
+              "${files[@]}" \
+              --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              "${files[@]}" \
+              --title "BulbaEngine $GITHUB_REF_NAME" \
+              --generate-notes \
+              --verify-tag
+          fi

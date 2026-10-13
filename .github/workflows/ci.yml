@@ -127,11 +127,26 @@ jobs:
       - name: Build
         shell: pwsh
         run: |
-          cmake --build build --config Release --parallel
+          cmake --build build --config Release --parallel 2 --verbose 2>&1 |
+            Tee-Object -FilePath build.log
 
-          if ($LASTEXITCODE -ne 0) {
-            throw "Build failed."
+          $buildExitCode = $LASTEXITCODE
+
+          if ($buildExitCode -ne 0) {
+            Write-Host "Build failed with exit code $buildExitCode"
+            Write-Host "Last 200 lines of build.log:"
+            Get-Content build.log -Tail 200
+            exit $buildExitCode
           }
+
+      - name: Upload Windows build log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ci-windows-build-log
+          path: build.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Package installer
         shell: pwsh
