@@ -44,11 +44,11 @@ jobs:
           cmake -S "$PROJECT_DIR" -B build -G Ninja \
             "-DCMAKE_TOOLCHAIN_FILE=$RUNNER_TEMP/vcpkg/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET=x64-linux \
-            -DBLB_VERSION=0.1.0 \
+            -DBLB_VERSION=1.0.0 \
             -DPROJECT_NAME=BulbaEngine \
             -DCMAKE_BUILD_TYPE=Release \
             -DBLB_BUILD_SHARED=ON \
-            -DBLB_BUILD_APP=ON
+            -DBLB_BUILD_APP=OFF
 
       - name: Build
         run: cmake --build build --parallel
@@ -115,10 +115,10 @@ jobs:
           cmake -S $projectDir -B build -G "Visual Studio 17 2022" -A x64 `
             "-DCMAKE_TOOLCHAIN_FILE=$toolchain" `
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
-            -DBLB_VERSION=0.1.0 `
+            -DBLB_VERSION=1.0.0 `
             -DPROJECT_NAME=BulbaEngine `
             -DBLB_BUILD_SHARED=ON `
-            -DBLB_BUILD_APP=ON
+            -DBLB_BUILD_APP=OFF
 
           if ($LASTEXITCODE -ne 0) {
             throw "CMake configuration failed."

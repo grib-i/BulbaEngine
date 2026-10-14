@@ -6,7 +6,7 @@
 #include <limits.h>
 #include <stdarg.h>
 
-int max(const int numbers, ...) {
+int BLB_MaxInt(const int numbers, ...) {
   int max_val = numbers;
   va_list args;
   va_start(args, numbers);
@@ -22,7 +22,7 @@ int max(const int numbers, ...) {
   return max_val;
 }
 
-int min(const int numbers, ...) {
+int BLB_MinInt(const int numbers, ...) {
   int min_val = numbers;
   va_list args;
   va_start(args, numbers);

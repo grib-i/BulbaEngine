@@ -13,7 +13,13 @@
 #include "tests.h"
 
 #include <string.h>
+
+#ifdef _WIN32
+#include <process.h>
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 static const char *sound_test_animation_clip(const BLB_Object3D *model) {
   const size_t count = BLB_Model_GetAnimationCount(model);

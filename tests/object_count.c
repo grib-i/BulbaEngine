@@ -5,7 +5,13 @@
 #include "tests.h"
 #include <stdbool.h>
 #include <time.h>
+
+#ifdef _WIN32
+#include <process.h>
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 static BLB_Object3D *create_object(BLB_TestObjectType type, HMM_Vec3 position) {
   switch (type) {

@@ -53,7 +53,7 @@ jobs:
             -DPROJECT_NAME=BulbaEngine \
             -DCMAKE_BUILD_TYPE=Release \
             -DBLB_BUILD_SHARED=ON \
-            -DBLB_BUILD_APP=ON
+            -DBLB_BUILD_APP=OFF
 
       - name: Build
         run: cmake --build build --parallel
@@ -125,7 +125,7 @@ jobs:
             "-DBLB_VERSION=$version" `
             -DPROJECT_NAME=BulbaEngine `
             -DBLB_BUILD_SHARED=ON `
-            -DBLB_BUILD_APP=ON
+            -DBLB_BUILD_APP=OFF
 
           if ($LASTEXITCODE -ne 0) {
             throw "CMake configuration failed."

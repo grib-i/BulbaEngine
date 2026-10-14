@@ -1,6 +1,6 @@
-option(BULBA_ENABLE_ASAN "Enable AddressSanitizer" ON)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  option(BULBA_ENABLE_ASAN "Enable AddressSanitizer" ON)
   target_compile_definitions(
     bulba_engine
     PRIVATE

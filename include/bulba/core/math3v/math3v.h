@@ -3,11 +3,12 @@
 
 #include "HandmadeMath.h"
 #include <stdbool.h>
+#include <stddef.h>
 
 #define BLB_END ((BLB_Object2D *)0)
 
-int max(const int numbers, ...);
-int min(const int numbers, ...);
+int BLB_MaxInt(const int numbers, ...);
+int BLB_MinInt(const int numbers, ...);
 
 typedef struct {
   HMM_Vec2 min;
