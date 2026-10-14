@@ -72,7 +72,6 @@ The project focuses on:
 | Property         | Value           |
 | ---------------- | --------------- |
 | **Version**      | `1.0.0`         |
-| **Status**       | 🧪 Experimental |
 | **Language**     | C               |
 | **Build System** | CMake           |
 | **Platforms**    | Linux · Windows |
