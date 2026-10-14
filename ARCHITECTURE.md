@@ -12,12 +12,12 @@ The physics API is intentionally separated into world, body, collider and shape 
 
 Shaders are represented by shader assets rather than being hard-wired concepts. Built-in shaders remain the defaults, while custom shader source paths can be attached to a material and later compiled by the active graphics backend.
 
-Plugins use a versioned C ABI. `.bpl` is reserved for a versioned package/container format while the loader currently operates on the contained native library. The plugin API exposes only stable callbacks instead of renderer internals.
-
-Retro is separated behind a compiler boundary. The current tokenizer and C emission entry point are scaffolding for a future pipeline of lexer, parser, AST, IR and C backend.
-
 ## Platform boundary
 
 Platform-sensitive facilities are routed through `core/platform.*`: monotonic time, string duplication and dynamic library loading. The current desktop frontend uses GLFW and Vulkan internally, while the engine-facing foundation avoids POSIX-only calls.
 
 Linux and Windows are first-class desktop targets. Android is a planned mobile frontend: the same scene, component, physics, material, shader and plugin foundations can be reused while Android supplies lifecycle, window/surface and input integration.
+
+## Install / Uninstall
+
+install
