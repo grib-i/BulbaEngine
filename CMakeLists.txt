@@ -236,9 +236,10 @@ if(WIN32)
     PRE_EXCLUDE_REGEXES
       "api-ms-win-.*"
       "ext-ms-win-.*"
+      "^vulkan-1\\.dll$"
     POST_EXCLUDE_REGEXES
-      ".*[Ww]indows[/\\\\][Ss]ystem32[/\\\\].*"
-      ".*[Ww]indows[/\\\\][Ss]ys[Ww][Oo][Ww]64[/\\\\].*"
+      ".*[Ww]indows[/\\][Ss]ystem32[/\\].*"
+      ".*[Ww]indows[/\\][Ss]ys[Ww][Oo][Ww]64[/\\].*"
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
   )
 else()
