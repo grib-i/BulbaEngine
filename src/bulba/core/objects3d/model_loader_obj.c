@@ -10,6 +10,4 @@ BLB_Object3D *BLB_LoadModelOBJ(const char *path, HMM_Vec3 scale, HMM_Vec3 positi
   return BLB_LoadModelImported(path, scale, position, texture, mapping);
 }
 
-void BLB_DestroyModelOBJ(BLB_Object3D *object) {
-  BLB_DestroyModelImported(object);
-}
+void BLB_DestroyModelOBJ(BLB_Object3D *object) { BLB_DestroyModelImported(object); }

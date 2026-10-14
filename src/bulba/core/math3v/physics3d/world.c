@@ -45,8 +45,10 @@ void BLB_Physics3DWorld_Destroy(BLB_Physics3DWorld *world) {
     return;
 
   BLB_Box3DBackend *backend = blb_physics3d_get_backend(world);
-  if (!backend)
-    return free(world);
+  if (!backend) {
+    free(world);
+    return;
+  }
 
   while (world->body_count > 0) {
     BLB_RigidBody3D *body = backend->bodies[world->body_count - 1];

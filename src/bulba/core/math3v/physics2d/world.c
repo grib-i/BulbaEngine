@@ -45,8 +45,11 @@ void BLB_Physics2DWorld_Destroy(BLB_Physics2DWorld *world) {
     return;
 
   BLB_Box2DBackend *backend = blb_physics2d_get_backend(world);
-  if (!backend)
-    return free(world);
+
+  if (!backend) {
+    free(world);
+    return;
+  }
 
   while (world->body_count > 0) {
     BLB_RigidBody2D *body = backend->bodies[world->body_count - 1];

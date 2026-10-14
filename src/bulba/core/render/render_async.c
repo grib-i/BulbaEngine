@@ -20,7 +20,14 @@ typedef CONDITION_VARIABLE BLB_AsyncCondition;
 #else
 #include <pthread.h>
 #include <sched.h>
+
+#ifdef _WIN32
+#include <process.h>
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
+
 typedef pthread_t BLB_AsyncThread;
 typedef pthread_mutex_t BLB_AsyncMutex;
 typedef pthread_cond_t BLB_AsyncCondition;
