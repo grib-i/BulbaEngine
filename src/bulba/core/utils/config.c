@@ -54,7 +54,7 @@ int BLB_RENDER_ASYNC_WORKERS = 0;
  * based reductions. Generated levels are cached and reused by matching mesh
  * data instead of being rebuilt for every object.
  */
-bool BLB_OBJECT_LOD = false;
+bool BLB_OBJECT_LOD = true;
 int BLB_OBJECT_LOD_LEVELS = 3;
 float BLB_OBJECT_LOD_ERROR = 0.01f;
 float BLB_OBJECT_LOD_REDUCTION = 0.5f;
@@ -68,24 +68,31 @@ int BLB_OBJECT_LOD_MIN_TRIANGLES = 16;
 int BLB_OBJECT_LOD_SHADOW_MAX_LEVEL = 2;
 bool BLB_OBJECT_LOD_CACHE = true;
 int BLB_OBJECT_LOD_CACHE_MAX_ENTRIES = 4096;
-size_t BLB_OBJECT_LOD_CACHE_MAX_BYTES = 256u * 1024u * 1024u;
+size_t BLB_OBJECT_LOD_CACHE_MAX_BYTES = 128u * 1024u * 1024u;
 bool BLB_OBJECT_LOD_PRESERVE_BOUNDARIES = true;
 bool BLB_OBJECT_LOD_PRESERVE_NORMALS = true;
 
+/*
+ * Visibility cache is intentionally disabled by default. Camera movement
+ * invalidates its entries; enable it after profiling mostly-static-camera scenes.
+ */
 bool BLB_OBJECT_VISIBILITY_CACHE = false;
-int BLB_OBJECT_VISIBILITY_CACHE_MAX_ENTRIES = 196384;
+int BLB_OBJECT_VISIBILITY_CACHE_MAX_ENTRIES = 65536;
 int BLB_OBJECT_VISIBILITY_CACHE_MAX_AGE = 1;
-float BLB_OBJECT_VISIBILITY_CACHE_FAR_DISTANCE = 1000000.0f;
+float BLB_OBJECT_VISIBILITY_CACHE_FAR_DISTANCE = 100.0f;
 int BLB_OBJECT_VISIBILITY_CACHE_FAR_MAX_AGE = 3;
 
-bool BLB_OBJECT_CULLING = false;
-bool BLB_OBJECT_FRUSTUM_CULLING = false;
-bool BLB_OBJECT_DISTANCE_CULLING = false;
-float BLB_OBJECT_MAX_RENDER_DISTANCE = 450.0f;
+bool BLB_OBJECT_CULLING = true;
+bool BLB_OBJECT_FRUSTUM_CULLING = true;
+bool BLB_OBJECT_DISTANCE_CULLING = true;
+float BLB_OBJECT_MAX_RENDER_DISTANCE = 1000000.0f;
 float BLB_OBJECT_CULLING_MARGIN = 0.05f;
 bool BLB_OBJECT_SHADOW_CULL_BY_CAMERA = true;
 float BLB_OBJECT_MAX_SHADOW_RENDER_DISTANCE = 180.0f;
 
+/* HSA currently does not build cluster LODs in object_aggregation.c;
+ * leave disabled until that path is implemented and benchmarked.
+ */
 bool BLB_HSA = false;
 int BLB_HSA_LEVELS = 1;
 float BLB_HSA_ERROR = 0.01f;

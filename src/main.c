@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 int main(void) {
-  BLB_DEBUG = false;
+  BLB_DEBUG = true;
 
   DEBUG_InitStdIO();
   BLB_Init();
@@ -34,7 +34,7 @@ int main(void) {
 
   // result = BLB_TestObjectCount(10000, BLB_TEST_OBJECT_CUBE, false);
 
-  // result = BLB_TestObjectCount(1488, BLB_TEST_OBJECT_CUBE, false);
+  result = BLB_TestObjectCount(1488, BLB_TEST_OBJECT_TEAPOT, false);
   // result = BLB_TestObjectCount2D(16384, BLB_TEST_OBJECT2D_SQUARE, false);
   // result = BLB_TestObjectCount2D(10000, BLB_TEST_OBJECT2D_CIRCLE, false);
 
@@ -48,7 +48,7 @@ int main(void) {
 
   // result = BLB_TestHandlers();
 
-  result = BLB_TestSound();
+  // result = BLB_TestSound();
 
   if (result != 0) {
     return 1;

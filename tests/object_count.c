@@ -191,13 +191,10 @@ int BLB_TestObjectCount(size_t count, BLB_TestObjectType type, bool r) {
     // fit_camera(&app, columns, rows, spacing, radius);
     if (m == true && app.camera->position.z >= 500) {
       m = false;
-    } else if (m == false && app.camera->position.z <= 40) {
-      sleep(3);
+    } else if (m == false && app.camera->position.z <= 4) {
       m = true;
     }
 
-    if ((debug_frame++ % 60u) == 0u)
-      printf("m: %d | pos z: %f | dt: %f | camera_dt: %f\n", m, app.camera->position.z, dt, app.camera->delta_time ? *app.camera->delta_time : 0.0f);
     if (m)
       BLB_Camera_Move(app.camera, HMM_V3(0, 0, 60));
     else

@@ -1909,17 +1909,29 @@ static void draw_object2d_pass(BLB_Object2D *object, BLB_Renderer *renderer, con
   if (count == 0)
     return;
 
+  const bool has_uvs = polygon->uvs != NULL;
+
+  if (count > SIZE_MAX / sizeof(HMM_Vec2))
+    return;
+
+  HMM_Vec2 *vertices = malloc(count * sizeof(*vertices));
+  HMM_Vec2 *world_positions = malloc(count * sizeof(*world_positions));
+  HMM_Vec2 *uvs = has_uvs ? malloc(count * sizeof(*uvs)) : NULL;
+
+  if (!vertices || !world_positions || (has_uvs && !uvs)) {
+    free(vertices);
+    free(world_positions);
+    free(uvs);
+    return;
+  }
+
   uint32_t viewport_width_u = 0;
   uint32_t viewport_height_u = 0;
   BLB_RendererGetViewport(renderer, &viewport_width_u, &viewport_height_u);
+
   const float viewport_width = (float)viewport_width_u;
   const float viewport_height = (float)viewport_height_u;
 
-  HMM_Vec2 vertices[count];
-  HMM_Vec2 world_positions[count];
-  HMM_Vec2 uvs[count];
-
-  const bool has_uvs = polygon->uvs != NULL;
   const bool flip_uv_y = false;
   const float angle = HMM_AngleDeg(object->rotation);
   const float c = cosf(angle);
@@ -1998,6 +2010,9 @@ static void draw_object2d_pass(BLB_Object2D *object, BLB_Renderer *renderer, con
 
   BLB_RendererDrawPolygon2D(renderer, &transformed, world_positions, viewport_width, viewport_height, pass.base_color[0], pass.base_color[1],
                             pass.base_color[2], pass.base_color[3], &material, texture);
+  free(uvs);
+  free(world_positions);
+  free(vertices);
 }
 
 static void draw_object2d(BLB_Object2D *object, BLB_Renderer *renderer, const BLB_CameraCache *camera_cache) {
@@ -2626,9 +2641,12 @@ static void audio2d_surround_play(BLB_Audio2D *audio2d, BLB_Scene *scene) {
 }
 
 // helpers in BLB_DrawScene
-static double debug_time_ms(void) { return BLB_Platform_TimeSeconds() * 1000.0; }
+static double debug_time_ms(void) { return BLB_Platform_TimeSeconds() * 1.0; }
 
 static void debug_aggregation(BLB_Scene *scene) {
+  if (!BLB_DEBUG)
+    return;
+
   if (!scene) {
     fprintf(stderr, "[BLB:Render] aggregation=NULL\n");
     return;
@@ -4144,6 +4162,8 @@ static void debug_scene_visibility(BLB_Scene *scene) {
 
   if (scene->frame_index > 0 && scene->frame_index % 120u == 0u) {
     debug_visibility(scene->visibility_cache);
+    debug_aggregation(scene);
+    fprintf(stderr, "\n");
   }
 }
 
