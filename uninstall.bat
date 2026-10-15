@@ -2,8 +2,6 @@
 setlocal EnableExtensions
 
 set "INSTALL_DIR=C:\Bulba"
-set "FOUND=0"
-set "FAILED=0"
 
 echo.
 echo ========================================
@@ -13,44 +11,14 @@ echo.
 echo Install directory: %INSTALL_DIR%
 echo.
 
-call :remove "%INSTALL_DIR%\bin\bulba_engine.dll"
-call :remove "%INSTALL_DIR%\lib\bulba_engine.lib"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Continue'; $root=$env:INSTALL_DIR; if(-not(Test-Path -LiteralPath $root)){Write-Host '[INFO] Install directory not found.'; exit 0}; $files=@(Get-ChildItem -LiteralPath $root -Recurse -File -Force -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match 'bulba_engine' -or $_.FullName -match '\\include\\' } | Select-Object -ExpandProperty FullName -Unique); if($files.Count -eq 0){Write-Host '[INFO] No matching installed files found.'; exit 0}; Write-Host ('Found ' + $files.Count + ' file(s):'); $files | ForEach-Object {Write-Host ('  ' + $_)}; Write-Host ''; $answer=Read-Host 'Do you want to remove these files? [y/N]'; if($answer -notmatch '^(y|yes)$'){Write-Host '[INFO] Uninstallation cancelled.'; exit 0}; $failed=$false; foreach($file in $files){try{Remove-Item -LiteralPath $file -Force -ErrorAction Stop; Write-Host ('[OK] Removed: ' + $file)}catch{Write-Host ('[ERROR] Could not remove: ' + $file); $failed=$true}}; $dirs=@(Get-ChildItem -LiteralPath $root -Directory -Recurse -Force -ErrorAction SilentlyContinue | Sort-Object FullName -Descending); foreach($dir in $dirs){try{Remove-Item -LiteralPath $dir.FullName -Force -ErrorAction Stop}catch{}}; try{Remove-Item -LiteralPath $root -Force -ErrorAction Stop}catch{}; if($failed){Write-Host '[ERROR] Some files could not be removed.'; exit 1}else{Write-Host '[SUCCESS] Bulba Engine uninstalled successfully.'; exit 0}"
 
-echo.
-
-if "%FAILED%"=="1" (
-    echo [ERROR] Failed to remove some files.
+if errorlevel 1 (
+    echo.
+    echo [ERROR] Uninstallation failed.
     echo Try running this script as Administrator.
     exit /b 1
 )
 
-if "%FOUND%"=="0" (
-    echo [INFO] Bulba Engine library files were not found.
-    exit /b 0
-)
-
-rem Remove directories only if they are empty.
-if exist "%INSTALL_DIR%\bin" rmdir "%INSTALL_DIR%\bin" 2>nul
-if exist "%INSTALL_DIR%\lib" rmdir "%INSTALL_DIR%\lib" 2>nul
-if exist "%INSTALL_DIR%" rmdir "%INSTALL_DIR%" 2>nul
-
-echo [SUCCESS] Bulba Engine uninstalled successfully.
 echo.
-
-exit /b 0
-
-
-:remove
-if not exist "%~1" exit /b 0
-
-del /f /q "%~1" >nul 2>&1
-
-if exist "%~1" (
-    echo [ERROR] Could not remove: %~1
-    set "FAILED=1"
-) else (
-    echo [OK] Removed: %~1
-    set "FOUND=1"
-)
-
 exit /b 0

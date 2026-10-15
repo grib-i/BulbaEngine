@@ -2,21 +2,65 @@
 
 set -euo pipefail
 
-LIB_DIR="/usr/local/lib"
-LIB_PATTERN="$LIB_DIR/libbulba_engine.so*"
+SEARCH_ROOTS=(
+    /usr/local
+    /usr/include
+    /usr/lib
+    /lib
+    /opt
+    /usr/share
+)
 
-shopt -s nullglob
-LIB_FILES=( $LIB_PATTERN )
+ROOTS=()
 
-if ((${#LIB_FILES[@]} == 0)); then
-    echo "Library not found in $LIB_DIR; nothing to uninstall."
+for root in "${SEARCH_ROOTS[@]}"; do
+    [[ -d "$root" ]] && ROOTS+=("$root")
+done
+
+if ((${#ROOTS[@]} == 0)); then
+    echo "[INFO] No installation directories found."
     exit 0
 fi
 
-echo "Removing Bulba Engine library:"
-printf '  %s\n' "${LIB_FILES[@]}"
+echo "[INFO] Searching for Bulba Engine files..."
 
-sudo rm -f -- "${LIB_FILES[@]}"
+mapfile -d '' -t MATCHES < <(
+    sudo find "${ROOTS[@]}" \
+        \( -type f -o -type l \) \
+        \( -iname '*bulba_engine*' \
+            -o -path '/usr/local/include/bulba/*' \
+            -o -path '/usr/include/bulba/*' \) \
+        -print0 2>/dev/null |
+        sort -zu
+)
+
+if ((${#MATCHES[@]} == 0)); then
+    echo "[INFO] No Bulba Engine files found."
+    exit 0
+fi
+
+echo
+echo "The following files were found:"
+printf '  %s\n' "${MATCHES[@]}"
+
+echo
+echo "Found ${#MATCHES[@]} file(s)."
+
+read -r -p "Do you want to remove these files? [y/N] " answer
+
+case "$answer" in
+    [yY]|[yY][eE][sS])
+        ;;
+    *)
+        echo "[INFO] Uninstallation cancelled."
+        exit 0
+        ;;
+esac
+
+echo
+echo "[INFO] Removing Bulba Engine files..."
+
+sudo rm -f -- "${MATCHES[@]}"
 sudo ldconfig
 
-echo "Bulba Engine library uninstalled successfully."
+echo "[SUCCESS] Bulba Engine uninstalled successfully."
