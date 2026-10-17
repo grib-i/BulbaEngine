@@ -152,7 +152,6 @@ The project focuses on:
 - 🎨 Materials and lighting
 - 🧊 3D objects
 - 📐 Math utilities
-- 🧱 Modular engine architecture
 - ⚙️ CMake-based build system
 - 🧪 Experimental systems
 - 🔧 Low-level API
@@ -194,7 +193,7 @@ git clone https://github.com/grib-i/BulbaEngine.git && cd BulbaEngine
 ## install
 
 ```bash
-./install
+./install.sh release
 ```
 
 The installer builds the engine and installs its libraries, headers and CMake integration into the system.
@@ -210,7 +209,7 @@ After installation, BulbaEngine can be used as a system library from other CMake
 ### Uninstall
 
 ```bash
-sudo ./install --uninstall
+./uninstall.sh
 ```
 
 ---
@@ -229,64 +228,6 @@ Then link it with:
 target_link_libraries(MyGame PRIVATE BulbaEngine::BulbaEngine)
 ```
 
-## 🛠️ CMake Dependencies
-
-BulbaEngine checks its required dependencies during configuration:
-
-```cmake
-find_package(Vulkan REQUIRED)
-find_package(glfw3 REQUIRED)
-find_package(Freetype REQUIRED)
-find_package(PNG REQUIRED)
-find_package(JPEG QUIET)
-find_package(Threads REQUIRED)
-find_package(assimp 5.4 CONFIG QUIET)
-```
-
-If one of the required dependencies is missing, CMake stops with an error instead of producing an incomplete build.
-
----
-
-## 🌿 Development
-
-BulbaEngine uses a simple branch structure:
-
-```text
-main
-└── Stable releases
-
-develop
-└── Active development
-
-feature/*
-└── Individual features and experiments
-```
-
-Create a feature branch:
-
-```bash
-git switch develop
-git switch -c feature/physics
-```
-
-Push it:
-
-```bash
-git push -u origin feature/physics
-```
-
-Merge it back into `develop`:
-
-```bash
-git switch develop
-git merge feature/physics
-git push
-```
-
-Stable releases are merged into `main`.
-
----
-
 ## 📚 Documentation
 
 <a href="https://grib-i.github.io/BulbaEngineDocs/">
@@ -301,15 +242,17 @@ Stable releases are merged into `main`.
 
 ## 🛣️ Roadmap
 
-| System          | Status        |
-| --------------- | ------------- |
-| **Core**        | 🟢 Active     |
-| **Math**        | 🟢 Active     |
-| **Renderer**    | 🟢 Active     |
-| **Physics**     | 🟢 Active     |
-| **Audio**       | 🟢 Active     |
-| **Scripting**   | 🟡 Developing |
-| **WebAssembly** | 🟡 Planned    |
+| System                 | Status     |
+| ---------------------- | ---------- |
+| **Core**               | 🟢 Active  |
+| **Math**               | 🟢 Active  |
+| **Renderer**           | 🟢 Active  |
+| **Physics**            | 🟢 Active  |
+| **Audio**              | 🟢 Active  |
+| **Python and Lua lib** | 🟡 Planned |
+| **UI Editor**          | 🟡 Planned |
+| **Scripting**          | 🟡 Planned |
+| **WebAssembly**        | 🟡 Planned |
 
 ---
 
