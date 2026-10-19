@@ -40,6 +40,7 @@ BLB_Window *BLB_CreateWindow(int width, int height, const char *title) {
     glfwTerminate();
     return NULL;
   }
+  
   w->handlers.owner = w;
   glfwSetFramebufferSizeCallback(w->handle, framebuffer_resize_cb);
   glfwGetWindowPos(w->handle, &w->windowed_x, &w->windowed_y);
