@@ -1,0 +1,426 @@
+Warn about uninitialized values.
+-- CMake C compiler: GNU
+-- CMake C++ compiler: GNU
+-- CMake system name: Linux
+-- CMake host system processor: x86_64
+-- Box2D using Unix
+CMake Warning (dev) at /data/build-baseline/_deps/box2d-src/src/CMakeLists.txt:215 (write_basic_package_version_file):
+  uninitialized variable 'BOX2D_VERSION'
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- CMake C compiler: GNU
+-- CMake C++ compiler: GNU
+-- CMake system name: Linux
+-- CMake host system processor: x86_64
+-- Box3D using Unix
+-- Shared libraries disabled
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/CMakeLists.txt:269 (IF):
+  uninitialized variable 'OPERATING_SYSTEM'
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Checking for module 'minizip'
+--   Package 'minizip', required by 'virtual:world', not found
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_AMF_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:315 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_3DS_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:324 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_AC_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:331 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_ASE_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:336 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_ASSBIN_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:343 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_B3D_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:348 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_BVH_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:353 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_COLLADA_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:358 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_DXF_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:367 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_CSM_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:373 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_HMP_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:378 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_IRRMESH_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:385 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_IQM_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:392 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_IRR_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:398 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_LWO_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:405 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_LWS_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:415 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_M3D_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:420 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_MD2_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:429 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_MD3_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:436 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_MD5_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:442 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_MDC_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:449 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_MDL_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:456 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_NFF_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:488 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_NDO_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:493 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_OFF_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:498 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_OGRE_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:522 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_OPENGEX_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:535 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_PLY_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:541 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_MS3D_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:548 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_COB_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:553 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_BLEND_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:559 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_IFC_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:579 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_XGL_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:603 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_OBJ_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:639 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_OPENGEX_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:643 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_PLY_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:647 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_3DS_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:651 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_ASSBIN_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:655 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_ASSXML_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:661 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_M3D_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:667 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_COLLADA_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:671 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_FBX_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:675 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_STL_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:683 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_X_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:687 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_X3D_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:691 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_GLTF_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:695 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_3MF_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:701 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_PBRT_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:705 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_ASSJSON_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:709 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:292 (set):
+  uninitialized variable 'ASSIMP_BUILD_STEP_EXPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:716 (ADD_ASSIMP_EXPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_Q3D_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:788 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_Q3BSP_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:793 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_RAW_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:801 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_SIB_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:806 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_SMD_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:811 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_STL_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:816 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_TERRAGEN_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:821 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_3D_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:826 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_X_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:842 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_X3D_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:850 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_3MF_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:888 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:260 (set):
+  uninitialized variable 'ASSIMP_BUILD_MMD_IMPORTER'
+Call Stack (most recent call first):
+  /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:899 (ADD_ASSIMP_IMPORTER)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- tinyusdz disabled
+-- Enabled importer formats: OBJ FBX GLTF
+-- Disabled importer formats: AMF 3DS AC ASE ASSBIN B3D BVH COLLADA DXF CSM HMP IRRMESH IQM IRR LWO LWS M3D MD2 MD3 MD5 MDC MDL NFF NDO OFF OGRE OPENGEX PLY MS3D COB BLEND IFC XGL Q3D Q3BSP RAW SIB SMD STL TERRAGEN 3D USD X X3D 3MF MMD
+-- Enabled exporter formats:
+-- Disabled exporter formats: OBJ OPENGEX PLY 3DS ASSBIN ASSXML M3D COLLADA FBX STL X X3D GLTF 3MF PBRT ASSJSON STEP
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:1278 (SET):
+  uninitialized variable 'ziplib_SRCS'
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:1314 (INCLUDE_DIRECTORIES):
+  uninitialized variable 'IRRXML_INCLUDE_DIR'
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:1438 (TARGET_LINK_LIBRARIES):
+  uninitialized variable 'OPENDDL_PARSER_LIBRARIES'
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/code/CMakeLists.txt:1503 (SET_TARGET_PROPERTIES):
+  uninitialized variable 'LIBRARY_SUFFIX'
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/CMakeLists.txt:786 (CONFIGURE_FILE):
+  uninitialized variable 'LIBRARY_SUFFIX'
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /data/build-baseline/_deps/assimp-src/CMakeLists.txt:786 (CONFIGURE_FILE):
+  uninitialized variable 'LIBRARY_SUFFIX'
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /data/build-baseline

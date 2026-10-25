@@ -1,0 +1,71 @@
+[
+  {
+    "scene": "materials_3d",
+    "changed_pixels": 0,
+    "returncode": 0
+  },
+  {
+    "scene": "transparency_3d",
+    "changed_pixels": 7770,
+    "returncode": 0
+  },
+  {
+    "scene": "primitives_3d",
+    "changed_pixels": 2386,
+    "returncode": 0
+  },
+  {
+    "scene": "textures_3d",
+    "changed_pixels": 22142,
+    "returncode": 0
+  },
+  {
+    "scene": "model_obj",
+    "changed_pixels": 11692,
+    "returncode": 0
+  },
+  {
+    "scene": "lod",
+    "changed_pixels": 12,
+    "returncode": 0
+  },
+  {
+    "scene": "sprite_animation",
+    "changed_pixels": 30454,
+    "returncode": 0
+  },
+  {
+    "scene": "model_fbx",
+    "changed_pixels": 12254,
+    "paused_changed_pixels": 0,
+    "resumed_changed_pixels": 7601,
+    "returncode": 0
+  },
+  {
+    "scene": "model_gltf",
+    "changed_pixels": 13868,
+    "paused_changed_pixels": 0,
+    "resumed_changed_pixels": 12514,
+    "returncode": 0
+  },
+  {
+    "scene": "skybox",
+    "changed_pixels": 164052,
+    "returncode": 0
+  },
+  {
+    "scene": "solar_system",
+    "changed_pixels": 22992,
+    "returncode": 0
+  },
+  {
+    "scene": "model_glb",
+    "changed_pixels": 24981,
+    "returncode": 0
+  },
+  {
+    "scene": "lights_3d",
+    "changed_pixels": 11341,
+    "returncode": 0
+  }
+]

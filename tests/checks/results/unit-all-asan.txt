@@ -1,0 +1,48 @@
+[BLB:Object] ERROR: invalid 3D object extension: /data/build-baseline/test-output/roundtrip-2047424338.b2o
+[BLB:Object] ERROR: invalid 2D object extension: /data/build-baseline/test-output/roundtrip-2047424338.b3o
+[BLB:Object] ERROR: invalid arguments to BLB_Object2D_Save: /data/build-baseline/test-output/roundtrip-2047424338.b2o
+[BLB:Object] ERROR: invalid arguments to BLB_Object3D_Save: /data/build-baseline/test-output/roundtrip-2047424338.b3o
+[BLB:Object] ERROR: failed to read 3D object header: /data/build-baseline/test-output/truncated-2047424843.b3o
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[PASS] io           / snapshot_roundtrip                       0.502 ms
+[PASS] io           / truncated_snapshot_is_rejected           0.065 ms
+[PASS] shaders      / spirv_cache_and_reload                   0.328 ms
+[PASS] audio        / offline_audio_controls                   4.490 ms
+[PASS] core         / relative_transforms_and_invalid_values     0.157 ms
+[PASS] core         / fps_and_platform_utilities               1.109 ms
+[PASS] core         / vectors_and_matrices                     0.011 ms
+[PASS] core         / camera_transforms                        0.031 ms
+[PASS] core         / delta_and_scene_configuration            1.407 ms
+[PASS] core         / scene_add_remove                         1.022 ms
+[PASS] core         / shapes_and_transforms                    1.724 ms
+[PASS] resources    / texture_lifetime                         0.162 ms
+[PASS] resources    / material_properties                      0.049 ms
+[PASS] resources    / material_texture_transform               0.004 ms
+[PASS] resources    / sprite_animation                         0.119 ms
+[PASS] resources    / text_buffer_and_attachment               8.709 ms
+[PASS] physics2d    / falling_box_collides_with_floor          1.698 ms
+[PASS] physics2d    / body_and_collider_contract               0.591 ms
+[PASS] physics2d    / invalid_timestep_is_rejected             0.259 ms
+[PASS] physics3d    / falling_box_collides_with_floor          3.487 ms
+[PASS] physics3d    / body_and_collider_contract               0.838 ms
+[PASS] physics3d    / invalid_timestep_is_rejected             0.337 ms
+[PASS] particles2d  / emission_motion_and_lifetime             0.078 ms
+[PASS] particles3d  / emission_motion_and_lifetime             0.085 ms
+[PASS] handlers     / queue_fifo_and_overflow                  0.204 ms
+[PASS] handlers     / callback_registration                    0.046 ms
+[PASS] assets       / import_obj_glb_fbx                    2058.406 ms
+[PASS] assets       / gltf_animation                           2.522 ms
+[PASS] assets       / texture_asset                           32.305 ms
+[PASS] assets       / skeletal_deformation                   184.398 ms
+[PASS] assets       / character_atlas_frames                   4.845 ms
+[PASS] assets       / gltf_uv_orientation                     37.059 ms
+[PASS] assets       / independent_skeletal_instances         204.824 ms
+[PASS] assets       / starfield_panorama                      65.225 ms
+[PASS] spatial      / raycast_nearest_and_filter               0.520 ms
+[PASS] spatial      / lights_and_lod                           2.563 ms
+[PASS] spatial      / rotated_objects_clear_the_stage          0.570 ms
+[PASS] spatial      / animated_clip_envelopes_clear_the_stage  5038.856 ms
+[PASS] renderer     / frame_state_and_backend_ownership        0.046 ms
+[PASS] renderer     / scene_advances_skeletal_animation      200.358 ms
+
+40 cases, 15400 checks, 0 failures

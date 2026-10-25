@@ -1,0 +1,384 @@
+[0/2] Re-checking globbed directories...
+[1/1] Cleaning all built files...
+Cleaning... 410 files.
+[0/2] Re-checking globbed directories...
+[1/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/array.c.o
+[2/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/arena_allocator.c.o
+[3/380] Building C object CMakeFiles/blb_png_to_c.dir/cmake/png_to_c.c.o
+[4/380] Linking C executable blb_png_to_c
+[5/380] Generating shaders/basic3d.frag.spv
+[6/380] Generating shaders/basic2d.vert.spv
+[7/380] Generating shaders/basic3d.vert.spv
+[8/380] Generating shaders/basic2d.frag.spv
+[9/380] Generating shaders/text3d.vert.spv
+[10/380] Generating shaders/text3d.frag.spv
+[11/380] Generating generated/shaders/text3d_vert.h, generated/shaders/text3d_vert.c
+[12/380] Generating generated/shaders/basic2d_vert.h, generated/shaders/basic2d_vert.c
+[13/380] Generating generated/shaders/basic3d_vert.h, generated/shaders/basic3d_vert.c
+[14/380] Generating generated/shaders/text3d_frag.h, generated/shaders/text3d_frag.c
+[15/380] Generating generated/shaders/basic2d_frag.h, generated/shaders/basic2d_frag.c
+[16/380] Generating shaders/text2d.vert.spv
+[17/380] Generating shaders/shadow.vert.spv
+[18/380] Generating shaders/text2d.frag.spv
+[19/380] Generating generated/shaders/text2d_vert.h, generated/shaders/text2d_vert.c
+[20/380] Generating shaders/postprocess.vert.spv
+[21/380] Generating generated/shaders/shadow_vert.h, generated/shaders/shadow_vert.c
+[22/380] Generating generated/shaders/text2d_frag.h, generated/shaders/text2d_frag.c
+[23/380] Generating generated/shaders/postprocess_vert.h, generated/shaders/postprocess_vert.c
+[24/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/aabb.c.o
+[25/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/bitset.c.o
+[26/380] Generating shaders/postprocess.frag.spv
+[27/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/broad_phase.c.o
+[28/380] Generating generated/shaders/postprocess_frag.h, generated/shaders/postprocess_frag.c
+[29/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/constraint_graph.c.o
+[30/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/contact.c.o
+[31/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/core.c.o
+[32/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/body.c.o
+[33/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/distance_joint.c.o
+[34/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/contact_solver.c.o
+[35/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/distance.c.o
+[36/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/hull.c.o
+[37/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/geometry.c.o
+[38/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/id_pool.c.o
+[39/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/dynamic_tree.c.o
+[40/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/island.c.o
+[41/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/math_functions.c.o
+[42/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/joint.c.o
+[43/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/motor_joint.c.o
+[44/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/manifold.c.o
+[45/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/mover.c.o
+[46/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/mouse_joint.c.o
+[47/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/prismatic_joint.c.o
+[48/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/revolute_joint.c.o
+[49/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXProperties.cpp.o
+[50/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/sensor.c.o
+[51/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/table.c.o
+[52/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/timer.c.o
+[53/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/solver_set.c.o
+[54/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/types.c.o
+[55/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/weld_joint.c.o
+[56/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/wheel_joint.c.o
+[57/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/shape.c.o
+[58/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/solver.c.o
+[59/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/aabb.c.o
+[60/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/arena_allocator.c.o
+[61/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/bitset.c.o
+[62/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/block_allocator.c.o
+[63/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/capsule.c.o
+[64/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/broad_phase.c.o
+[65/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/constraint_graph.c.o
+[66/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXMeshGeometry.cpp.o
+[67/380] Building C object _deps/box2d-build/src/CMakeFiles/box2d.dir/world.c.o
+[68/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/compound.c.o
+[69/380] Linking C static library _deps/box2d-build/src/libbox2d.a
+[70/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/body.c.o
+[71/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/contact.c.o
+[72/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/core.c.o
+[73/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/distance_joint.c.o
+[74/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/convex_manifold.c.o
+[75/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/contact_solver.c.o
+[76/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/dynamic_tree.c.o
+[77/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/id_pool.c.o
+[78/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/distance.c.o
+[79/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/island.c.o
+[80/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/height_field.c.o
+[81/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/manifold.c.o
+[82/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/math_functions.c.o
+[83/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/joint.c.o
+[84/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/mover.c.o
+[85/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/parallel_for.c.o
+[86/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/motor_joint.c.o
+[87/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/hull.c.o
+[88/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/mesh_contact.c.o
+[89/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/parallel_joint.c.o
+[90/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/mesh.c.o
+[91/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/prismatic_joint.c.o
+[92/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/revolute_joint.c.o
+[93/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/scheduler.c.o
+[94/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/physics_world.c.o
+[95/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/sensor.c.o
+[96/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/world_snapshot.c.o
+[97/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/simd.c.o
+[98/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/solver_set.c.o
+[99/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/sphere.c.o
+[100/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/shape.c.o
+[101/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/table.c.o
+[102/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/timer.c.o
+[103/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/solver.c.o
+[104/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/spherical_joint.c.o
+[105/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/types.c.o
+[106/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/recording_replay.c.o
+[107/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/weld_joint.c.o
+[108/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/triangle_manifold.c.o
+[109/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/wheel_joint.c.o
+[110/380] Building C object _deps/box3d-build/src/CMakeFiles/box3d.dir/recording.c.o
+[111/380] Linking C static library _deps/box3d-build/src/libbox3d.a
+[112/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/CApi/CInterfaceIOWrapper.cpp.o
+[113/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/Compression.cpp.o
+[114/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/DefaultIOStream.cpp.o
+[115/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/BaseProcess.cpp.o
+[116/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/Assimp.cpp.o
+[117/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/ImporterRegistry.cpp.o
+[118/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/IOSystem.cpp.o
+[119/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/PostStepRegistry.cpp.o
+[120/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/BaseImporter.cpp.o
+[121/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/DefaultIOSystem.cpp.o
+[122/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/SGSpatialSort.cpp.o
+[123/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/ZipArchiveIOSystem.cpp.o
+[124/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/VertexTriangleAdjacency.cpp.o
+[125/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/ScenePreprocessor.cpp.o
+[126/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/simd.cpp.o
+[127/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/SpatialSort.cpp.o
+[128/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/Importer.cpp.o
+[129/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/SkeletonMeshBuilder.cpp.o
+[130/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/RemoveComments.cpp.o
+[131/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/TargetAnimation.cpp.o
+[132/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/Bitmap.cpp.o
+[133/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/scene.cpp.o
+[134/380] Generating generated/shaders/basic3d_frag.h, generated/shaders/basic3d_frag.c
+[135/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/SceneCombiner.cpp.o
+[136/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/Version.cpp.o
+[137/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/material.cpp.o
+[138/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/Subdivision.cpp.o
+[139/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/CreateAnimMesh.cpp.o
+[140/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/AssertHandler.cpp.o
+[141/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/Base64.cpp.o
+[142/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/StandardShapes.cpp.o
+[143/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Geometry/GeometryUtils.cpp.o
+[144/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/Exceptional.cpp.o
+[145/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/DefaultLogger.cpp.o
+[146/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/CApi/AssimpCExport.cpp.o
+[147/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/FindInstancesProcess.cpp.o
+[148/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/CalcTangentsProcess.cpp.o
+[149/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/ComputeUVMappingProcess.cpp.o
+[150/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/ConvertToLHProcess.cpp.o
+[151/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/EmbedTexturesProcess.cpp.o
+[152/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Common/Exporter.cpp.o
+[153/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/FindDegenerates.cpp.o
+[154/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/DropFaceNormalsProcess.cpp.o
+[155/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/FixNormalsStep.cpp.o
+[156/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/FindInvalidDataProcess.cpp.o
+[157/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/GenFaceNormalsProcess.cpp.o
+[158/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/GenVertexNormalsProcess.cpp.o
+[159/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/ImproveCacheLocality.cpp.o
+[160/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/LimitBoneWeightsProcess.cpp.o
+[161/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/PretransformVertices.cpp.o
+[162/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/JoinVerticesProcess.cpp.o
+[163/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/SortByPTypeProcess.cpp.o
+[164/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/RemoveRedundantMaterials.cpp.o
+[165/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/RemoveVCProcess.cpp.o
+[166/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/SplitLargeMeshes.cpp.o
+[167/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/ProcessHelper.cpp.o
+[168/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/TextureTransform.cpp.o
+[169/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/TriangulateProcess.cpp.o
+[170/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/OptimizeMeshes.cpp.o
+[171/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/ValidateDataStructure.cpp.o
+[172/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/OptimizeGraph.cpp.o
+[173/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/MakeVerboseFormat.cpp.o
+[174/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/ScaleProcess.cpp.o
+[175/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/DeboneProcess.cpp.o
+[176/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/GenBoundingBoxesProcess.cpp.o
+[177/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/ArmaturePopulate.cpp.o
+[178/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/Material/MaterialSystem.cpp.o
+[179/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/STEPParser/STEPFileEncoding.cpp.o
+[180/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/PostProcessing/SplitByBoneCountProcess.cpp.o
+[181/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXParser.cpp.o
+[182/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/Obj/ObjFileImporter.cpp.o
+[183/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXTokenizer.cpp.o
+[184/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/Obj/ObjFileMtlImporter.cpp.o
+[185/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXImporter.cpp.o
+[186/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/STEPParser/STEPFileReader.cpp.o
+[187/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXUtil.cpp.o
+[188/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXBinaryTokenizer.cpp.o
+[189/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/Obj/ObjFileParser.cpp.o
+[190/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXModel.cpp.o
+[191/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXMaterial.cpp.o
+[192/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXDocument.cpp.o
+[193/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXNodeAttribute.cpp.o
+[194/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXAnimation.cpp.o
+[195/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXDocumentUtil.cpp.o
+[196/380] Building C object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/unzip/ioapi.c.o
+[197/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/glTF/glTFCommon.cpp.o
+[198/380] Building C object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/unzip/unzip.c.o
+[199/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXDeformer.cpp.o
+[200/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/poly2tri/poly2tri/sweep/sweep.cc.o
+[201/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/poly2tri/poly2tri/common/shapes.cc.o
+[202/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/poly2tri/poly2tri/sweep/advancing_front.cc.o
+[203/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/openddlparser/code/OpenDDLCommon.cpp.o
+[204/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/poly2tri/poly2tri/sweep/cdt.cc.o
+[205/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/poly2tri/poly2tri/sweep/sweep_context.cc.o
+[206/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/openddlparser/code/OpenDDLParser.cpp.o
+[207/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/openddlparser/code/DDLNode.cpp.o
+[208/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/Open3DGC/o3dgcDynamicVectorEncoder.cpp.o
+[209/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/openddlparser/code/OpenDDLExport.cpp.o
+[210/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/openddlparser/code/Value.cpp.o
+[211/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/openddlparser/code/OpenDDLStream.cpp.o
+[212/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/FBX/FBXConverter.cpp.o
+[213/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/Open3DGC/o3dgcArithmeticCodec.cpp.o
+[214/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/Open3DGC/o3dgcTools.cpp.o
+[215/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/Open3DGC/o3dgcDynamicVectorDecoder.cpp.o
+[216/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/Open3DGC/o3dgcTriangleFans.cpp.o
+[217/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/data/build-baseline/_deps/assimp-src/contrib/clipper/clipper.cpp.o
+[218/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/glTF/glTFImporter.cpp.o
+[219/380] Building CXX object _deps/assimp-build/code/CMakeFiles/assimp.dir/AssetLib/glTF2/glTF2Importer.cpp.o
+[220/380] Linking CXX static library _deps/assimp-build/lib/libassimp.a
+[221/380] Generating generated/textures/camera_256dp.c, generated/textures/camera_256dp.h
+[222/380] Generating generated/textures/light_off_256dp.c, generated/textures/light_off_256dp.h
+[223/380] Generating generated/textures/light_256dp.c, generated/textures/light_256dp.h
+[224/380] Generating generated/textures/mic_256dp.c, generated/textures/mic_256dp.h
+[225/380] Generating generated/textures/volume_off_256dp.c, generated/textures/volume_off_256dp.h
+[226/380] Generating generated/textures/mic_off_256dp.c, generated/textures/mic_off_256dp.h
+[227/380] Generating generated/textures/volume_up_256dp.c, generated/textures/volume_up_256dp.h
+[228/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/math3v/polygon.c.o
+[229/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/math3v/math3v.c.o
+[230/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/camera.c.o
+[231/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/math3v/lights.c.o
+[232/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/math3v/ray.c.o
+[233/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/bulba.c.o
+[234/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects2d/audio2d.c.o
+[235/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects2d/circle.c.o
+[236/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects2d/objects2d.c.o
+[237/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects2d/square.c.o
+[238/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects2d/text2d.c.o
+[239/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/audio3d.c.o
+[240/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects2d/particles2d.c.o
+[241/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/cube.c.o
+[242/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/model_loader_common.c.o
+[243/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/model_loader_fbx.c.o
+[244/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/model_loader_glb.c.o
+[245/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/model_loader_gltf.c.o
+[246/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/model_loader_obj.c.o
+[247/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/skybox.c.o
+[248/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/animation3d.c.o
+[249/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/sphere.c.o
+[250/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/objects3d.c.o
+[251/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/physics/physics2d/backend.c.o
+[252/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/torus.c.o
+[253/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/particles3d.c.o
+[254/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/physics/physics2d/body.c.o
+[255/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/physics/physics2d/world.c.o
+[256/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/physics/physics2d/collider.c.o
+[257/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/physics/physics2d/shapes.c.o
+[258/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/physics/physics3d/backend.c.o
+[259/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/physics/physics3d/body.c.o
+[260/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/platform.c.o
+[261/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/physics/physics3d/world.c.o
+[262/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/physics/physics3d/shapes.c.o
+[263/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/physics/physics3d/collider.c.o
+[264/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/objects3d/model_loader_assimp.c.o
+[265/380] Building C object CMakeFiles/BulbaEngine.dir/src/main.c.o
+[266/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render/material.c.o
+[267/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render/optimization/render_async.c.o
+[268/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render/optimization/object_optimization2d.c.o
+[269/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render/optimization/visibility_cache.c.o
+[270/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render/shader.c.o
+[271/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render/object_lod.c.o
+[272/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render/optimization/object_aggregation.c.o
+[273/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render/optimization/mesh_simplification.c.o
+[274/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render/texture.c.o
+[275/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/utils/delta_time.c.o
+[276/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/scene.c.o
+[277/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/utils/config.c.o
+[278/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/utils/error.c.o
+[279/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/utils/io/material_io.c.o
+[280/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/utils/font.c.o
+[281/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/utils/object.c.o
+[282/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/utils/fps.c.o
+[283/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render/render_debug.c.o
+[284/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/window.c.o
+[285/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/device.c.o
+[286/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/renderer.c.o
+[287/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/instance.c.o
+[288/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/utils/io/object_io.c.o
+[289/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_buffers.c.o
+[290/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer.c.o
+[291/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_frame.c.o
+[292/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_pipeline.c.o
+[293/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_lights.c.o
+[294/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_postprocess.c.o
+[295/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render.c.o
+[296/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_shadow.c.o
+[297/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_geometry.c.o
+[298/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_text.c.o
+[299/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_utils.c.o
+[300/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/swapchain.c.o
+[301/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/vulkan.c.o
+[302/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer_backend.c.o
+[303/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_texture.c.o
+[304/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/handlers/handlers.c.o
+[305/380] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/basic3d_vert.c.o
+[306/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/handlers/keyboard.c.o
+[307/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/handlers/mouse.c.o
+[308/380] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/basic2d_vert.c.o
+[309/380] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/basic2d_frag.c.o
+[310/380] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/text3d_vert.c.o
+[311/380] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/text3d_frag.c.o
+[312/380] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/text2d_vert.c.o
+[313/380] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/text2d_frag.c.o
+[314/380] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/shadow_vert.c.o
+[315/380] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/postprocess_vert.c.o
+[316/380] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/postprocess_frag.c.o
+[317/380] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/basic3d_frag.c.o
+[318/380] Building C object CMakeFiles/bulba_engine.dir/generated/textures/camera_256dp.c.o
+[319/380] Building C object CMakeFiles/bulba_engine.dir/generated/textures/light_256dp.c.o
+[320/380] Building C object CMakeFiles/bulba_engine.dir/generated/textures/mic_256dp.c.o
+[321/380] Building C object CMakeFiles/bulba_engine.dir/generated/textures/light_off_256dp.c.o
+[322/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/handlers/object.c.o
+[323/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_assets.c.o
+[324/380] Building C object CMakeFiles/bulba_engine.dir/generated/textures/mic_off_256dp.c.o
+[325/380] Building C object CMakeFiles/bulba_engine.dir/generated/textures/volume_up_256dp.c.o
+[326/380] Building C object CMakeFiles/bulba_engine.dir/generated/textures/volume_off_256dp.c.o
+[327/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_audio.c.o
+[328/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_benchmarks.c.o
+[329/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_handlers.c.o
+[330/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_io.c.o
+[331/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_core.c.o
+[332/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_cli.c.o
+[333/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_particles2d.c.o
+[334/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_lifecycle.c.o
+[335/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_particles3d.c.o
+[336/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_orbits.c.o
+[337/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_physics2d.c.o
+[338/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_physics3d.c.o
+[339/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_resources.c.o
+[340/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_renderer.c.o
+[341/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_shaders.c.o
+[342/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_runner.c.o
+[343/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_spatial.c.o
+[344/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/audio.c.o
+[345/380] Building C object CMakeFiles/bulba_test_support.dir/tests/checks/test_suites.c.o
+[346/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/celestial.c.o
+[347/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/input.c.o
+[348/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/demo_common.c.o
+[349/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/lights_2d.c.o
+[350/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/lights_3d.c.o
+[351/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/lod.c.o
+[352/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/materials_3d.c.o
+[353/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/model_glb.c.o
+[354/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/model_fbx.c.o
+[355/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/model_gltf.c.o
+[356/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/model_obj.c.o
+[357/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/orbital_physics.c.o
+[358/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/object_count_2d.c.o
+[359/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/object_count_3d.c.o
+[360/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/particles_2d.c.o
+[361/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/particles_3d.c.o
+[362/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/physics_2d.c.o
+[363/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/physics_3d.c.o
+[364/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/primitives_2d.c.o
+[365/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/primitives_3d.c.o
+[366/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/skybox.c.o
+[367/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/solar_system.c.o
+[368/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/text_2d.c.o
+[369/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/sprite_animation.c.o
+[370/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/textures_2d.c.o
+[371/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/textures_3d.c.o
+[372/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/transparency.c.o
+[373/380] Building C object CMakeFiles/bulba_tests.dir/src/main.c.o
+[374/380] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/transparency_3d.c.o
+[375/380] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/utils/audio.c.o
+[376/380] Linking CXX shared library libbulba_engine.so.1.0.0
+[377/380] Creating library symlink libbulba_engine.so.0 libbulba_engine.so
+[378/380] Linking C static library libbulba_test_support.a
+[379/380] Linking C executable BulbaEngine
+[380/380] Linking C executable bulba_tests

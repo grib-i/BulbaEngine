@@ -1,0 +1,24 @@
+[
+  {
+    "scene": "skybox",
+    "changed_pixels": 362,
+    "returncode": 0
+  },
+  {
+    "scene": "solar_system",
+    "changed_pixels": 13986,
+    "returncode": 0
+  },
+  {
+    "scene": "model_fbx",
+    "changed_pixels": 11856,
+    "paused_changed_pixels": 0,
+    "resumed_changed_pixels": 11814,
+    "returncode": 0
+  },
+  {
+    "scene": "lights_2d",
+    "changed_pixels": 256898,
+    "returncode": 0
+  }
+]

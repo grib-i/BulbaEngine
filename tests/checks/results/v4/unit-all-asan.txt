@@ -1,0 +1,55 @@
+[BLB:Object] ERROR: invalid 3D object extension: /data/build-baseline/test-output/roundtrip-2570744222.b2o
+[BLB:Object] ERROR: invalid 2D object extension: /data/build-baseline/test-output/roundtrip-2570744222.b3o
+[BLB:Object] ERROR: invalid arguments to BLB_Object2D_Save: /data/build-baseline/test-output/roundtrip-2570744222.b2o
+[BLB:Object] ERROR: invalid arguments to BLB_Object3D_Save: /data/build-baseline/test-output/roundtrip-2570744222.b3o
+[BLB:Object] ERROR: failed to read 3D object header: /data/build-baseline/test-output/truncated-2570744866.b3o
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[PASS] io           / snapshot_roundtrip                       0.636 ms
+[PASS] io           / truncated_snapshot_is_rejected           0.087 ms
+[PASS] shaders      / spirv_cache_and_reload                   0.466 ms
+[PASS] audio        / offline_audio_controls                  14.754 ms
+[PASS] core         / relative_transforms_and_invalid_values     0.216 ms
+[PASS] core         / fps_and_platform_utilities               1.092 ms
+[PASS] core         / vectors_and_matrices                     0.016 ms
+[PASS] core         / camera_transforms                        0.043 ms
+[PASS] core         / delta_and_scene_configuration            1.445 ms
+[PASS] core         / scene_add_remove                         0.962 ms
+[PASS] core         / shapes_and_transforms                    3.211 ms
+[PASS] resources    / texture_lifetime                         0.148 ms
+[PASS] resources    / material_properties                      0.042 ms
+[PASS] resources    / material_texture_transform               0.004 ms
+[PASS] resources    / sprite_animation                         0.103 ms
+[PASS] resources    / text_buffer_and_attachment               8.962 ms
+[PASS] physics2d    / falling_box_collides_with_floor          1.854 ms
+[PASS] physics2d    / body_and_collider_contract               0.585 ms
+[PASS] physics2d    / invalid_timestep_is_rejected             0.283 ms
+[PASS] physics3d    / falling_box_collides_with_floor          3.480 ms
+[PASS] physics3d    / body_and_collider_contract               0.836 ms
+[PASS] physics3d    / invalid_timestep_is_rejected             0.296 ms
+[PASS] particles2d  / emission_motion_and_lifetime             0.091 ms
+[PASS] particles3d  / emission_motion_and_lifetime             0.103 ms
+[PASS] handlers     / queue_fifo_and_overflow                  2.627 ms
+[PASS] handlers     / callback_registration                    0.033 ms
+[PASS] assets       / fbx_rotation_matches_source_quaternions   872.528 ms
+[PASS] assets       / fbx_fractional_clip_ranges             506.955 ms
+[PASS] assets       / import_obj_glb_fbx                    3368.000 ms
+[PASS] assets       / gltf_animation                           1.592 ms
+[PASS] assets       / texture_asset                           32.387 ms
+[PASS] assets       / skeletal_deformation                   593.539 ms
+[PASS] assets       / character_atlas_frames                   4.475 ms
+[PASS] assets       / gltf_uv_orientation                     35.196 ms
+[PASS] assets       / independent_skeletal_instances         373.034 ms
+[PASS] assets       / starfield_panorama                     112.883 ms
+[PASS] spatial      / raycast_nearest_and_filter               0.345 ms
+[PASS] spatial      / lights_and_lod                           1.865 ms
+[PASS] spatial      / rotated_objects_clear_the_stage          0.591 ms
+[PASS] spatial      / animated_clip_envelopes_clear_the_stage  5697.085 ms
+[PASS] renderer     / frame_state_and_backend_ownership        0.026 ms
+[PASS] renderer     / scene_advances_skeletal_animation      320.804 ms
+[PASS] renderer     / overlay_preserves_explicit_2d_lighting     0.420 ms
+[PASS] renderer     / gpu_2d_light_space_and_types             1.304 ms
+[PASS] orbits       / ten_year_conservation                  118.699 ms
+[PASS] orbits       / ellipse_geometry_and_periods            11.744 ms
+[PASS] orbits       / fixed_step_is_frame_rate_independent     6.512 ms
+
+47 cases, 23162 checks, 0 failures

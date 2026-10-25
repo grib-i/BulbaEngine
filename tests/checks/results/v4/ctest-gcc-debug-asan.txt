@@ -1,0 +1,66 @@
+Internal ctest changing into directory: /data/build-baseline
+Test project /data/build-baseline
+      Start  1: unit.io
+ 1/27 Test  #1: unit.io ..........................   Passed    0.02 sec
+      Start  2: unit.shaders
+ 2/27 Test  #2: unit.shaders .....................   Passed    0.02 sec
+      Start  3: unit.audio
+ 3/27 Test  #3: unit.audio .......................   Passed    0.02 sec
+      Start  4: unit.core
+ 4/27 Test  #4: unit.core ........................   Passed    0.02 sec
+      Start  5: unit.resources
+ 5/27 Test  #5: unit.resources ...................   Passed    0.03 sec
+      Start  6: unit.physics2d
+ 6/27 Test  #6: unit.physics2d ...................   Passed    0.02 sec
+      Start  7: unit.physics3d
+ 7/27 Test  #7: unit.physics3d ...................   Passed    0.02 sec
+      Start  8: unit.particles2d
+ 8/27 Test  #8: unit.particles2d .................   Passed    0.02 sec
+      Start  9: unit.particles3d
+ 9/27 Test  #9: unit.particles3d .................   Passed    0.02 sec
+      Start 10: unit.handlers
+10/27 Test #10: unit.handlers ....................   Passed    0.02 sec
+      Start 11: unit.assets
+11/27 Test #11: unit.assets ......................   Passed    4.19 sec
+      Start 12: unit.spatial
+12/27 Test #12: unit.spatial .....................   Passed    5.23 sec
+      Start 13: unit.renderer
+13/27 Test #13: unit.renderer ....................   Passed    0.40 sec
+      Start 14: unit.orbits
+14/27 Test #14: unit.orbits ......................   Passed    0.15 sec
+      Start 15: memory.lifecycle
+15/27 Test #15: memory.lifecycle .................   Passed    0.07 sec
+      Start 16: cli.reject_zero_count
+16/27 Test #16: cli.reject_zero_count ............   Passed    0.01 sec
+      Start 17: cli.reject_nan_speed
+17/27 Test #17: cli.reject_nan_speed .............   Passed    0.01 sec
+      Start 18: cli.reject_zero_samples
+18/27 Test #18: cli.reject_zero_samples ..........   Passed    0.02 sec
+      Start 19: cli.reject_zero_ticks
+19/27 Test #19: cli.reject_zero_ticks ............   Passed    0.02 sec
+      Start 20: cli.reject_zero_repeat
+20/27 Test #20: cli.reject_zero_repeat ...........   Passed    0.01 sec
+      Start 21: cli.reject_unknown_option
+21/27 Test #21: cli.reject_unknown_option ........   Passed    0.02 sec
+      Start 22: cli.reject_model_size
+22/27 Test #22: cli.reject_model_size ............   Passed    0.01 sec
+      Start 23: cli.reject_orbit_step
+23/27 Test #23: cli.reject_orbit_step ............   Passed    0.02 sec
+      Start 24: cli.reject_layout_samples
+24/27 Test #24: cli.reject_layout_samples ........   Passed    0.02 sec
+      Start 25: cli.configured_unit
+25/27 Test #25: cli.configured_unit ..............   Passed    0.03 sec
+      Start 26: cli.configured_memory
+26/27 Test #26: cli.configured_memory ............   Passed    0.02 sec
+      Start 27: cli.configured_bench
+27/27 Test #27: cli.configured_bench .............   Passed    0.08 sec
+
+100% tests passed, 0 tests failed out of 27
+
+Label Time Summary:
+cli       =   0.27 sec*proc (12 tests)
+memory    =   0.07 sec*proc (1 test)
+stress    =   0.07 sec*proc (1 test)
+unit      =  10.18 sec*proc (14 tests)
+
+Total Test time (real) =  10.52 sec

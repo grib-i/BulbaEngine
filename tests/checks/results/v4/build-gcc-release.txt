@@ -1,0 +1,7 @@
+[0/2] Re-checking globbed directories...
+[1/6] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_postprocess.c.o
+[2/6] Building C object CMakeFiles/bulba_engine.dir/src/bulba/core/render.c.o
+[3/6] Linking CXX shared library libbulba_engine.so.1.0.0
+[4/6] Creating library symlink libbulba_engine.so.0 libbulba_engine.so
+[5/6] Linking C executable bulba_tests
+[6/6] Linking C executable BulbaEngine

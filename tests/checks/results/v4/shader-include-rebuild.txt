@@ -1,0 +1,11 @@
+[0/2] Re-checking globbed directories...
+[1/10] Generating shaders/basic2d.frag.spv
+[2/10] Generating generated/shaders/basic2d_frag.h, generated/shaders/basic2d_frag.c
+[3/10] Building C object CMakeFiles/bulba_engine.dir/generated/shaders/basic2d_frag.c.o
+[4/10] Building C object CMakeFiles/bulba_test_support.dir/tests/demos/solar_system.c.o
+[5/10] Building C object CMakeFiles/bulba_engine.dir/src/bulba/graphics/vulkan/renderer/renderer_pipeline.c.o
+[6/10] Linking CXX shared library libbulba_engine.so.1.0.0
+[7/10] Creating library symlink libbulba_engine.so.0 libbulba_engine.so
+[8/10] Linking C static library libbulba_test_support.a
+[9/10] Linking C executable bulba_tests
+[10/10] Linking C executable BulbaEngine

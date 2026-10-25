@@ -1,0 +1,2 @@
+Rebaked 180 FBX rotation curves from 60 quaternion channels.
+Re-run leaves bundled FBX byte-identical: yes.

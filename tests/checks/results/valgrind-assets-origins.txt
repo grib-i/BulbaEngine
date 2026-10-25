@@ -1,0 +1,32 @@
+==5573== Memcheck, a memory error detector
+==5573== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==5573== Using Valgrind-3.19.0 and LibVEX; rerun with -h for copyright info
+==5573== Command: <release-build>/bulba_tests unit assets
+==5573== Parent PID: 5557
+==5573== 
+==5573== Conditional jump or move depends on uninitialised value(s)
+==5573==    at 0x49D1F9D: Assimp::Importer::ReadFile(char const*, unsigned int) (in <release-build>/libbulba_engine.so.1.0.0)
+==5573==    by 0x49BD45B: aiImportFileExWithProperties (in <release-build>/libbulba_engine.so.1.0.0)
+==5573==    by 0x48D9C09: BLB_LoadModelImported (in <release-build>/libbulba_engine.so.1.0.0)
+==5573==    by 0x40C3F1: import_obj_glb_fbx (in <release-build>/bulba_tests)
+==5573==    by 0x409029: Test_Run (in <release-build>/bulba_tests)
+==5573==    by 0x50BC60F: (below main) (in /usr/lib64/libc.so.6)
+==5573==  Uninitialised value was created by a stack allocation
+==5573==    at 0x49C8080: Assimp::DefaultIOSystem::Exists(char const*) const (in <release-build>/libbulba_engine.so.1.0.0)
+==5573== 
+==5573== 
+==5573== HEAP SUMMARY:
+==5573==     in use at exit: 17,280 bytes in 8 blocks
+==5573==   total heap usage: 1,152,230 allocs, 1,152,222 frees, 222,381,324 bytes allocated
+==5573== 
+==5573== LEAK SUMMARY:
+==5573==    definitely lost: 0 bytes in 0 blocks
+==5573==    indirectly lost: 0 bytes in 0 blocks
+==5573==      possibly lost: 0 bytes in 0 blocks
+==5573==    still reachable: 17,280 bytes in 8 blocks
+==5573==         suppressed: 0 bytes in 0 blocks
+==5573== Reachable blocks (those to which a pointer was found) are not shown.
+==5573== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==5573== 
+==5573== For lists of detected and suppressed errors, rerun with: -s
+==5573== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)

@@ -1,0 +1,18 @@
+  FAIL /data/project/e/tests/checks/test_renderer.c:83: fabs((double)(BLB_Model_GetAnimationTime(object)) - (double)(0.1f)) <= (1e-5)
+  FAIL /data/project/e/tests/checks/test_renderer.c:84: memcmp(before, object->polygon->vertices, bytes) != 0
+  FAIL /data/project/e/tests/checks/test_renderer.c:89: fabs((double)(BLB_Model_GetAnimationTime(object)) - (double)(0.1f)) <= (1e-5)
+  FAIL /data/project/e/tests/checks/test_renderer.c:95: fabs((double)(BLB_Model_GetAnimationTime(object)) - (double)(0.3f)) <= (1e-5)
+  FAIL /data/project/e/tests/checks/test_renderer.c:96: memcmp(before, object->polygon->vertices, bytes) != 0
+  FAIL /data/project/e/tests/checks/test_renderer.c:101: fabs((double)(BLB_Model_GetAnimationTime(object)) - (double)(0.3f)) <= (1e-5)
+  FAIL /data/project/e/tests/checks/test_renderer.c:108: fabs((double)(BLB_Model_GetAnimationTime(object)) - (double)(0.3f)) <= (1e-5)
+  FAIL /data/project/e/tests/checks/test_renderer.c:83: fabs((double)(BLB_Model_GetAnimationTime(object)) - (double)(0.1f)) <= (1e-5)
+  FAIL /data/project/e/tests/checks/test_renderer.c:84: memcmp(before, object->polygon->vertices, bytes) != 0
+  FAIL /data/project/e/tests/checks/test_renderer.c:89: fabs((double)(BLB_Model_GetAnimationTime(object)) - (double)(0.1f)) <= (1e-5)
+  FAIL /data/project/e/tests/checks/test_renderer.c:95: fabs((double)(BLB_Model_GetAnimationTime(object)) - (double)(0.3f)) <= (1e-5)
+  FAIL /data/project/e/tests/checks/test_renderer.c:96: memcmp(before, object->polygon->vertices, bytes) != 0
+  FAIL /data/project/e/tests/checks/test_renderer.c:101: fabs((double)(BLB_Model_GetAnimationTime(object)) - (double)(0.3f)) <= (1e-5)
+  FAIL /data/project/e/tests/checks/test_renderer.c:108: fabs((double)(BLB_Model_GetAnimationTime(object)) - (double)(0.3f)) <= (1e-5)
+[PASS] renderer     / frame_state_and_backend_ownership        0.006 ms
+[FAIL] renderer     / scene_advances_skeletal_animation       63.985 ms
+
+2 cases, 53 checks, 14 failures

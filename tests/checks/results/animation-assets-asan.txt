@@ -1,0 +1,182 @@
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[PASS] assets       / import_obj_glb_fbx                    2228.881 ms
+[PASS] assets       / gltf_animation                           2.550 ms
+[PASS] assets       / texture_asset                           34.185 ms
+[PASS] assets       / skeletal_deformation                   184.716 ms
+[PASS] assets       / character_atlas_frames                  14.780 ms
+[PASS] assets       / gltf_uv_orientation                     37.984 ms
+[PASS] assets       / independent_skeletal_instances         237.170 ms
+[PASS] assets       / starfield_panorama                      66.939 ms
+[PASS] assets       / import_obj_glb_fbx                    2109.672 ms
+[PASS] assets       / gltf_animation                           1.352 ms
+[PASS] assets       / texture_asset                           29.797 ms
+[PASS] assets       / skeletal_deformation                   170.108 ms
+[PASS] assets       / character_atlas_frames                   4.676 ms
+[PASS] assets       / gltf_uv_orientation                     34.149 ms
+[PASS] assets       / independent_skeletal_instances         173.913 ms
+[PASS] assets       / starfield_panorama                      82.660 ms
+[PASS] assets       / import_obj_glb_fbx                    2158.996 ms
+[PASS] assets       / gltf_animation                           1.489 ms
+[PASS] assets       / texture_asset                           29.780 ms
+[PASS] assets       / skeletal_deformation                   169.227 ms
+[PASS] assets       / character_atlas_frames                   4.500 ms
+[PASS] assets       / gltf_uv_orientation                     34.084 ms
+[PASS] assets       / independent_skeletal_instances         172.065 ms
+[PASS] assets       / starfield_panorama                      83.962 ms
+[PASS] assets       / import_obj_glb_fbx                    2123.840 ms
+[PASS] assets       / gltf_animation                           1.514 ms
+[PASS] assets       / texture_asset                           30.424 ms
+[PASS] assets       / skeletal_deformation                   172.560 ms
+[PASS] assets       / character_atlas_frames                   4.637 ms
+[PASS] assets       / gltf_uv_orientation                     34.962 ms
+[PASS] assets       / independent_skeletal_instances         176.602 ms
+[PASS] assets       / starfield_panorama                      84.040 ms
+[PASS] assets       / import_obj_glb_fbx                    2276.845 ms
+[PASS] assets       / gltf_animation                           1.580 ms
+[PASS] assets       / texture_asset                           34.513 ms
+[PASS] assets       / skeletal_deformation                   176.667 ms
+[PASS] assets       / character_atlas_frames                   4.574 ms
+[PASS] assets       / gltf_uv_orientation                     34.736 ms
+[PASS] assets       / independent_skeletal_instances         193.959 ms
+[PASS] assets       / starfield_panorama                     103.522 ms
+[PASS] assets       / import_obj_glb_fbx                    2441.386 ms
+[PASS] assets       / gltf_animation                           1.797 ms
+[PASS] assets       / texture_asset                           31.591 ms
+[PASS] assets       / skeletal_deformation                   186.747 ms
+[PASS] assets       / character_atlas_frames                   5.108 ms
+[PASS] assets       / gltf_uv_orientation                     36.948 ms
+[PASS] assets       / independent_skeletal_instances         189.426 ms
+[PASS] assets       / starfield_panorama                      92.917 ms
+[PASS] assets       / import_obj_glb_fbx                    2279.861 ms
+[PASS] assets       / gltf_animation                           1.519 ms
+[PASS] assets       / texture_asset                           29.860 ms
+[PASS] assets       / skeletal_deformation                   181.484 ms
+[PASS] assets       / character_atlas_frames                   4.606 ms
+[PASS] assets       / gltf_uv_orientation                     35.607 ms
+[PASS] assets       / independent_skeletal_instances         184.317 ms
+[PASS] assets       / starfield_panorama                      85.934 ms
+[PASS] assets       / import_obj_glb_fbx                    2274[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+.046 ms
+[PASS] assets       / gltf_animation                           1.456 ms
+[PASS] assets       / texture_asset                           30.489 ms
+[PASS] assets       / skeletal_deformation                   181.371 ms
+[PASS] assets       / character_atlas_frames                   4.481 ms
+[PASS] assets       / gltf_uv_orientation                     34.687 ms
+[PASS] assets       / independent_skeletal_instances         184.090 ms
+[PASS] assets       / starfield_panorama                      86.755 ms
+[PASS] assets       / import_obj_glb_fbx                    2263.920 ms
+[PASS] assets       / gltf_animation                           1.464 ms
+[PASS] assets       / texture_asset                           30.774 ms
+[PASS] assets       / skeletal_deformation                   182.772 ms
+[PASS] assets       / character_atlas_frames                   4.574 ms
+[PASS] assets       / gltf_uv_orientation                     35.252 ms
+[PASS] assets       / independent_skeletal_instances         185.805 ms
+[PASS] assets       / starfield_panorama                      87.602 ms
+[PASS] assets       / import_obj_glb_fbx                    2334.038 ms
+[PASS] assets       / gltf_animation                           1.974 ms
+[PASS] assets       / texture_asset                           32.217 ms
+[PASS] assets       / skeletal_deformation                   195.713 ms
+[PASS] assets       / character_atlas_frames                   6.016 ms
+[PASS] assets       / gltf_uv_orientation                     49.610 ms
+[PASS] assets       / independent_skeletal_instances         232.348 ms
+[PASS] assets       / starfield_panorama                      98.557 ms
+[PASS] assets       / import_obj_glb_fbx                    2307.966 ms
+[PASS] assets       / gltf_animation                           1.474 ms
+[PASS] assets       / texture_asset                           30.501 ms
+[PASS] assets       / skeletal_deformation                   185.465 ms
+[PASS] assets       / character_atlas_frames                   4.719 ms
+[PASS] assets       / gltf_uv_orientation                     35.371 ms
+[PASS] assets       / independent_skeletal_instances         187.557 ms
+[PASS] assets       / starfield_panorama                      87.585 ms
+[PASS] assets       / import_obj_glb_fbx                    2278.836 ms
+[PASS] assets       / gltf_animation                           1.521 ms
+[PASS] assets       / texture_asset                           30.121 ms
+[PASS] assets       / skeletal_deformation                   186.715 ms
+[PASS] assets       / character_atlas_frames                   4.456 ms
+[PASS] assets       / gltf_uv_orientation                     35.077 ms
+[PASS] assets       / independent_skeletal_instances         190.634 ms
+[PASS] assets       / starfield_panorama                      88.386 ms
+[PASS] assets       / import_obj_glb_fbx                    2273.981 ms
+[PASS] assets       / gltf_animation                           1.466 ms
+[PASS] assets       / texture_asset                           30.859 ms
+[PASS] assets       / skeletal_deformation                   186.756 ms
+[PASS] assets       / character_atlas_frames                   4.369 ms
+[PASS] assets       / gltf_uv_orientation                     34.458 ms
+[PASS] assets       / independent_skeletal_instances         185.664 ms
+[PASS] assets       / starfield_panorama                      88.839 ms
+[PASS] assets       / import_obj_glb_fbx                    2291.826 ms
+[PASS] assets       / gltf_animation                           2.019 ms
+[PASS] assets       / texture_asset                           31.328 ms
+[PASS] assets       / skeletal_deformation                   200.324 ms
+[PASS] assets       / character_atlas_frames                   5.115 ms
+[PASS] assets       / gltf_uv_orientation                     37.977 ms
+[PASS] assets       / independent_skeletal_instances         206.292 ms
+[PASS] assets       / starfield_panorama                     104.220 ms
+[PASS] assets       / import_obj_glb_fbx                    2313.632 ms
+[PASS] assets       / gltf_animation                    [BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+[BLB:ML_Assimp] Failed to load model 'assets/tests/missing.obj': Unable to open file "assets/tests/missing.obj".
+       1.478 ms
+[PASS] assets       / texture_asset                           29.717 ms
+[PASS] assets       / skeletal_deformation                   184.257 ms
+[PASS] assets       / character_atlas_frames                   4.557 ms
+[PASS] assets       / gltf_uv_orientation                     34.460 ms
+[PASS] assets       / independent_skeletal_instances         187.837 ms
+[PASS] assets       / starfield_panorama                      87.820 ms
+[PASS] assets       / import_obj_glb_fbx                    2258.624 ms
+[PASS] assets       / gltf_animation                           1.370 ms
+[PASS] assets       / texture_asset                           30.201 ms
+[PASS] assets       / skeletal_deformation                   184.042 ms
+[PASS] assets       / character_atlas_frames                   4.476 ms
+[PASS] assets       / gltf_uv_orientation                     34.739 ms
+[PASS] assets       / independent_skeletal_instances         187.034 ms
+[PASS] assets       / starfield_panorama                      89.444 ms
+[PASS] assets       / import_obj_glb_fbx                    2288.177 ms
+[PASS] assets       / gltf_animation                           1.571 ms
+[PASS] assets       / texture_asset                           29.953 ms
+[PASS] assets       / skeletal_deformation                   182.411 ms
+[PASS] assets       / character_atlas_frames                   4.377 ms
+[PASS] assets       / gltf_uv_orientation                     34.528 ms
+[PASS] assets       / independent_skeletal_instances         186.150 ms
+[PASS] assets       / starfield_panorama                      88.162 ms
+[PASS] assets       / import_obj_glb_fbx                    2418.963 ms
+[PASS] assets       / gltf_animation                           2.070 ms
+[PASS] assets       / texture_asset                           33.707 ms
+[PASS] assets       / skeletal_deformation                   202.139 ms
+[PASS] assets       / character_atlas_frames                   5.390 ms
+[PASS] assets       / gltf_uv_orientation                     39.078 ms
+[PASS] assets       / independent_skeletal_instances         204.708 ms
+[PASS] assets       / starfield_panorama                      99.956 ms
+[PASS] assets       / import_obj_glb_fbx                    2335.712 ms
+[PASS] assets       / gltf_animation                           1.478 ms
+[PASS] assets       / texture_asset                           29.566 ms
+[PASS] assets       / skeletal_deformation                   188.133 ms
+[PASS] assets       / character_atlas_frames                   4.490 ms
+[PASS] assets       / gltf_uv_orientation                     35.024 ms
+[PASS] assets       / independent_skeletal_instances         192.924 ms
+[PASS] assets       / starfield_panorama                      89.501 ms
+[PASS] assets       / import_obj_glb_fbx                    2288.510 ms
+[PASS] assets       / gltf_animation                           1.498 ms
+[PASS] assets       / texture_asset                           30.277 ms
+[PASS] assets       / skeletal_deformation                   189.669 ms
+[PASS] assets       / character_atlas_frames                   4.537 ms
+[PASS] assets       / gltf_uv_orientation                     35.337 ms
+[PASS] assets       / independent_skeletal_instances         191.508 ms
+[PASS] assets       / starfield_panorama                      90.844 ms
+
+160 cases, 18700 checks, 0 failures

@@ -1,0 +1,62 @@
+Internal ctest changing into directory: /data/build-baseline
+Test project /data/build-baseline
+      Start  1: unit.io
+ 1/25 Test  #1: unit.io ..........................   Passed    0.02 sec
+      Start  2: unit.shaders
+ 2/25 Test  #2: unit.shaders .....................   Passed    0.02 sec
+      Start  3: unit.audio
+ 3/25 Test  #3: unit.audio .......................   Passed    0.02 sec
+      Start  4: unit.core
+ 4/25 Test  #4: unit.core ........................   Passed    0.03 sec
+      Start  5: unit.resources
+ 5/25 Test  #5: unit.resources ...................   Passed    0.04 sec
+      Start  6: unit.physics2d
+ 6/25 Test  #6: unit.physics2d ...................   Passed    0.03 sec
+      Start  7: unit.physics3d
+ 7/25 Test  #7: unit.physics3d ...................   Passed    0.03 sec
+      Start  8: unit.particles2d
+ 8/25 Test  #8: unit.particles2d .................   Passed    0.02 sec
+      Start  9: unit.particles3d
+ 9/25 Test  #9: unit.particles3d .................   Passed    0.02 sec
+      Start 10: unit.handlers
+10/25 Test #10: unit.handlers ....................   Passed    0.02 sec
+      Start 11: unit.assets
+11/25 Test #11: unit.assets ......................   Passed    2.87 sec
+      Start 12: unit.spatial
+12/25 Test #12: unit.spatial .....................   Passed    5.16 sec
+      Start 13: unit.renderer
+13/25 Test #13: unit.renderer ....................   Passed    0.22 sec
+      Start 14: memory.lifecycle
+14/25 Test #14: memory.lifecycle .................   Passed    0.07 sec
+      Start 15: cli.reject_zero_count
+15/25 Test #15: cli.reject_zero_count ............   Passed    0.01 sec
+      Start 16: cli.reject_nan_speed
+16/25 Test #16: cli.reject_nan_speed .............   Passed    0.01 sec
+      Start 17: cli.reject_zero_samples
+17/25 Test #17: cli.reject_zero_samples ..........   Passed    0.01 sec
+      Start 18: cli.reject_zero_ticks
+18/25 Test #18: cli.reject_zero_ticks ............   Passed    0.01 sec
+      Start 19: cli.reject_zero_repeat
+19/25 Test #19: cli.reject_zero_repeat ...........   Passed    0.01 sec
+      Start 20: cli.reject_unknown_option
+20/25 Test #20: cli.reject_unknown_option ........   Passed    0.01 sec
+      Start 21: cli.reject_model_size
+21/25 Test #21: cli.reject_model_size ............   Passed    0.01 sec
+      Start 22: cli.reject_layout_samples
+22/25 Test #22: cli.reject_layout_samples ........   Passed    0.01 sec
+      Start 23: cli.configured_unit
+23/25 Test #23: cli.configured_unit ..............   Passed    0.03 sec
+      Start 24: cli.configured_memory
+24/25 Test #24: cli.configured_memory ............   Passed    0.03 sec
+      Start 25: cli.configured_bench
+25/25 Test #25: cli.configured_bench .............   Passed    0.08 sec
+
+100% tests passed, 0 tests failed out of 25
+
+Label Time Summary:
+cli       =   0.25 sec*proc (11 tests)
+memory    =   0.07 sec*proc (1 test)
+stress    =   0.07 sec*proc (1 test)
+unit      =   8.50 sec*proc (13 tests)
+
+Total Test time (real) =   8.82 sec

@@ -1,0 +1,1 @@
+clang-format --dry-run --Werror: 20 modified/added C/H files passed.

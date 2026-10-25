@@ -1,0 +1,14 @@
+# Wall-clock timings. Run Release without sanitizers for comparable results.
+benchmark,iterations,samples,min_ns_per_iteration,median_ns_per_iteration,p95_ns_per_iteration
+transforms2d.batch_with_setup,1000,15,5.4,5.5,6.7
+transforms3d.batch_with_setup,1000,15,20.5,20.6,23.0
+text2d.set_with_font_setup,1000,15,5243.5,5407.1,6058.6
+texture16x16.create_release,1000,15,74.4,76.2,88.1
+camera.view_projection_with_setup,1000,15,55.6,57.9,116.9
+scene.create_destroy,1000,15,24046.4,24550.1,25139.6
+math.normalize_add,1000,15,14.4,14.4,14.4
+objects2d.create_transform_destroy,1000,15,499.4,522.3,579.8
+objects3d.create_transform_destroy,1000,15,475.0,490.7,533.7
+materials.create_clone_release,1000,15,254.3,263.4,301.4
+particles2d.update_1024,1000,15,2724.4,2805.1,2869.7
+particles3d.update_1024,1000,15,3409.5,3491.9,3581.4

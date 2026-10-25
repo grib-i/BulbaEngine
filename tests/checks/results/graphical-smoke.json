@@ -1,0 +1,353 @@
+[
+  {
+    "scene": "primitives_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.176
+  },
+  {
+    "scene": "textures_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.183
+  },
+  {
+    "scene": "sprite_animation",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.09
+  },
+  {
+    "scene": "text_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 2.773
+  },
+  {
+    "scene": "particles_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.176
+  },
+  {
+    "scene": "particles_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.678
+  },
+  {
+    "scene": "primitives_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.252
+  },
+  {
+    "scene": "textures_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.241
+  },
+  {
+    "scene": "materials_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 8.917
+  },
+  {
+    "scene": "lights_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 13.209
+  },
+  {
+    "scene": "physics_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 2.973
+  },
+  {
+    "scene": "physics_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.707
+  },
+  {
+    "scene": "model_obj",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.467
+  },
+  {
+    "scene": "model_glb",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.646
+  },
+  {
+    "scene": "model_fbx",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.096
+  },
+  {
+    "scene": "model_gltf",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.06
+  },
+  {
+    "scene": "skybox",
+    "args": [],
+    "returncode": 0,
+    "seconds": 7.709
+  },
+  {
+    "scene": "object_count_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.335
+  },
+  {
+    "scene": "object_count_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 8.902
+  },
+  {
+    "scene": "transparency",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.032
+  },
+  {
+    "scene": "lod",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.848
+  },
+  {
+    "scene": "input",
+    "args": [],
+    "returncode": 0,
+    "seconds": 2.625
+  },
+  {
+    "scene": "lights_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 2.923
+  },
+  {
+    "scene": "transparency_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.795
+  },
+  {
+    "scene": "solar_system",
+    "args": [],
+    "returncode": 0,
+    "seconds": 9.059
+  },
+  {
+    "scene": "object_count_3d",
+    "args": [
+      "--count",
+      "17",
+      "--transforms",
+      "off",
+      "--camera",
+      "fixed"
+    ],
+    "returncode": 0,
+    "seconds": 3.19
+  },
+  {
+    "scene": "object_count_3d",
+    "args": [
+      "--count",
+      "27",
+      "--camera",
+      "orbit",
+      "--distance",
+      "12"
+    ],
+    "returncode": 0,
+    "seconds": 3.233
+  },
+  {
+    "scene": "object_count_3d",
+    "args": [
+      "--count",
+      "8",
+      "--camera",
+      "fly"
+    ],
+    "returncode": 0,
+    "seconds": 5.572
+  },
+  {
+    "scene": "object_count_2d",
+    "args": [
+      "--count",
+      "31",
+      "--transforms",
+      "off"
+    ],
+    "returncode": 0,
+    "seconds": 3.03
+  },
+  {
+    "scene": "sprite_animation",
+    "args": [
+      "--count",
+      "1",
+      "--animate",
+      "off"
+    ],
+    "returncode": 0,
+    "seconds": 3.383
+  },
+  {
+    "scene": "model_fbx",
+    "args": [
+      "--clip",
+      "Walk",
+      "--animation-speed",
+      "0.6",
+      "--count",
+      "2"
+    ],
+    "returncode": 0,
+    "seconds": 4.849
+  },
+  {
+    "scene": "model_gltf",
+    "args": [
+      "--clip",
+      "Survey",
+      "--count",
+      "2"
+    ],
+    "returncode": 0,
+    "seconds": 4.792
+  },
+  {
+    "scene": "skybox",
+    "args": [
+      "--skybox",
+      "assets/tests/textures/skybox.png",
+      "--count",
+      "2",
+      "--camera",
+      "orbit"
+    ],
+    "returncode": 0,
+    "seconds": 7.251
+  },
+  {
+    "scene": "particles_2d",
+    "args": [
+      "--particles",
+      "32",
+      "--emission",
+      "20"
+    ],
+    "returncode": 0,
+    "seconds": 2.921
+  },
+  {
+    "scene": "particles_3d",
+    "args": [
+      "--particles",
+      "32",
+      "--emission",
+      "20"
+    ],
+    "returncode": 0,
+    "seconds": 2.672
+  },
+  {
+    "scene": "transparency_3d",
+    "args": [
+      "--count",
+      "3",
+      "--opacity",
+      "0.15"
+    ],
+    "returncode": 0,
+    "seconds": 3.945
+  },
+  {
+    "scene": "lights_3d",
+    "args": [
+      "--count",
+      "3",
+      "--bloom",
+      "on"
+    ],
+    "returncode": 0,
+    "seconds": 13.858
+  },
+  {
+    "scene": "model_fbx",
+    "args": [
+      "--clip",
+      "Survey",
+      "--animate",
+      "off",
+      "--model-size",
+      "3",
+      "--layout-samples",
+      "1024"
+    ],
+    "returncode": 0,
+    "seconds": 5.309
+  },
+  {
+    "scene": "model_gltf",
+    "args": [
+      "--clip",
+      "Walk",
+      "--transforms",
+      "off",
+      "--animation-speed",
+      "2",
+      "--camera",
+      "orbit"
+    ],
+    "returncode": 0,
+    "seconds": 3.884
+  },
+  {
+    "scene": "model_glb",
+    "args": [
+      "--model-size",
+      "2.5"
+    ],
+    "returncode": 0,
+    "seconds": 4.594
+  },
+  {
+    "scene": "skybox",
+    "args": [
+      "--skybox",
+      "assets/tests/textures/sky_17_2k.png"
+    ],
+    "returncode": 0,
+    "seconds": 7.838
+  },
+  {
+    "scene": "transparency_3d",
+    "args": [
+      "--camera",
+      "orbit",
+      "--opacity",
+      "0.8",
+      "--count",
+      "4"
+    ],
+    "returncode": 0,
+    "seconds": 4.003
+  }
+]

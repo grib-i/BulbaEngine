@@ -1,0 +1,2 @@
+PASS: clang-format --dry-run -Werror tests/demos/*.[ch] tests/checks/*.[ch] src/main.c include/bulba/core/objects3d/animation3d.h src/bulba/core/objects3d/animation3d.c
+PASS: 26 demos and demo_common each include exactly their own header.

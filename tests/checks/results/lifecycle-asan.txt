@@ -1,0 +1,2 @@
+[PASS] 500 lifecycle cycles in 895.577 ms
+Leak detection requires ASan/LSan or Valgrind; counters alone do not prove absence of leaks.

@@ -1,0 +1,14 @@
+{
+  "scene": "lights_2d",
+  "animate": false,
+  "roi": [
+    145,
+    190,
+    1120,
+    570
+  ],
+  "light_off_vs_on_changed_pixels": 323236,
+  "threshold": 8,
+  "expected_minimum": 100000,
+  "passed": true
+}

@@ -1,0 +1,4 @@
+[PASS] renderer     / frame_state_and_backend_ownership        0.007 ms
+[PASS] renderer     / scene_advances_skeletal_animation       67.611 ms
+
+2 cases, 85 checks, 0 failures

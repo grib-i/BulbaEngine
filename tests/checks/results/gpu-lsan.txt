@@ -1,0 +1,13 @@
+
+=================================================================
+==5283==ERROR: LeakSanitizer: detected memory leaks
+
+Indirect leak of 56 byte(s) in 1 object(s) allocated from:
+    #0 0x7ff162cafa17 in calloc (/lib64/libasan.so.6+0xafa17)
+    #1 0x7ff159b9c75c  (<unknown module>)
+
+Indirect leak of 56 byte(s) in 1 object(s) allocated from:
+    #0 0x7ff162cafa17 in calloc (/lib64/libasan.so.6+0xafa17)
+    #1 0x7ff159b9c780  (<unknown module>)
+
+SUMMARY: AddressSanitizer: 112 byte(s) leaked in 2 allocation(s).

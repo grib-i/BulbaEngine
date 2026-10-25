@@ -1,0 +1,6 @@
+[PASS] spatial      / raycast_nearest_and_filter               0.194 ms
+[PASS] spatial      / lights_and_lod                           1.181 ms
+[PASS] spatial      / rotated_objects_clear_the_stage          0.141 ms
+[PASS] spatial      / animated_clip_envelopes_clear_the_stage   542.094 ms
+
+4 cases, 12053 checks, 0 failures

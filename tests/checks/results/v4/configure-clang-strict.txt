@@ -1,0 +1,22 @@
+Warn about uninitialized values.
+-- CMake C compiler: Clang
+-- CMake C++ compiler: Clang
+-- CMake system name: Linux
+-- CMake host system processor: x86_64
+-- Box2D using Unix
+-- CMake C compiler: Clang
+-- CMake C++ compiler: Clang
+-- CMake system name: Linux
+-- CMake host system processor: x86_64
+-- Box3D using Unix
+-- Shared libraries disabled
+-- Checking for module 'minizip'
+--   Package 'minizip', required by 'virtual:world', not found
+-- tinyusdz disabled
+-- Enabled importer formats: OBJ FBX GLTF
+-- Disabled importer formats: AMF 3DS AC ASE ASSBIN B3D BVH COLLADA DXF CSM HMP IRRMESH IQM IRR LWO LWS M3D MD2 MD3 MD5 MDC MDL NFF NDO OFF OGRE OPENGEX PLY MS3D COB BLEND IFC XGL Q3D Q3BSP RAW SIB SMD STL TERRAGEN 3D USD X X3D 3MF MMD
+-- Enabled exporter formats:
+-- Disabled exporter formats: OBJ OPENGEX PLY 3DS ASSBIN ASSXML M3D COLLADA FBX STL X X3D GLTF 3MF PBRT ASSJSON STEP
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /data/build-clang

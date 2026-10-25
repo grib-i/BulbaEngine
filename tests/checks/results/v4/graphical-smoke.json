@@ -1,0 +1,403 @@
+[
+  {
+    "scene": "primitives_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.023
+  },
+  {
+    "scene": "textures_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.029
+  },
+  {
+    "scene": "sprite_animation",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.781
+  },
+  {
+    "scene": "text_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 2.821
+  },
+  {
+    "scene": "particles_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.176
+  },
+  {
+    "scene": "particles_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 5.585
+  },
+  {
+    "scene": "primitives_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 5.32
+  },
+  {
+    "scene": "textures_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.81
+  },
+  {
+    "scene": "materials_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 8.472
+  },
+  {
+    "scene": "lights_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 13.048
+  },
+  {
+    "scene": "physics_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 2.878
+  },
+  {
+    "scene": "physics_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 5.221
+  },
+  {
+    "scene": "model_obj",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.568
+  },
+  {
+    "scene": "model_glb",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.645
+  },
+  {
+    "scene": "model_fbx",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.652
+  },
+  {
+    "scene": "model_gltf",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.04
+  },
+  {
+    "scene": "skybox",
+    "args": [],
+    "returncode": 0,
+    "seconds": 9.839
+  },
+  {
+    "scene": "object_count_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.686
+  },
+  {
+    "scene": "object_count_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 8.197
+  },
+  {
+    "scene": "transparency",
+    "args": [],
+    "returncode": 0,
+    "seconds": 2.777
+  },
+  {
+    "scene": "lod",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.722
+  },
+  {
+    "scene": "input",
+    "args": [],
+    "returncode": 0,
+    "seconds": 2.524
+  },
+  {
+    "scene": "lights_2d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 3.132
+  },
+  {
+    "scene": "transparency_3d",
+    "args": [],
+    "returncode": 0,
+    "seconds": 4.571
+  },
+  {
+    "scene": "solar_system",
+    "args": [],
+    "returncode": 0,
+    "seconds": 12.358
+  },
+  {
+    "scene": "object_count_3d",
+    "args": [
+      "--count",
+      "17",
+      "--transforms",
+      "off",
+      "--camera",
+      "fixed"
+    ],
+    "returncode": 0,
+    "seconds": 3.133
+  },
+  {
+    "scene": "object_count_3d",
+    "args": [
+      "--count",
+      "27",
+      "--camera",
+      "orbit",
+      "--distance",
+      "12"
+    ],
+    "returncode": 0,
+    "seconds": 3.182
+  },
+  {
+    "scene": "object_count_3d",
+    "args": [
+      "--count",
+      "8",
+      "--camera",
+      "fly"
+    ],
+    "returncode": 0,
+    "seconds": 5.404
+  },
+  {
+    "scene": "object_count_2d",
+    "args": [
+      "--count",
+      "31",
+      "--transforms",
+      "off"
+    ],
+    "returncode": 0,
+    "seconds": 2.831
+  },
+  {
+    "scene": "sprite_animation",
+    "args": [
+      "--count",
+      "1",
+      "--animate",
+      "off"
+    ],
+    "returncode": 0,
+    "seconds": 3.081
+  },
+  {
+    "scene": "model_fbx",
+    "args": [
+      "--clip",
+      "Walk",
+      "--animation-speed",
+      "0.6",
+      "--count",
+      "2"
+    ],
+    "returncode": 0,
+    "seconds": 5.001
+  },
+  {
+    "scene": "model_gltf",
+    "args": [
+      "--clip",
+      "Survey",
+      "--count",
+      "2"
+    ],
+    "returncode": 0,
+    "seconds": 4.749
+  },
+  {
+    "scene": "skybox",
+    "args": [
+      "--skybox",
+      "assets/tests/textures/skybox.png",
+      "--count",
+      "2",
+      "--camera",
+      "orbit"
+    ],
+    "returncode": 0,
+    "seconds": 6.556
+  },
+  {
+    "scene": "particles_2d",
+    "args": [
+      "--particles",
+      "32",
+      "--emission",
+      "20"
+    ],
+    "returncode": 0,
+    "seconds": 2.57
+  },
+  {
+    "scene": "particles_3d",
+    "args": [
+      "--particles",
+      "32",
+      "--emission",
+      "20"
+    ],
+    "returncode": 0,
+    "seconds": 2.723
+  },
+  {
+    "scene": "transparency_3d",
+    "args": [
+      "--count",
+      "3",
+      "--opacity",
+      "0.15"
+    ],
+    "returncode": 0,
+    "seconds": 3.74
+  },
+  {
+    "scene": "lights_3d",
+    "args": [
+      "--count",
+      "3",
+      "--bloom",
+      "on"
+    ],
+    "returncode": 0,
+    "seconds": 14.982
+  },
+  {
+    "scene": "model_fbx",
+    "args": [
+      "--clip",
+      "Survey",
+      "--animate",
+      "off",
+      "--model-size",
+      "3",
+      "--layout-samples",
+      "1024"
+    ],
+    "returncode": 0,
+    "seconds": 5.504
+  },
+  {
+    "scene": "model_gltf",
+    "args": [
+      "--clip",
+      "Walk",
+      "--transforms",
+      "off",
+      "--animation-speed",
+      "2",
+      "--camera",
+      "orbit"
+    ],
+    "returncode": 0,
+    "seconds": 3.728
+  },
+  {
+    "scene": "model_glb",
+    "args": [
+      "--model-size",
+      "2.5"
+    ],
+    "returncode": 0,
+    "seconds": 4.808
+  },
+  {
+    "scene": "skybox",
+    "args": [
+      "--skybox",
+      "assets/tests/textures/sky_17_2k.png"
+    ],
+    "returncode": 0,
+    "seconds": 8.276
+  },
+  {
+    "scene": "transparency_3d",
+    "args": [
+      "--camera",
+      "orbit",
+      "--opacity",
+      "0.8",
+      "--count",
+      "4"
+    ],
+    "returncode": 0,
+    "seconds": 3.942
+  },
+  {
+    "scene": "solar_system",
+    "args": [
+      "--days-per-second",
+      "1000",
+      "--orbit-step",
+      "0.01",
+      "--orbits",
+      "off",
+      "--orbit-scale",
+      "3",
+      "--radius-scale",
+      "0.25"
+    ],
+    "returncode": 0
+  },
+  {
+    "scene": "solar_system",
+    "args": [
+      "--days-per-second",
+      "0",
+      "--orbit-scale",
+      "0.5",
+      "--radius-scale",
+      "2"
+    ],
+    "returncode": 0
+  },
+  {
+    "scene": "skybox",
+    "args": [
+      "--bloom",
+      "on",
+      "--radius-scale",
+      "1.5",
+      "--light",
+      "0.8"
+    ],
+    "returncode": 0
+  },
+  {
+    "scene": "lights_2d",
+    "args": [
+      "--count",
+      "18",
+      "--light",
+      "0.5"
+    ],
+    "returncode": 0
+  }
+]
