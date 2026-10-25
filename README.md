@@ -71,7 +71,7 @@ The project focuses on:
 
 | Property         | Value           |
 | ---------------- | --------------- |
-| **Version**      | `1.0.0`         |
+| **Version**      | `1.0.0-beta`    |
 | **Language**     | C               |
 | **Build System** | CMake           |
 | **Platforms**    | Linux · Windows |
@@ -236,22 +236,6 @@ target_link_libraries(MyGame PRIVATE BulbaEngine::BulbaEngine)
 <a href="https://github.com/grib-i/BulbaEngine/wiki">
 <img src="https://img.shields.io/badge/🌐%20Wiki-24292F?style=for-the-badge&logo=github">
 </a>
-
----
-
-## 🛣️ Roadmap
-
-| System                 | Status     |
-| ---------------------- | ---------- |
-| **Core**               | 🟢 Active  |
-| **Math**               | 🟢 Active  |
-| **Renderer**           | 🟢 Active  |
-| **Physics**            | 🟢 Active  |
-| **Audio**              | 🟢 Active  |
-| **Python and Lua lib** | 🟡 Planned |
-| **UI Editor**          | 🟡 Planned |
-| **Scripting**          | 🟡 Planned |
-| **WebAssembly**        | 🟡 Planned |
 
 ---
 
