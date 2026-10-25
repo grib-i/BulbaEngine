@@ -1,8 +1,8 @@
 {
-  "version": 6,
+  "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 20,
+    "minor": 22,
     "patch": 0
   },
   "configurePresets": [
@@ -13,9 +13,8 @@
       "binaryDir": "${sourceDir}/build/linux-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "PROJECT_NAME": "bulba",
         "BLB_BUILD_APP": "ON",
-        "BLB_BUILD_SHADERS": "ON"
+        "BLB_APP_NAME": "bulba"
       }
     },
     {
@@ -25,9 +24,8 @@
       "binaryDir": "${sourceDir}/build/linux-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "PROJECT_NAME": "bulba",
         "BLB_BUILD_APP": "ON",
-        "BLB_BUILD_SHADERS": "ON"
+        "BLB_APP_NAME": "bulba"
       }
     },
     {
@@ -37,9 +35,8 @@
       "binaryDir": "${sourceDir}/build/windows-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "PROJECT_NAME": "bulba",
         "BLB_BUILD_APP": "ON",
-        "BLB_BUILD_SHADERS": "ON"
+        "BLB_APP_NAME": "bulba"
       }
     }
   ],
