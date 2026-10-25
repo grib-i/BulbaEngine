@@ -6,7 +6,7 @@ endif()
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-set(BLB_VERSION "1.0.0" CACHE STRING "BulbaEngine version")
+set(BLB_VERSION "1.0.1" CACHE STRING "BulbaEngine version")
 project(BulbaEngine VERSION "${BLB_VERSION}" LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 17)
