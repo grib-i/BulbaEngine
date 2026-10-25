@@ -8,10 +8,12 @@ layout(location = 0) out vec4 out_color;
 layout(push_constant) uniform PushConstants {
   mat4 mvp;
   vec4 material;
-} push_constants;
+}
+push_constants;
 
 void main() {
   float coverage = texture(font_texture, in_uv).r;
+
   if (coverage <= 0.002)
     discard;
 

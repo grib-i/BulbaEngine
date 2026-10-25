@@ -1,0 +1,20 @@
+Deep Star Maps 2020
+
+Image credit: NASA/Goddard Space Flight Center Scientific Visualization Studio.
+Visualization: Ernie Wright (USRA).
+Source page: https://svs.gsfc.nasa.gov/4851/
+Source API: https://svs.gsfc.nasa.gov/api/4851
+Source image: https://svs.gsfc.nasa.gov/vis/a000000/a004800/a004851/starmap_2020_4k.exr
+NASA image/media usage guidelines: https://www.nasa.gov/nasa-brand-center/images-and-media/
+
+Bundled derivative: starmap_2020_2k.png (2048 x 1024).
+Conversion: average each 2x2 block in linear light, +1 stop exposure, standard
+linear-to-sRGB transfer, clamp to 8-bit RGB. The original star-map projection
+is preserved. The 34 MB EXR is not bundled; no runtime network access is needed.
+
+This is NASA scientific visualization imagery, not a CC0 asset. Retain the
+source credit and observe NASA's media guidelines. NASA names/logos are not
+being licensed as trademarks and no endorsement is implied.
+
+V4 presentation adjustment: existing 2k PNG RGB channels multiplied by 0.30 in sRGB
+to keep the planet/ring silhouette and labels readable; original NASA source unchanged.

@@ -11,18 +11,18 @@ struct InstanceData {
   uint padding2;
 };
 
-layout(std430, set = 0, binding = 8) readonly buffer InstanceBuffer {
-  InstanceData instances[];
-};
+layout(std430, set = 0, binding = 8) readonly buffer InstanceBuffer { InstanceData instances[]; };
 
 layout(push_constant) uniform PushConstants {
   mat4 mvp;
   uint flags;
   uint padding[3];
-} push_constants;
+}
+push_constants;
 
 void main() {
   vec4 position = vec4(in_position, 1.0);
+
   if ((push_constants.flags & 1u) != 0u)
     position = instances[push_constants.padding[0] + gl_InstanceIndex].model * position;
   gl_Position = push_constants.mvp * position;

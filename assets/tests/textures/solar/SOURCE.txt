@@ -1,0 +1,15 @@
+Solar System Scope — Solar Textures
+Author: Solar System Scope / INOVE
+Source: https://www.solarsystemscope.com/textures
+Downloaded 2026-10-22 from /textures/download/2k_*.jpg and 2k_saturn_ring_alpha.png
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+License copy: ../../models/fox/CC-BY-4.0.txt.
+Maps based on NASA imagery, adjusted by Solar System Scope. No claim of exclusive NASA authorship.
+Files are the original downloaded 2k maps, without image modifications.
+Saturn annulus OBJ is original generated demo geometry with radial UVs, not a downloaded model.
+
+Orbital initialization: JPL approximate planetary positions, J2000 elements (1800–2050 table).
+https://ssd.jpl.nasa.gov/planets/approx_pos.html
+The demo uses approximate initial ellipses and then its own Newtonian integration, not JPL ephemerides.
+Mass/radius/rotation values are rounded physical parameters; display radii/distances are deliberately scaled.

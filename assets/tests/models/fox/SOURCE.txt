@@ -1,0 +1,26 @@
+Fox — Khronos glTF Sample Assets
+Source: https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Fox
+Source description: https://github.com/KhronosGroup/glTF-Sample-Assets/blob/main/Models/Fox/README.md
+Downloaded: 2026-10-22
+
+Model: (c) 2014 PixelMannen, CC0.
+Rigging and animation: (c) 2014 tomkranis, Creative Commons Attribution 4.0 International.
+glTF conversion: (c) 2017 @AsoboStudio and @scurest, Creative Commons Attribution 4.0 International.
+CC BY 4.0: https://creativecommons.org/licenses/by/4.0/
+CC0: https://creativecommons.org/publicdomain/zero/1.0/
+
+Fox.gltf, Fox.bin, Texture.png are the upstream glTF assets (unmodified).
+Fox.fbx is a derivative conversion made for these tests using Assimp 5.2's ASCII FBX exporter.
+Animation key times and clip durations were normalized from ticks to seconds before export;
+otherwise this exporter stretches the animation timeline. The model/rig/poses were not redesigned.
+Animations: Survey, Walk, Run. Both demos play actual skeletal animation.
+Bundled license text: CC-BY-4.0.txt. CC0 text: ../../sprites/CC0-1.0.txt.
+
+V4: restored fractional LocalStop/ReferenceStop FBX KTime values from the original glTF
+clip end times (Survey 3.41666675, Walk 0.70833331, Run 1.15833330 seconds).
+Assimp 5.2 truncated those stack ranges to whole seconds during export.
+
+V4: rotation curves rebaked at 120 Hz from source glTF quaternion SLERP, selecting
+continuous equivalent XYZ Euler branches. This removes the right-leg branch flip
+around 0.71-0.83 seconds of Run. Reproduce with tools/repair_fox_fbx.py.
+Geometry, skin weights and bind transforms are retained from the original export.

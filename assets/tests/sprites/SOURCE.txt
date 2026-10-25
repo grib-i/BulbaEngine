@@ -1,0 +1,11 @@
+Kenney — Platformer Characters
+Source: https://kenney.nl/assets/platformer-characters
+Archive: https://kenney.nl/media/pages/assets/platformer-characters/b85f388c42-1677693768/kenney_platformer-characters.zip
+License: CC0 1.0 Universal. See Kenney_License.txt and CC0-1.0.txt.
+Downloaded: 2026-10-22
+
+Derived sheets: adventurer_sheet.png, female_sheet.png, zombie_sheet.png.
+Six horizontal 128x128 RGBA cells, in this order:
+  0 walk1, 1 walk2, 2 climb1, 3 climb2, 4 jump, 5 fall.
+The original pose PNGs were placed on transparent cells, centered horizontally and bottom-aligned.
+Original art: Kenney. Changes for the test suite: atlas packing only, no new character artwork.
