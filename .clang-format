@@ -1,2 +1,4 @@
 BasedOnStyle: LLVM
-ColumnLimit: 150
+
+ColumnLimit: 80
+AllowShortFunctionsOnASingleLine: None

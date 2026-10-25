@@ -1,6 +1,5 @@
 #include "bulba/bulba.h"
 
-#include "bulba/core/objects2d/objects2d.h"
 #include "tests.h"
 
 int main(void) {
