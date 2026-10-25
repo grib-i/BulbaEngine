@@ -1,6 +1,7 @@
 #include "physics2d.h"
 
-BLB_Collider2D *BLB_Physics2D_SetCollider(BLB_Object2D *object, const BLB_Physics2DShape *shape) {
+BLB_Collider2D *BLB_Physics2D_SetCollider(BLB_Object2D *object,
+                                          const BLB_Physics2DShape *shape) {
   BLB_RigidBody2D *body = blb_physics2d_object_body(object);
 
   if (!body || !shape || !b2Body_IsValid(body->handle))
@@ -250,7 +251,9 @@ bool BLB_Physics2D_ColliderIsActive(const BLB_Object2D *object) {
   return collider ? collider->active : false;
 }
 
-BLB_Collider2D *BLB_Physics2D_GetCollider(BLB_Object2D *object) { return blb_physics2d_object_collider(object); }
+BLB_Collider2D *BLB_Physics2D_GetCollider(BLB_Object2D *object) {
+  return blb_physics2d_object_collider(object);
+}
 
 const BLB_Physics2DShape *BLB_Physics2D_ColliderGetShape(const BLB_Object2D *object) {
   const BLB_Collider2D *collider = blb_physics2d_object_collider(object);
@@ -261,7 +264,8 @@ const BLB_Physics2DShape *BLB_Physics2D_ColliderGetShape(const BLB_Object2D *obj
 void BLB_Physics2D_ColliderSetScale(BLB_Object2D *object, BLB_Vec2 scale) {
   BLB_Collider2D *collider = object ? object->collider : NULL;
 
-  if (!collider || !isfinite(scale.x) || scale.x <= 0.0f || collider->sync_scale.x <= 0.0f || !isfinite(scale.y) || scale.y <= 0.0f ||
+  if (!collider || !isfinite(scale.x) || scale.x <= 0.0f ||
+      collider->sync_scale.x <= 0.0f || !isfinite(scale.y) || scale.y <= 0.0f ||
       collider->sync_scale.y <= 0.0f)
     return;
 
@@ -286,7 +290,8 @@ void BLB_Physics2D_ColliderSetScale(BLB_Object2D *object, BLB_Vec2 scale) {
     next.data.box.half_extents = BLB_MulV2(next.data.box.half_extents, ratio);
     break;
   case BLB_PHYSICS2D_SHAPE_CIRCLE:
-    next.data.circle.radius *= fminf(scale.x, scale.y) / fminf(collider->sync_scale.x, collider->sync_scale.y);
+    next.data.circle.radius *=
+        fminf(scale.x, scale.y) / fminf(collider->sync_scale.x, collider->sync_scale.y);
     break;
   case BLB_PHYSICS2D_SHAPE_CAPSULE:
     next.data.capsule.radius *= fminf(ratio.x, ratio.y);

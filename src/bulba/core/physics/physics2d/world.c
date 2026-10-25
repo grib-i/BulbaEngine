@@ -74,8 +74,9 @@ void BLB_Physics2D_WorldDestroy(BLB_Physics2DWorld *world) {
 void BLB_Physics2D_WorldUpdate(BLB_Physics2DWorld *world) {
   float delta_time = BLB_DeltaTime_Get();
 
-  if (!blb_physics2d_valid_world(world) || !isfinite(delta_time) || delta_time <= 0.0f || !isfinite(world->fixed_timestep) ||
-      world->fixed_timestep <= 0.0f || world->substeps < 1)
+  if (!blb_physics2d_valid_world(world) || !isfinite(delta_time) || delta_time <= 0.0f ||
+      !isfinite(world->fixed_timestep) || world->fixed_timestep <= 0.0f ||
+      world->substeps < 1)
     return;
 
   BLB_Box2DBackend *backend = blb_physics2d_get_backend(world);
@@ -121,7 +122,8 @@ void BLB_Physics2D_WorldSetSubsteps(BLB_Physics2DWorld *world, int substeps) {
   world->substeps = substeps;
 }
 
-void BLB_Physics2D_WorldSetLayerCollision(BLB_Physics2DWorld *world, uint8_t layer_a, uint8_t layer_b, bool enabled) {
+void BLB_Physics2D_WorldSetLayerCollision(BLB_Physics2DWorld *world, uint8_t layer_a,
+                                          uint8_t layer_b, bool enabled) {
   if (!blb_physics2d_valid_world(world) || layer_a >= 64 || layer_b >= 64)
     return;
 
@@ -148,7 +150,9 @@ void BLB_Physics2D_WorldSetDebugDraw(BLB_Physics2DWorld *world, bool enabled) {
     world->debug_draw_enabled = enabled;
 }
 
-bool BLB_Physics2D_WorldGetDebugDraw(const BLB_Physics2DWorld *world) { return world && world->debug_draw_enabled; }
+bool BLB_Physics2D_WorldGetDebugDraw(const BLB_Physics2DWorld *world) {
+  return world && world->debug_draw_enabled;
+}
 
 size_t BLB_Physics2D_WorldGetDebugColliderCount(const BLB_Physics2DWorld *world) {
   const BLB_Box2DBackend *backend = blb_physics2d_get_backend_const(world);
@@ -156,10 +160,12 @@ size_t BLB_Physics2D_WorldGetDebugColliderCount(const BLB_Physics2DWorld *world)
   return blb_physics2d_valid_world(world) && backend ? world->collider_count : 0;
 }
 
-bool BLB_Physics2D_WorldGetDebugCollider(const BLB_Physics2DWorld *world, size_t index, BLB_Physics2DDebugCollider *out_collider) {
+bool BLB_Physics2D_WorldGetDebugCollider(const BLB_Physics2DWorld *world, size_t index,
+                                         BLB_Physics2DDebugCollider *out_collider) {
   const BLB_Box2DBackend *backend = blb_physics2d_get_backend_const(world);
 
-  if (!out_collider || !blb_physics2d_valid_world(world) || !backend || index >= world->collider_count || !backend->colliders)
+  if (!out_collider || !blb_physics2d_valid_world(world) || !backend ||
+      index >= world->collider_count || !backend->colliders)
     return false;
 
   const BLB_Collider2D *collider = backend->colliders[index];
@@ -170,7 +176,8 @@ bool BLB_Physics2D_WorldGetDebugCollider(const BLB_Physics2DWorld *world, size_t
   out_collider->shape = &collider->shape;
   out_collider->position = BLB_Physics2D_BodyGetPosition(collider->body->object);
   out_collider->rotation = BLB_Physics2D_BodyGetRotation(collider->body->object);
-  out_collider->active = collider->active && BLB_Physics2D_BodyIsActive(collider->body->object);
+  out_collider->active =
+      collider->active && BLB_Physics2D_BodyIsActive(collider->body->object);
   out_collider->trigger = collider->trigger;
 
   return true;

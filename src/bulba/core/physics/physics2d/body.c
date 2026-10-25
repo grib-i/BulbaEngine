@@ -1,6 +1,7 @@
 #include "physics2d.h"
 
-void BLB_Physics2D_SetBody(BLB_Physics2DWorld *world, BLB_Object2D *object, BLB_Physics2DBodyType type) {
+void BLB_Physics2D_SetBody(BLB_Physics2DWorld *world, BLB_Object2D *object,
+                           BLB_Physics2DBodyType type) {
   if (!object || object->rigid_body || !blb_physics2d_valid_world(world))
     return;
 
@@ -39,7 +40,8 @@ void BLB_Physics2D_SetBody(BLB_Physics2DWorld *world, BLB_Object2D *object, BLB_
   ++world->body_count;
   body->object = object;
   object->rigid_body = body;
-  b2Body_SetTransform(handle, (b2Vec2){object->position.x, object->position.y}, b2MakeRot(object->rotation * (float)BLB_PI / 180.0f));
+  b2Body_SetTransform(handle, (b2Vec2){object->position.x, object->position.y},
+                      b2MakeRot(object->rotation * (float)BLB_PI / 180.0f));
 }
 
 void BLB_Physics2D_BodyDestroy(BLB_Physics2DWorld *world, BLB_Object2D *object) {
@@ -110,14 +112,22 @@ void BLB_Physics2D_BodySetFixedRotation(BLB_Object2D *object, bool flag) {
   if (!body || !b2Body_IsValid(body->handle))
     return;
 
-  b2Body_SetFixedRotation(body->handle, flag);
+  b2MotionLocks locks = {
+      .linearX = false,
+      .linearY = false,
+      .angularZ = flag,
+  };
+
+  b2Body_SetMotionLocks(body->handle, locks);
 }
 
 void BLB_Physics2D_BodySetPosition(BLB_Object2D *object, BLB_Vec2 position) {
-  if (!object || !object->rigid_body || !b2Body_IsValid(object->rigid_body->handle) || !isfinite(position.x) || !isfinite(position.y))
+  if (!object || !object->rigid_body || !b2Body_IsValid(object->rigid_body->handle) ||
+      !isfinite(position.x) || !isfinite(position.y))
     return;
 
-  b2Body_SetTransform(object->rigid_body->handle, (b2Vec2){position.x, position.y}, b2Body_GetRotation(object->rigid_body->handle));
+  b2Body_SetTransform(object->rigid_body->handle, (b2Vec2){position.x, position.y},
+                      b2Body_GetRotation(object->rigid_body->handle));
   blb_object2d_sync_from_body(object);
 }
 
@@ -133,10 +143,13 @@ BLB_Vec2 BLB_Physics2D_BodyGetPosition(const BLB_Object2D *object) {
 }
 
 void BLB_Physics2D_BodySetRotation(BLB_Object2D *object, float rotation) {
-  if (!object || !object->rigid_body || !b2Body_IsValid(object->rigid_body->handle) || !isfinite(rotation))
+  if (!object || !object->rigid_body || !b2Body_IsValid(object->rigid_body->handle) ||
+      !isfinite(rotation))
     return;
 
-  b2Body_SetTransform(object->rigid_body->handle, b2Body_GetPosition(object->rigid_body->handle), b2MakeRot(rotation));
+  b2Body_SetTransform(object->rigid_body->handle,
+                      b2Body_GetPosition(object->rigid_body->handle),
+                      b2MakeRot(rotation));
   blb_object2d_sync_from_body(object);
 }
 
@@ -228,7 +241,9 @@ bool BLB_Physics2D_BodyIsActive(const BLB_Object2D *object) {
   return body && b2Body_IsValid(body->handle) && b2Body_IsEnabled(body->handle);
 }
 
-BLB_RigidBody2D *BLB_Physics2D_GetBody(BLB_Object2D *object) { return blb_physics2d_object_body(object); }
+BLB_RigidBody2D *BLB_Physics2D_GetBody(BLB_Object2D *object) {
+  return blb_physics2d_object_body(object);
+}
 
 void BLB_Physics2D_BodySetAngularVelocity(BLB_Object2D *object, float velocity) {
   BLB_RigidBody2D *body = blb_physics2d_object_body(object);

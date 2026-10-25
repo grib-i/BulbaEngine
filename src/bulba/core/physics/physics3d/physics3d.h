@@ -57,15 +57,20 @@ BLB_PhysicsLayerMask blb_physics3d_layer_bit(uint8_t layer);
 b3BodyType blb_physics3d_to_b3_body_type(BLB_Physics3DBodyType type);
 BLB_Physics3DBodyType blb_physics3d_from_b3_body_type(b3BodyType type);
 b3Filter blb_physics3d_make_filter(const BLB_Collider3D *collider);
-bool blb_physics3d_append_body(BLB_Box3DBackend *backend, BLB_RigidBody3D *body, size_t count);
-bool blb_physics3d_append_collider(BLB_Box3DBackend *backend, BLB_Collider3D *collider, size_t count);
+bool blb_physics3d_append_body(BLB_Box3DBackend *backend, BLB_RigidBody3D *body,
+                               size_t count);
+bool blb_physics3d_append_collider(BLB_Box3DBackend *backend, BLB_Collider3D *collider,
+                                   size_t count);
 bool blb_physics3d_append_body_collider(BLB_RigidBody3D *body, BLB_Collider3D *collider);
-void blb_physics3d_remove_body(BLB_Box3DBackend *backend, BLB_RigidBody3D *body, size_t count);
-void blb_physics3d_remove_collider(BLB_Box3DBackend *backend, BLB_Collider3D *collider, size_t count);
+void blb_physics3d_remove_body(BLB_Box3DBackend *backend, BLB_RigidBody3D *body,
+                               size_t count);
+void blb_physics3d_remove_collider(BLB_Box3DBackend *backend, BLB_Collider3D *collider,
+                                   size_t count);
 void blb_physics3d_remove_body_collider(BLB_RigidBody3D *body, BLB_Collider3D *collider);
 void blb_physics3d_free_shape_copy(BLB_Physics3DShape *shape);
 bool blb_physics3d_copy_shape(BLB_Physics3DShape *dst, const BLB_Physics3DShape *src);
-b3ShapeId blb_physics3d_create_backend_shape(const BLB_Collider3D *collider, const b3ShapeDef *def);
+b3ShapeId blb_physics3d_create_backend_shape(const BLB_Collider3D *collider,
+                                             const b3ShapeDef *def);
 
 bool blb_physics3d_recreate_shape(BLB_Collider3D *collider, bool trigger);
 b3Quat blb_to_b3_quat(BLB_Quat rotation);

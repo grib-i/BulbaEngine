@@ -3,8 +3,10 @@
 #include "bulba/core/physics/physics3d.h"
 #include "physics3d.h"
 
-BLB_Collider3D *BLB_Physics3D_SetCollider(BLB_Object3D *object, const BLB_Physics3DShape *shape) {
-  if (!object || !object->rigid_body || !shape || !b3Body_IsValid(object->rigid_body->handle))
+BLB_Collider3D *BLB_Physics3D_SetCollider(BLB_Object3D *object,
+                                          const BLB_Physics3DShape *shape) {
+  if (!object || !object->rigid_body || !shape ||
+      !b3Body_IsValid(object->rigid_body->handle))
     return NULL;
 
   if (object->collider) {
@@ -110,7 +112,8 @@ BLB_Collider3D *BLB_Physics3D_SetCollider(BLB_Object3D *object, const BLB_Physic
 }
 
 void BLB_Physics3D_ColliderDestroy(BLB_Object3D *object) {
-  if (!object || !object->collider || !object->collider->body || !object->collider->body->world)
+  if (!object || !object->collider || !object->collider->body ||
+      !object->collider->body->world)
     return;
 
   BLB_Physics3DWorld *world = object->collider->body->world;
@@ -141,14 +144,17 @@ BLB_Collider3D *BLB_Physics3D_GetCollider(BLB_Object3D *object) {
   return object->collider;
 }
 
-BLB_Physics3DColliderId BLB_Physics3D_ColliderGetId(const BLB_Object3D *object) { return object && object->collider ? object->collider->id : 0; }
+BLB_Physics3DColliderId BLB_Physics3D_ColliderGetId(const BLB_Object3D *object) {
+  return object && object->collider ? object->collider->id : 0;
+}
 
 void BLB_Physics3D_ColliderSetFilter(BLB_Object3D *object, BLB_PhysicsFilter filter) {
   if (!object || !object->collider || !b3Shape_IsValid(object->collider->handle))
     return;
 
   object->collider->filter = filter;
-  b3Shape_SetFilter(object->collider->handle, blb_physics3d_make_filter(object->collider), true);
+  b3Shape_SetFilter(object->collider->handle, blb_physics3d_make_filter(object->collider),
+                    true);
 }
 
 BLB_PhysicsFilter BLB_Physics3D_ColliderGetFilter(const BLB_Object3D *object) {
@@ -168,7 +174,8 @@ void BLB_Physics3D_ColliderSetLayer(BLB_Object3D *object, uint8_t layer) {
   object->collider->filter.layer = layer;
 
   if (b3Shape_IsValid(object->collider->handle))
-    b3Shape_SetFilter(object->collider->handle, blb_physics3d_make_filter(object->collider), true);
+    b3Shape_SetFilter(object->collider->handle,
+                      blb_physics3d_make_filter(object->collider), true);
 }
 
 void BLB_Physics3D_ColliderSetMask(BLB_Object3D *object, BLB_PhysicsLayerMask mask) {
@@ -178,7 +185,8 @@ void BLB_Physics3D_ColliderSetMask(BLB_Object3D *object, BLB_PhysicsLayerMask ma
   object->collider->filter.mask = mask;
 
   if (b3Shape_IsValid(object->collider->handle))
-    b3Shape_SetFilter(object->collider->handle, blb_physics3d_make_filter(object->collider), true);
+    b3Shape_SetFilter(object->collider->handle,
+                      blb_physics3d_make_filter(object->collider), true);
 }
 
 void BLB_Physics3D_ColliderSetGroup(BLB_Object3D *object, int32_t group) {
@@ -188,11 +196,13 @@ void BLB_Physics3D_ColliderSetGroup(BLB_Object3D *object, int32_t group) {
   object->collider->filter.group = group;
 
   if (b3Shape_IsValid(object->collider->handle))
-    b3Shape_SetFilter(object->collider->handle, blb_physics3d_make_filter(object->collider), true);
+    b3Shape_SetFilter(object->collider->handle,
+                      blb_physics3d_make_filter(object->collider), true);
 }
 
 void BLB_Physics3D_ColliderSetDensity(BLB_Object3D *object, float density) {
-  if (!object || !object->collider || density < 0.0f || !b3Shape_IsValid(object->collider->handle))
+  if (!object || !object->collider || density < 0.0f ||
+      !b3Shape_IsValid(object->collider->handle))
     return;
 
   object->collider->density = density;
@@ -202,8 +212,10 @@ void BLB_Physics3D_ColliderSetDensity(BLB_Object3D *object, float density) {
 void BLB_Physics3D_ColliderSetScale(BLB_Object3D *object, BLB_Vec3 scale) {
   BLB_Collider3D *collider = object ? object->collider : NULL;
 
-  if (!collider || !isfinite(scale.x) || scale.x <= 0.0f || collider->sync_scale.x <= 0.0f || !isfinite(scale.y) || scale.y <= 0.0f ||
-      collider->sync_scale.y <= 0.0f || !isfinite(scale.z) || scale.z <= 0.0f || collider->sync_scale.z <= 0.0f)
+  if (!collider || !isfinite(scale.x) || scale.x <= 0.0f ||
+      collider->sync_scale.x <= 0.0f || !isfinite(scale.y) || scale.y <= 0.0f ||
+      collider->sync_scale.y <= 0.0f || !isfinite(scale.z) || scale.z <= 0.0f ||
+      collider->sync_scale.z <= 0.0f)
     return;
 
   if (!memcmp(&scale, &collider->sync_scale, sizeof(scale))) {
@@ -228,7 +240,9 @@ void BLB_Physics3D_ColliderSetScale(BLB_Object3D *object, BLB_Vec3 scale) {
     break;
   case BLB_PHYSICS3D_SHAPE_SPHERE:
     next.data.sphere.radius *=
-        fminf(scale.x, fminf(scale.y, scale.z)) / fminf(collider->sync_scale.x, fminf(collider->sync_scale.y, collider->sync_scale.z));
+        fminf(scale.x, fminf(scale.y, scale.z)) /
+        fminf(collider->sync_scale.x,
+              fminf(collider->sync_scale.y, collider->sync_scale.z));
     break;
   case BLB_PHYSICS3D_SHAPE_CAPSULE:
     next.data.capsule.radius *= fminf(ratio.x, ratio.z);
@@ -239,7 +253,8 @@ void BLB_Physics3D_ColliderSetScale(BLB_Object3D *object, BLB_Vec3 scale) {
     break;
   case BLB_PHYSICS3D_SHAPE_CONVEX_HULL:
     for (size_t i = 0; i < next.data.convex_hull.vertex_count; ++i)
-      next.data.convex_hull.vertices[i] = BLB_MulV3(next.data.convex_hull.vertices[i], ratio);
+      next.data.convex_hull.vertices[i] =
+          BLB_MulV3(next.data.convex_hull.vertices[i], ratio);
     break;
   default:
     blb_physics3d_free_shape_copy(&next);
@@ -264,7 +279,8 @@ void BLB_Physics3D_ColliderSetScale(BLB_Object3D *object, BLB_Vec3 scale) {
 
 void BLB_Physics3D_ColliderScale(BLB_Object3D *object, BLB_Vec3 scale) {
   if (object && object->collider)
-    BLB_Physics3D_ColliderSetScale(object, BLB_MulV3(object->collider->sync_scale, scale));
+    BLB_Physics3D_ColliderSetScale(object,
+                                   BLB_MulV3(object->collider->sync_scale, scale));
 }
 
 float BLB_Physics3D_ColliderGetDensity(const BLB_Object3D *object) {
@@ -315,14 +331,19 @@ void BLB_Physics3D_ColliderSetTrigger(BLB_Object3D *object, bool trigger) {
   blb_physics3d_recreate_shape(object->collider, trigger);
 }
 
-bool BLB_Physics3D_ColliderIsTrigger(const BLB_Object3D *object) { return object && object->collider ? object->collider->trigger : false; }
+bool BLB_Physics3D_ColliderIsTrigger(const BLB_Object3D *object) {
+  return object && object->collider ? object->collider->trigger : false;
+}
 
 void BLB_Physics3D_ColliderSetActive(BLB_Object3D *object, bool active) {
   if (!object || !object->collider || !b3Shape_IsValid(object->collider->handle))
     return;
 
   object->collider->active = active;
-  b3Shape_SetFilter(object->collider->handle, blb_physics3d_make_filter(object->collider), true);
+  b3Shape_SetFilter(object->collider->handle, blb_physics3d_make_filter(object->collider),
+                    true);
 }
 
-bool BLB_Physics3D_ColliderIsActive(const BLB_Object3D *object) { return object && object->collider ? object->collider->active : false; }
+bool BLB_Physics3D_ColliderIsActive(const BLB_Object3D *object) {
+  return object && object->collider ? object->collider->active : false;
+}

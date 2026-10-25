@@ -4,6 +4,7 @@
 #include "physics3d.h"
 #include <limits.h>
 #include <stdint.h>
+#include <time.h>
 
 void blb_physics3d_free_shape_copy(BLB_Physics3DShape *shape) {
   if (!shape)
@@ -34,11 +35,13 @@ bool blb_physics3d_copy_shape(BLB_Physics3DShape *dst, const BLB_Physics3DShape 
   if (src->type == BLB_PHYSICS3D_SHAPE_CONVEX_HULL) {
     dst->data.convex_hull.vertices = NULL;
 
-    if (!src->data.convex_hull.vertices || src->data.convex_hull.vertex_count < 4 || src->data.convex_hull.vertex_count > INT_MAX ||
+    if (!src->data.convex_hull.vertices || src->data.convex_hull.vertex_count < 4 ||
+        src->data.convex_hull.vertex_count > INT_MAX ||
         src->data.convex_hull.vertex_count > SIZE_MAX / sizeof(BLB_Vec3))
       return false;
 
-    dst->data.convex_hull.vertices = malloc(src->data.convex_hull.vertex_count * sizeof(*dst->data.convex_hull.vertices));
+    dst->data.convex_hull.vertices = malloc(src->data.convex_hull.vertex_count *
+                                            sizeof(*dst->data.convex_hull.vertices));
 
     if (!dst->data.convex_hull.vertices)
       return false;
@@ -50,24 +53,30 @@ bool blb_physics3d_copy_shape(BLB_Physics3DShape *dst, const BLB_Physics3DShape 
     dst->data.triangle_mesh.vertices = NULL;
     dst->data.triangle_mesh.indices = NULL;
 
-    if (!src->data.triangle_mesh.vertices || !src->data.triangle_mesh.indices || src->data.triangle_mesh.vertex_count < 3 ||
-        src->data.triangle_mesh.index_count < 3 || src->data.triangle_mesh.index_count % 3 != 0 ||
-        src->data.triangle_mesh.vertex_count > SIZE_MAX / sizeof(BLB_Vec3) || src->data.triangle_mesh.index_count > SIZE_MAX / sizeof(uint32_t))
+    if (!src->data.triangle_mesh.vertices || !src->data.triangle_mesh.indices ||
+        src->data.triangle_mesh.vertex_count < 3 ||
+        src->data.triangle_mesh.index_count < 3 ||
+        src->data.triangle_mesh.index_count % 3 != 0 ||
+        src->data.triangle_mesh.vertex_count > SIZE_MAX / sizeof(BLB_Vec3) ||
+        src->data.triangle_mesh.index_count > SIZE_MAX / sizeof(uint32_t))
       return false;
 
     for (size_t i = 0; i < src->data.triangle_mesh.index_count; ++i)
       if (src->data.triangle_mesh.indices[i] >= src->data.triangle_mesh.vertex_count)
         return false;
 
-    if (src->data.triangle_mesh.vertex_count > INT_MAX || src->data.triangle_mesh.index_count / 3 > INT_MAX)
+    if (src->data.triangle_mesh.vertex_count > INT_MAX ||
+        src->data.triangle_mesh.index_count / 3 > INT_MAX)
       return false;
 
-    dst->data.triangle_mesh.vertices = malloc(src->data.triangle_mesh.vertex_count * sizeof(*dst->data.triangle_mesh.vertices));
+    dst->data.triangle_mesh.vertices = malloc(src->data.triangle_mesh.vertex_count *
+                                              sizeof(*dst->data.triangle_mesh.vertices));
 
     if (!dst->data.triangle_mesh.vertices)
       return false;
 
-    dst->data.triangle_mesh.indices = malloc(src->data.triangle_mesh.index_count * sizeof(*dst->data.triangle_mesh.indices));
+    dst->data.triangle_mesh.indices = malloc(src->data.triangle_mesh.index_count *
+                                             sizeof(*dst->data.triangle_mesh.indices));
 
     if (!dst->data.triangle_mesh.indices) {
       free(dst->data.triangle_mesh.vertices);
@@ -77,17 +86,20 @@ bool blb_physics3d_copy_shape(BLB_Physics3DShape *dst, const BLB_Physics3DShape 
     }
 
     memcpy(dst->data.triangle_mesh.vertices, src->data.triangle_mesh.vertices,
-           src->data.triangle_mesh.vertex_count * sizeof(*dst->data.triangle_mesh.vertices));
+           src->data.triangle_mesh.vertex_count *
+               sizeof(*dst->data.triangle_mesh.vertices));
 
     memcpy(dst->data.triangle_mesh.indices, src->data.triangle_mesh.indices,
-           src->data.triangle_mesh.index_count * sizeof(*dst->data.triangle_mesh.indices));
+           src->data.triangle_mesh.index_count *
+               sizeof(*dst->data.triangle_mesh.indices));
   }
 
   return true;
 }
 
-b3ShapeId blb_physics3d_create_backend_shape(const BLB_Collider3D *collider, const b3ShapeDef *def) {
-  if (!collider || !def)
+b3ShapeId blb_physics3d_create_backend_shape(const BLB_Collider3D *collider,
+                                             const b3ShapeDef *def) {
+  if (!collider || !collider->body || !def)
     return b3_nullShapeId;
 
   b3BodyId body = collider->body->handle;
@@ -120,11 +132,14 @@ b3ShapeId blb_physics3d_create_backend_shape(const BLB_Collider3D *collider, con
   }
 
   case BLB_PHYSICS3D_SHAPE_CONVEX_HULL: {
-    if (!collider->shape.data.convex_hull.vertices || collider->shape.data.convex_hull.vertex_count < 4)
+    if (!collider->shape.data.convex_hull.vertices ||
+        collider->shape.data.convex_hull.vertex_count < 4)
       return b3_nullShapeId;
 
-    b3HullData *hull = b3CreateHull((const b3Vec3 *)collider->shape.data.convex_hull.vertices, (int)collider->shape.data.convex_hull.vertex_count,
-                                    (int)collider->shape.data.convex_hull.vertex_count);
+    b3HullData *hull =
+        b3CreateHull((const b3Vec3 *)collider->shape.data.convex_hull.vertices,
+                     (int)collider->shape.data.convex_hull.vertex_count,
+                     (int)collider->shape.data.convex_hull.vertex_count);
 
     if (!hull)
       return b3_nullShapeId;
@@ -139,7 +154,8 @@ b3ShapeId blb_physics3d_create_backend_shape(const BLB_Collider3D *collider, con
     return b3_nullShapeId;
 
   case BLB_PHYSICS3D_SHAPE_TRIANGLE_MESH: {
-    const typeof(collider->shape.data.triangle_mesh) *mesh_data = &collider->shape.data.triangle_mesh;
+    const __typeof__(collider->shape.data.triangle_mesh) *mesh_data =
+        &collider->shape.data.triangle_mesh;
 
     if (collider->body->type != BLB_PHYSICS3D_STATIC)
       return b3_nullShapeId;
@@ -167,7 +183,9 @@ b3ShapeId blb_physics3d_create_backend_shape(const BLB_Collider3D *collider, con
     if (!mesh)
       return b3_nullShapeId;
 
-    b3ShapeId result = b3CreateMeshShape(body, def, mesh, (b3Vec3){mesh_data->scale.x, mesh_data->scale.y, mesh_data->scale.z});
+    b3ShapeId result = b3CreateMeshShape(
+        body, def, mesh,
+        (b3Vec3){mesh_data->scale.x, mesh_data->scale.y, mesh_data->scale.z});
 
     if (b3Shape_IsValid(result))
       ((BLB_Collider3D *)collider)->mesh_data = mesh;
@@ -177,7 +195,17 @@ b3ShapeId blb_physics3d_create_backend_shape(const BLB_Collider3D *collider, con
     return result;
   }
 
-  case BLB_PHYSICS3D_SHAPE_COMPOUND:
+  case BLB_PHYSICS3D_SHAPE_COMPOUND: {
+    b3CompoundDef compound_def = {0};
+
+    compound_def.spheres = collider->shape.data.compound.shapes;
+    compound_def.sphereCount = collider->shape.data.compound.shape_count;
+    b3CompoundData *compound = b3CreateCompound(&compound_def);
+
+    if (!compound) {
+      return b3_nullShapeId;
+    }
+  }
 
   default:
     return b3_nullShapeId;
@@ -201,10 +229,13 @@ bool blb_physics3d_recreate_shape(BLB_Collider3D *collider, bool trigger) {
 
   if (!b3Shape_IsValid(replacement))
     return false;
-
   b3ShapeId old = collider->handle;
+
   collider->handle = replacement;
   collider->trigger = trigger;
+
+  if (collider->shape.type != BLB_PHYSICS3D_SHAPE_TRIANGLE_MESH)
+    collider->mesh_data = NULL;
 
   b3Shape_SetUserData(replacement, collider->user_data);
   b3DestroyShape(old, false);
@@ -217,11 +248,14 @@ bool blb_physics3d_recreate_shape(BLB_Collider3D *collider, bool trigger) {
   return true;
 }
 
-BLB_Physics3DShape *BLB_Physics3D_CreateShape(BLB_Physics3DShapeType type, BLB_Vec3 scale) {
-  if (!isfinite(scale.x) || !isfinite(scale.y) || !isfinite(scale.z) || scale.x <= 0 || scale.y <= 0 || scale.z <= 0)
+BLB_Physics3DShape *BLB_Physics3D_CreateShape(BLB_Physics3DShapeType type,
+                                              BLB_Vec3 scale) {
+  if (!isfinite(scale.x) || !isfinite(scale.y) || !isfinite(scale.z) || scale.x <= 0 ||
+      scale.y <= 0 || scale.z <= 0)
     return NULL;
 
-  if (type != BLB_PHYSICS3D_SHAPE_BOX && type != BLB_PHYSICS3D_SHAPE_SPHERE && type != BLB_PHYSICS3D_SHAPE_CAPSULE)
+  if (type != BLB_PHYSICS3D_SHAPE_BOX && type != BLB_PHYSICS3D_SHAPE_SPHERE &&
+      type != BLB_PHYSICS3D_SHAPE_CAPSULE)
     return NULL;
 
   BLB_Physics3DShape *shape = calloc(1, sizeof(*shape));
@@ -246,22 +280,34 @@ BLB_Physics3DShape *BLB_Physics3D_CreateShape(BLB_Physics3DShapeType type, BLB_V
   return shape;
 }
 
-BLB_Physics3DShape *BLB_Physics3D_CreateShapeCompound(BLB_Physics3DShape *shapes, size_t count) {
+BLB_Physics3DShape *BLB_Physics3D_CreateShapeCompound(BLB_Physics3DShape *shapes,
+                                                      size_t count) {
   if (!shapes || count <= 0)
     return NULL;
+
+  BLB_Physics3DShape source = {.type = BLB_PHYSICS3D_SHAPE_COMPOUND};
+  source.data.compound.shapes = shapes;
+  source.data.compound.shape_count = count;
 
   BLB_Physics3DShape *shape = calloc(1, sizeof(*shape));
 
   if (!shape)
     return NULL;
 
-  shape->data.compound.shapes = shapes;
-  shape->data.compound.shape_count = count;
+  if (!blb_physics3d_copy_shape(shape, &source)) {
+    blb_physics3d_free_shape_copy(shape);
+    free(shape);
+
+    return NULL;
+  }
 
   return shape;
 }
 
-BLB_Physics3DShape *BLB_Physics3D_CreateTriangleMeshShape(BLB_Vec3 scale, BLB_Vec3 *vertices, size_t vertex_count, uint32_t *indices,
+BLB_Physics3DShape *BLB_Physics3D_CreateTriangleMeshShape(BLB_Vec3 scale,
+                                                          BLB_Vec3 *vertices,
+                                                          size_t vertex_count,
+                                                          uint32_t *indices,
                                                           size_t index_count) {
   BLB_Physics3DShape source = {.type = BLB_PHYSICS3D_SHAPE_TRIANGLE_MESH};
   source.data.triangle_mesh.vertices = vertices;
@@ -289,8 +335,9 @@ BLB_Physics3DShape *BLB_Physics3D_CreateShapeFromObject3D(const BLB_Object3D *ob
   if (!object || !object->polygon)
     return NULL;
 
-  return BLB_Physics3D_CreateTriangleMeshShape(object->scale, object->polygon->vertices, object->polygon->vertex_count, object->polygon->indices,
-                                               object->polygon->index_count);
+  return BLB_Physics3D_CreateTriangleMeshShape(
+      object->scale, object->polygon->vertices, object->polygon->vertex_count,
+      object->polygon->indices, object->polygon->index_count);
 }
 
 void BLB_Physics3D_DestroyShape(BLB_Physics3DShape *shape) {

@@ -1,16 +1,21 @@
 #include "physics2d.h"
 
 bool blb_physics2d_valid_world(const BLB_Physics2DWorld *world) {
-  return world && world->backend && b2World_IsValid(((const BLB_Box2DBackend *)world->backend)->world_id);
+  return world && world->backend &&
+         b2World_IsValid(((const BLB_Box2DBackend *)world->backend)->world_id);
 }
 
-BLB_Box2DBackend *blb_physics2d_get_backend(BLB_Physics2DWorld *world) { return world ? (BLB_Box2DBackend *)world->backend : NULL; }
+BLB_Box2DBackend *blb_physics2d_get_backend(BLB_Physics2DWorld *world) {
+  return world ? (BLB_Box2DBackend *)world->backend : NULL;
+}
 
 const BLB_Box2DBackend *blb_physics2d_get_backend_const(const BLB_Physics2DWorld *world) {
   return world ? (const BLB_Box2DBackend *)world->backend : NULL;
 }
 
-BLB_PhysicsLayerMask blb_physics2d_layer_bit(uint8_t layer) { return layer < 64 ? BLB_PhysicsLayer(layer) : 0; }
+BLB_PhysicsLayerMask blb_physics2d_layer_bit(uint8_t layer) {
+  return layer < 64 ? BLB_PhysicsLayer(layer) : 0;
+}
 
 b2BodyType blb_physics2d_to_b2_body_type(BLB_Physics2DBodyType type) {
   switch (type) {
@@ -36,7 +41,8 @@ BLB_Physics2DBodyType blb_physics2d_from_b2_body_type(b2BodyType type) {
   }
 }
 
-bool blb_physics2d_append_body(BLB_Box2DBackend *backend, BLB_RigidBody2D *body, size_t count) {
+bool blb_physics2d_append_body(BLB_Box2DBackend *backend, BLB_RigidBody2D *body,
+                               size_t count) {
   BLB_RigidBody2D **items = realloc(backend->bodies, (count + 1) * sizeof(*items));
 
   if (!items)
@@ -48,7 +54,8 @@ bool blb_physics2d_append_body(BLB_Box2DBackend *backend, BLB_RigidBody2D *body,
   return true;
 }
 
-bool blb_physics2d_append_collider(BLB_Box2DBackend *backend, BLB_Collider2D *collider, size_t count) {
+bool blb_physics2d_append_collider(BLB_Box2DBackend *backend, BLB_Collider2D *collider,
+                                   size_t count) {
   BLB_Collider2D **items = realloc(backend->colliders, (count + 1) * sizeof(*items));
 
   if (!items)
@@ -61,7 +68,8 @@ bool blb_physics2d_append_collider(BLB_Box2DBackend *backend, BLB_Collider2D *co
 }
 
 bool blb_physics2d_append_body_collider(BLB_RigidBody2D *body, BLB_Collider2D *collider) {
-  BLB_Collider2D **items = realloc(body->colliders, (body->collider_count + 1) * sizeof(*items));
+  BLB_Collider2D **items =
+      realloc(body->colliders, (body->collider_count + 1) * sizeof(*items));
 
   if (!items)
     return false;
@@ -72,13 +80,15 @@ bool blb_physics2d_append_body_collider(BLB_RigidBody2D *body, BLB_Collider2D *c
   return true;
 }
 
-void blb_physics2d_remove_body(BLB_Box2DBackend *backend, BLB_RigidBody2D *body, size_t count) {
+void blb_physics2d_remove_body(BLB_Box2DBackend *backend, BLB_RigidBody2D *body,
+                               size_t count) {
   for (size_t i = 0; i < count; ++i) {
     if (backend->bodies[i] != body)
       continue;
 
     if (i + 1 < count)
-      memmove(&backend->bodies[i], &backend->bodies[i + 1], (count - i - 1) * sizeof(*backend->bodies));
+      memmove(&backend->bodies[i], &backend->bodies[i + 1],
+              (count - i - 1) * sizeof(*backend->bodies));
 
     if (count == 1) {
       free(backend->bodies);
@@ -94,13 +104,15 @@ void blb_physics2d_remove_body(BLB_Box2DBackend *backend, BLB_RigidBody2D *body,
   }
 }
 
-void blb_physics2d_remove_collider(BLB_Box2DBackend *backend, BLB_Collider2D *collider, size_t count) {
+void blb_physics2d_remove_collider(BLB_Box2DBackend *backend, BLB_Collider2D *collider,
+                                   size_t count) {
   for (size_t i = 0; i < count; ++i) {
     if (backend->colliders[i] != collider)
       continue;
 
     if (i + 1 < count)
-      memmove(&backend->colliders[i], &backend->colliders[i + 1], (count - i - 1) * sizeof(*backend->colliders));
+      memmove(&backend->colliders[i], &backend->colliders[i + 1],
+              (count - i - 1) * sizeof(*backend->colliders));
 
     if (count == 1) {
       free(backend->colliders);
@@ -122,7 +134,8 @@ void blb_physics2d_remove_body_collider(BLB_RigidBody2D *body, BLB_Collider2D *c
       continue;
 
     if (i + 1 < body->collider_count)
-      memmove(&body->colliders[i], &body->colliders[i + 1], (body->collider_count - i - 1) * sizeof(*body->colliders));
+      memmove(&body->colliders[i], &body->colliders[i + 1],
+              (body->collider_count - i - 1) * sizeof(*body->colliders));
 
     --body->collider_count;
 
@@ -130,7 +143,8 @@ void blb_physics2d_remove_body_collider(BLB_RigidBody2D *body, BLB_Collider2D *c
       free(body->colliders);
       body->colliders = NULL;
     } else {
-      BLB_Collider2D **items = realloc(body->colliders, body->collider_count * sizeof(*items));
+      BLB_Collider2D **items =
+          realloc(body->colliders, body->collider_count * sizeof(*items));
 
       if (items)
         body->colliders = items;
@@ -144,7 +158,8 @@ b2Filter blb_physics2d_make_filter(const BLB_Collider2D *collider) {
   BLB_PhysicsLayerMask category = blb_physics2d_layer_bit(collider->filter.layer);
   BLB_PhysicsLayerMask mask = collider->filter.mask;
 
-  const BLB_Box2DBackend *backend = blb_physics2d_get_backend_const(collider->body->world);
+  const BLB_Box2DBackend *backend =
+      blb_physics2d_get_backend_const(collider->body->world);
 
   if (!collider->active) {
     mask = 0;

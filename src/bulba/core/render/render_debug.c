@@ -7,11 +7,13 @@
 #define BLB_OBJECT2D_CAMERA_SPACE_DEPTH 1.0f
 #endif
 
-static BLB_Vec3 physics_debug_transform_point(BLB_Vec3 local, BLB_Vec3 position, BLB_Quat rotation) {
+static BLB_Vec3 physics_debug_transform_point(BLB_Vec3 local, BLB_Vec3 position,
+                                              BLB_Quat rotation) {
   return BLB_AddV3(position, BLB_RotateV3Q(local, rotation));
 }
 
-static bool physics_debug_reserve(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, size_t vertices_needed,
+static bool physics_debug_reserve(BLB_Polygon3D *polygon, size_t *vertex_capacity,
+                                  size_t *index_capacity, size_t vertices_needed,
                                   size_t indices_needed) {
   if (!polygon || !vertex_capacity || !index_capacity)
     return false;
@@ -59,7 +61,8 @@ static bool physics_debug_reserve(BLB_Polygon3D *polygon, size_t *vertex_capacit
   return true;
 }
 
-static bool physics_debug_add_line(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, BLB_Vec3 a, BLB_Vec3 b,
+static bool physics_debug_add_line(BLB_Polygon3D *polygon, size_t *vertex_capacity,
+                                   size_t *index_capacity, BLB_Vec3 a, BLB_Vec3 b,
                                    const BLB_CameraCache *camera_cache) {
   BLB_Vec3 delta = BLB_SubV3(b, a);
   float length = BLB_LenV3(delta);
@@ -83,7 +86,8 @@ static bool physics_debug_add_line(BLB_Polygon3D *polygon, size_t *vertex_capaci
     BLB_Vec4 right4 = BLB_MulM4V4(camera_world, BLB_V4(1.0f, 0.0f, 0.0f, 0.0f));
 
     if (fabsf(position4.w) > 1e-7f)
-      camera_position = BLB_V3(position4.x / position4.w, position4.y / position4.w, position4.z / position4.w);
+      camera_position = BLB_V3(position4.x / position4.w, position4.y / position4.w,
+                               position4.z / position4.w);
     camera_up = BLB_NormV3(BLB_V3(up4.x, up4.y, up4.z));
     camera_right = BLB_NormV3(BLB_V3(right4.x, right4.y, right4.z));
   }
@@ -125,7 +129,8 @@ static bool physics_debug_add_line(BLB_Polygon3D *polygon, size_t *vertex_capaci
   return true;
 }
 
-static BLB_Vec3 physics_debug_half_extents(const BLB_Physics3DShape *shape, BLB_Vec3 *local_center) {
+static BLB_Vec3 physics_debug_half_extents(const BLB_Physics3DShape *shape,
+                                           BLB_Vec3 *local_center) {
   BLB_Vec3 half = BLB_V3(0.5f, 0.5f, 0.5f);
 
   if (local_center)
@@ -139,10 +144,13 @@ static BLB_Vec3 physics_debug_half_extents(const BLB_Physics3DShape *shape, BLB_
     half = shape->data.box.scale;
     break;
   case BLB_PHYSICS3D_SHAPE_SPHERE:
-    half = BLB_V3(shape->data.sphere.radius, shape->data.sphere.radius, shape->data.sphere.radius);
+    half = BLB_V3(shape->data.sphere.radius, shape->data.sphere.radius,
+                  shape->data.sphere.radius);
     break;
   case BLB_PHYSICS3D_SHAPE_CAPSULE:
-    half = BLB_V3(shape->data.capsule.radius, shape->data.capsule.height + shape->data.capsule.radius, shape->data.capsule.radius);
+    half = BLB_V3(shape->data.capsule.radius,
+                  shape->data.capsule.height + shape->data.capsule.radius,
+                  shape->data.capsule.radius);
     break;
   case BLB_PHYSICS3D_SHAPE_CONVEX_HULL: {
     const BLB_Vec3 *vertices = shape->data.convex_hull.vertices;
@@ -199,12 +207,15 @@ static BLB_Vec3 physics_debug_half_extents(const BLB_Physics3DShape *shape, BLB_
   return half;
 }
 
-static bool physics_debug_draw_box(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, BLB_Vec3 half, BLB_Vec3 position,
-                                   BLB_Quat rotation, const BLB_CameraCache *camera_cache) {
+static bool physics_debug_draw_box(BLB_Polygon3D *polygon, size_t *vertex_capacity,
+                                   size_t *index_capacity, BLB_Vec3 half,
+                                   BLB_Vec3 position, BLB_Quat rotation,
+                                   const BLB_CameraCache *camera_cache) {
   BLB_Vec3 corners[8];
 
   for (unsigned int i = 0; i < 8; ++i) {
-    BLB_Vec3 local = BLB_V3((i & 1u) ? half.x : -half.x, (i & 2u) ? half.y : -half.y, (i & 4u) ? half.z : -half.z);
+    BLB_Vec3 local = BLB_V3((i & 1u) ? half.x : -half.x, (i & 2u) ? half.y : -half.y,
+                            (i & 4u) ? half.z : -half.z);
     corners[i] = physics_debug_transform_point(local, position, rotation);
   }
 
@@ -215,7 +226,8 @@ static bool physics_debug_draw_box(BLB_Polygon3D *polygon, size_t *vertex_capaci
 
       unsigned int other = i | (1u << axis);
 
-      if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, corners[i], corners[other], camera_cache))
+      if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, corners[i],
+                                  corners[other], camera_cache))
         return false;
     }
   }
@@ -223,8 +235,11 @@ static bool physics_debug_draw_box(BLB_Polygon3D *polygon, size_t *vertex_capaci
   return true;
 }
 
-static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, float radius, float half_height,
-                                      bool capsule, BLB_Vec3 position, BLB_Quat rotation, const BLB_CameraCache *camera_cache) {
+static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_capacity,
+                                      size_t *index_capacity, float radius,
+                                      float half_height, bool capsule, BLB_Vec3 position,
+                                      BLB_Quat rotation,
+                                      const BLB_CameraCache *camera_cache) {
   const unsigned int segments = 16;
   const float tau = (float)(BLB_PI * 2.0);
   float levels[2] = {0.0f, 0.0f};
@@ -243,21 +258,27 @@ static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_cap
       BLB_Vec3 p0 = BLB_V3(radius * cosf(a0), levels[level], radius * sinf(a0));
       BLB_Vec3 p1 = BLB_V3(radius * cosf(a1), levels[level], radius * sinf(a1));
 
-      if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, physics_debug_transform_point(p0, position, rotation),
-                                  physics_debug_transform_point(p1, position, rotation), camera_cache))
+      if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity,
+                                  physics_debug_transform_point(p0, position, rotation),
+                                  physics_debug_transform_point(p1, position, rotation),
+                                  camera_cache))
         return false;
     }
   }
 
-  const BLB_Vec3 ring_points[4] = {BLB_V3(radius, 0.0f, 0.0f), BLB_V3(0.0f, 0.0f, radius), BLB_V3(-radius, 0.0f, 0.0f), BLB_V3(0.0f, 0.0f, -radius)};
+  const BLB_Vec3 ring_points[4] = {BLB_V3(radius, 0.0f, 0.0f), BLB_V3(0.0f, 0.0f, radius),
+                                   BLB_V3(-radius, 0.0f, 0.0f),
+                                   BLB_V3(0.0f, 0.0f, -radius)};
 
   if (capsule) {
     for (size_t i = 0; i < 4; ++i) {
       BLB_Vec3 low = BLB_V3(ring_points[i].x, -half_height, ring_points[i].z);
       BLB_Vec3 high = BLB_V3(ring_points[i].x, half_height, ring_points[i].z);
 
-      if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, physics_debug_transform_point(low, position, rotation),
-                                  physics_debug_transform_point(high, position, rotation), camera_cache))
+      if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity,
+                                  physics_debug_transform_point(low, position, rotation),
+                                  physics_debug_transform_point(high, position, rotation),
+                                  camera_cache))
         return false;
     }
 
@@ -269,15 +290,21 @@ static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_cap
           BLB_Vec3 p0, p1;
 
           if (plane == 0) {
-            p0 = BLB_V3(radius * cosf(a0), (float)sign * (half_height + radius * sinf(a0)), 0.0f);
-            p1 = BLB_V3(radius * cosf(a1), (float)sign * (half_height + radius * sinf(a1)), 0.0f);
+            p0 = BLB_V3(radius * cosf(a0),
+                        (float)sign * (half_height + radius * sinf(a0)), 0.0f);
+            p1 = BLB_V3(radius * cosf(a1),
+                        (float)sign * (half_height + radius * sinf(a1)), 0.0f);
           } else {
-            p0 = BLB_V3(0.0f, (float)sign * (half_height + radius * sinf(a0)), radius * cosf(a0));
-            p1 = BLB_V3(0.0f, (float)sign * (half_height + radius * sinf(a1)), radius * cosf(a1));
+            p0 = BLB_V3(0.0f, (float)sign * (half_height + radius * sinf(a0)),
+                        radius * cosf(a0));
+            p1 = BLB_V3(0.0f, (float)sign * (half_height + radius * sinf(a1)),
+                        radius * cosf(a1));
           }
 
-          if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, physics_debug_transform_point(p0, position, rotation),
-                                      physics_debug_transform_point(p1, position, rotation), camera_cache))
+          if (!physics_debug_add_line(
+                  polygon, vertex_capacity, index_capacity,
+                  physics_debug_transform_point(p0, position, rotation),
+                  physics_debug_transform_point(p1, position, rotation), camera_cache))
             return false;
         }
       }
@@ -297,8 +324,10 @@ static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_cap
           p1 = BLB_V3(0.0f, radius * cosf(a1), radius * sinf(a1));
         }
 
-        if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity, physics_debug_transform_point(p0, position, rotation),
-                                    physics_debug_transform_point(p1, position, rotation), camera_cache))
+        if (!physics_debug_add_line(polygon, vertex_capacity, index_capacity,
+                                    physics_debug_transform_point(p0, position, rotation),
+                                    physics_debug_transform_point(p1, position, rotation),
+                                    camera_cache))
           return false;
       }
     }
@@ -307,10 +336,12 @@ static bool physics_debug_draw_sphere(BLB_Polygon3D *polygon, size_t *vertex_cap
   return true;
 }
 
-void blb_render_draw_physics_debug_colliders3d(BLB_Scene *scene, BLB_Renderer *renderer, const BLB_CameraCache *camera_cache) {
+void blb_render_draw_physics_debug_colliders3d(BLB_Scene *scene, BLB_Renderer *renderer,
+                                               const BLB_CameraCache *camera_cache) {
   BLB_Physics3DWorld *world = scene ? scene->physics_world3d : NULL;
 
-  if (!world || (!BLB_DEBUG && !BLB_Physics3D_WorldGetDebugDraw(world)) || !renderer || !camera_cache || !camera_cache->valid)
+  if (!world || (!BLB_DEBUG && !BLB_Physics3D_WorldGetDebugDraw(world)) || !renderer ||
+      !camera_cache || !camera_cache->valid)
     return;
 
   BLB_Polygon3D polygon = {0};
@@ -322,28 +353,35 @@ void blb_render_draw_physics_debug_colliders3d(BLB_Scene *scene, BLB_Renderer *r
   for (size_t i = 0; i < count; ++i) {
     BLB_Physics3DDebugCollider collider;
 
-    if (!BLB_Physics3D_WorldGetDebugCollider(world, i, &collider) || !collider.shape || !collider.active)
+    if (!BLB_Physics3D_WorldGetDebugCollider(world, i, &collider) || !collider.shape ||
+        !collider.active)
       continue;
 
     const BLB_Physics3DShape *shape = collider.shape;
     bool ok = true;
 
     if (shape->type == BLB_PHYSICS3D_SHAPE_SPHERE) {
-      ok = physics_debug_draw_sphere(&polygon, &vertex_capacity, &index_capacity, shape->data.sphere.radius, 0.0f, false, collider.position,
-                                     collider.rotation, camera_cache);
-    } else if (shape->type == BLB_PHYSICS3D_SHAPE_CAPSULE) {
-      ok = physics_debug_draw_sphere(&polygon, &vertex_capacity, &index_capacity, shape->data.capsule.radius, shape->data.capsule.height, true,
+      ok = physics_debug_draw_sphere(&polygon, &vertex_capacity, &index_capacity,
+                                     shape->data.sphere.radius, 0.0f, false,
                                      collider.position, collider.rotation, camera_cache);
-    } else if (shape->type != BLB_PHYSICS3D_SHAPE_PLANE && shape->type != BLB_PHYSICS3D_SHAPE_COMPOUND) {
+    } else if (shape->type == BLB_PHYSICS3D_SHAPE_CAPSULE) {
+      ok = physics_debug_draw_sphere(&polygon, &vertex_capacity, &index_capacity,
+                                     shape->data.capsule.radius,
+                                     shape->data.capsule.height, true, collider.position,
+                                     collider.rotation, camera_cache);
+    } else if (shape->type != BLB_PHYSICS3D_SHAPE_PLANE &&
+               shape->type != BLB_PHYSICS3D_SHAPE_COMPOUND) {
 
       BLB_Vec3 local_center = BLB_V3(0.0f, 0.0f, 0.0f);
       BLB_Vec3 center = collider.position;
       BLB_Vec3 half = physics_debug_half_extents(shape, &local_center);
 
       if (BLB_LenV3(local_center) > 0.000001f)
-        center = physics_debug_transform_point(local_center, collider.position, collider.rotation);
+        center = physics_debug_transform_point(local_center, collider.position,
+                                               collider.rotation);
 
-      ok = physics_debug_draw_box(&polygon, &vertex_capacity, &index_capacity, half, center, collider.rotation, camera_cache);
+      ok = physics_debug_draw_box(&polygon, &vertex_capacity, &index_capacity, half,
+                                  center, collider.rotation, camera_cache);
     }
 
     if (!ok)
@@ -352,7 +390,8 @@ void blb_render_draw_physics_debug_colliders3d(BLB_Scene *scene, BLB_Renderer *r
 
   if (polygon.vertex_count && polygon.index_count) {
     BLB_Mat4 view_projection = BLB_MulM4(camera_cache->projection, camera_cache->view);
-    float model_rows[12] = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+    float model_rows[12] = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+                            0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
     float color[4] = {0};
     BLB_RenderMaterial material = {0};
     color[0] = 0.05f;
@@ -366,8 +405,9 @@ void blb_render_draw_physics_debug_colliders3d(BLB_Scene *scene, BLB_Renderer *r
     material.double_sided = true;
     material.alpha_mode = BLB_ALPHA_OPAQUE;
     material.render_mode = BLB_RENDER_ADDITIVE;
-    BLB_RendererDrawPolygon3D(renderer, &polygon, &view_projection.Elements[0][0], model_rows, color[0], color[1], color[2], color[3], &material,
-                              NULL);
+    BLB_RendererDrawPolygon3D(renderer, &polygon, &view_projection.Elements[0][0],
+                              model_rows, color[0], color[1], color[2], color[3],
+                              &material, NULL);
   }
 
   free(polygon.vertices);
@@ -375,21 +415,30 @@ void blb_render_draw_physics_debug_colliders3d(BLB_Scene *scene, BLB_Renderer *r
   free(polygon.normals);
 }
 
-static BLB_Vec3 physics_debug_transform_point2d(BLB_Vec2 local, BLB_Vec2 position, float rotation) {
+static BLB_Vec3 physics_debug_transform_point2d(BLB_Vec2 local, BLB_Vec2 position,
+                                                float rotation) {
   float c = cosf(rotation);
   float s = sinf(rotation);
 
-  return BLB_V3(position.x + local.x * c - local.y * s, position.y + local.x * s + local.y * c, 0.0f);
+  return BLB_V3(position.x + local.x * c - local.y * s,
+                position.y + local.x * s + local.y * c, 0.0f);
 }
 
-static bool physics_debug_draw_segment2d(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, BLB_Vec2 a, BLB_Vec2 b,
-                                         BLB_Vec2 position, float rotation, const BLB_CameraCache *camera_cache) {
-  return physics_debug_add_line(polygon, vertex_capacity, index_capacity, physics_debug_transform_point2d(a, position, rotation),
-                                physics_debug_transform_point2d(b, position, rotation), camera_cache);
+static bool physics_debug_draw_segment2d(BLB_Polygon3D *polygon, size_t *vertex_capacity,
+                                         size_t *index_capacity, BLB_Vec2 a, BLB_Vec2 b,
+                                         BLB_Vec2 position, float rotation,
+                                         const BLB_CameraCache *camera_cache) {
+  return physics_debug_add_line(polygon, vertex_capacity, index_capacity,
+                                physics_debug_transform_point2d(a, position, rotation),
+                                physics_debug_transform_point2d(b, position, rotation),
+                                camera_cache);
 }
 
-static bool physics_debug_draw_circle2d(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, float radius, BLB_Vec2 position,
-                                        float rotation, BLB_Vec2 center, const BLB_CameraCache *camera_cache) {
+static bool physics_debug_draw_circle2d(BLB_Polygon3D *polygon, size_t *vertex_capacity,
+                                        size_t *index_capacity, float radius,
+                                        BLB_Vec2 position, float rotation,
+                                        BLB_Vec2 center,
+                                        const BLB_CameraCache *camera_cache) {
   const unsigned int segments = 32;
 
   for (unsigned int i = 0; i < segments; ++i) {
@@ -398,15 +447,19 @@ static bool physics_debug_draw_circle2d(BLB_Polygon3D *polygon, size_t *vertex_c
     BLB_Vec2 p0 = BLB_V2(center.x + radius * cosf(a0), center.y + radius * sinf(a0));
     BLB_Vec2 p1 = BLB_V2(center.x + radius * cosf(a1), center.y + radius * sinf(a1));
 
-    if (!physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, p0, p1, position, rotation, camera_cache))
+    if (!physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, p0, p1,
+                                      position, rotation, camera_cache))
       return false;
   }
 
   return true;
 }
 
-static bool physics_debug_draw_capsule2d(BLB_Polygon3D *polygon, size_t *vertex_capacity, size_t *index_capacity, float radius, float half_height,
-                                         BLB_Vec2 position, float rotation, const BLB_CameraCache *camera_cache) {
+static bool physics_debug_draw_capsule2d(BLB_Polygon3D *polygon, size_t *vertex_capacity,
+                                         size_t *index_capacity, float radius,
+                                         float half_height, BLB_Vec2 position,
+                                         float rotation,
+                                         const BLB_CameraCache *camera_cache) {
   const unsigned int segments = 16;
 
   for (unsigned int i = 0; i < segments; ++i) {
@@ -422,21 +475,27 @@ static bool physics_debug_draw_capsule2d(BLB_Polygon3D *polygon, size_t *vertex_
     BLB_Vec2 bottom0 = BLB_V2(radius * cosf(b0), -half_height + radius * sinf(b0));
     BLB_Vec2 bottom1 = BLB_V2(radius * cosf(b1), -half_height + radius * sinf(b1));
 
-    if (!physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, top0, top1, position, rotation, camera_cache) ||
-        !physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, bottom0, bottom1, position, rotation, camera_cache))
+    if (!physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, top0,
+                                      top1, position, rotation, camera_cache) ||
+        !physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, bottom0,
+                                      bottom1, position, rotation, camera_cache))
       return false;
   }
 
-  return physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, BLB_V2(-radius, -half_height), BLB_V2(-radius, half_height), position,
-                                      rotation, camera_cache) &&
-         physics_debug_draw_segment2d(polygon, vertex_capacity, index_capacity, BLB_V2(radius, -half_height), BLB_V2(radius, half_height), position,
-                                      rotation, camera_cache);
+  return physics_debug_draw_segment2d(
+             polygon, vertex_capacity, index_capacity, BLB_V2(-radius, -half_height),
+             BLB_V2(-radius, half_height), position, rotation, camera_cache) &&
+         physics_debug_draw_segment2d(
+             polygon, vertex_capacity, index_capacity, BLB_V2(radius, -half_height),
+             BLB_V2(radius, half_height), position, rotation, camera_cache);
 }
 
-void blb_render_draw_physics_debug_colliders2d(BLB_Scene *scene, BLB_Renderer *renderer, const BLB_CameraCache *camera_cache) {
+void blb_render_draw_physics_debug_colliders2d(BLB_Scene *scene, BLB_Renderer *renderer,
+                                               const BLB_CameraCache *camera_cache) {
   BLB_Physics2DWorld *world = scene ? scene->physics_world2d : NULL;
 
-  if (!world || (!BLB_DEBUG && !BLB_Physics2D_WorldGetDebugDraw(world)) || !renderer || !camera_cache || !camera_cache->valid)
+  if (!world || (!BLB_DEBUG && !BLB_Physics2D_WorldGetDebugDraw(world)) || !renderer ||
+      !camera_cache || !camera_cache->valid)
     return;
 
   BLB_Polygon3D polygon = {0};
@@ -448,43 +507,56 @@ void blb_render_draw_physics_debug_colliders2d(BLB_Scene *scene, BLB_Renderer *r
   for (size_t i = 0; i < count; ++i) {
     BLB_Physics2DDebugCollider collider;
 
-    if (!BLB_Physics2D_WorldGetDebugCollider(world, i, &collider) || !collider.shape || !collider.active)
+    if (!BLB_Physics2D_WorldGetDebugCollider(world, i, &collider) || !collider.shape ||
+        !collider.active)
       continue;
 
     const BLB_Physics2DShape *shape = collider.shape;
     bool ok = true;
 
     if (shape->type == BLB_PHYSICS2D_SHAPE_CIRCLE) {
-      ok = physics_debug_draw_circle2d(&polygon, &vertex_capacity, &index_capacity, shape->data.circle.radius, collider.position, collider.rotation,
-                                       BLB_V2(0.0f, 0.0f), camera_cache);
+      ok = physics_debug_draw_circle2d(
+          &polygon, &vertex_capacity, &index_capacity, shape->data.circle.radius,
+          collider.position, collider.rotation, BLB_V2(0.0f, 0.0f), camera_cache);
     } else if (shape->type == BLB_PHYSICS2D_SHAPE_BOX) {
       BLB_Vec2 half = shape->data.box.half_extents;
-      BLB_Vec2 corners[4] = {BLB_V2(-half.x, -half.y), BLB_V2(half.x, -half.y), BLB_V2(half.x, half.y), BLB_V2(-half.x, half.y)};
+      BLB_Vec2 corners[4] = {BLB_V2(-half.x, -half.y), BLB_V2(half.x, -half.y),
+                             BLB_V2(half.x, half.y), BLB_V2(-half.x, half.y)};
 
       for (size_t j = 0; j < 4 && ok; ++j)
-        ok = physics_debug_draw_segment2d(&polygon, &vertex_capacity, &index_capacity, corners[j], corners[(j + 1u) % 4u], collider.position,
-                                          collider.rotation, camera_cache);
+        ok = physics_debug_draw_segment2d(
+            &polygon, &vertex_capacity, &index_capacity, corners[j],
+            corners[(j + 1u) % 4u], collider.position, collider.rotation, camera_cache);
     } else if (shape->type == BLB_PHYSICS2D_SHAPE_CAPSULE) {
-      ok = physics_debug_draw_capsule2d(&polygon, &vertex_capacity, &index_capacity, shape->data.capsule.radius, shape->data.capsule.half_height,
-                                        collider.position, collider.rotation, camera_cache);
+      ok = physics_debug_draw_capsule2d(
+          &polygon, &vertex_capacity, &index_capacity, shape->data.capsule.radius,
+          shape->data.capsule.half_height, collider.position, collider.rotation,
+          camera_cache);
     } else if (shape->type == BLB_PHYSICS2D_SHAPE_SEGMENT) {
-      ok = physics_debug_draw_segment2d(&polygon, &vertex_capacity, &index_capacity, shape->data.segment.point1, shape->data.segment.point2,
-                                        collider.position, collider.rotation, camera_cache);
+      ok = physics_debug_draw_segment2d(
+          &polygon, &vertex_capacity, &index_capacity, shape->data.segment.point1,
+          shape->data.segment.point2, collider.position, collider.rotation, camera_cache);
     } else if (shape->type == BLB_PHYSICS2D_SHAPE_POLYGON) {
       const BLB_Vec2 *vertices = shape->data.polygon.vertices;
       size_t vertex_count = shape->data.polygon.vertex_count;
 
       for (size_t j = 0; vertices && j < vertex_count && ok; ++j)
-        ok = physics_debug_draw_segment2d(&polygon, &vertex_capacity, &index_capacity, vertices[j], vertices[(j + 1u) % vertex_count],
-                                          collider.position, collider.rotation, camera_cache);
+        ok = physics_debug_draw_segment2d(&polygon, &vertex_capacity, &index_capacity,
+                                          vertices[j], vertices[(j + 1u) % vertex_count],
+                                          collider.position, collider.rotation,
+                                          camera_cache);
     } else if (shape->type == BLB_PHYSICS2D_SHAPE_CHAIN) {
-      const BLB_Vec2 *vertices = shape->data.chain.vertices;
-      size_t vertex_count = shape->data.chain.vertex_count;
-      size_t edge_count = shape->data.chain.loop ? vertex_count : (vertex_count > 0 ? vertex_count - 1u : 0u);
+      const BLB_Vec2 *points = shape->data.chain.points;
+      size_t point_count = shape->data.chain.point_count;
+      size_t edge_count = shape->data.chain.loop
+                              ? point_count
+                              : (point_count > 0 ? point_count - 1u : 0u);
 
-      for (size_t j = 0; vertices && j < edge_count && ok; ++j)
-        ok = physics_debug_draw_segment2d(&polygon, &vertex_capacity, &index_capacity, vertices[j], vertices[(j + 1u) % vertex_count],
-                                          collider.position, collider.rotation, camera_cache);
+      for (size_t j = 0; points && j < edge_count && ok; ++j)
+        ok = physics_debug_draw_segment2d(&polygon, &vertex_capacity, &index_capacity,
+                                          points[j], points[(j + 1u) % point_count],
+                                          collider.position, collider.rotation,
+                                          camera_cache);
     }
 
     if (!ok)
@@ -493,7 +565,8 @@ void blb_render_draw_physics_debug_colliders2d(BLB_Scene *scene, BLB_Renderer *r
 
   if (polygon.vertex_count && polygon.index_count) {
     BLB_Mat4 view_projection = BLB_MulM4(camera_cache->projection, camera_cache->view);
-    float model_rows[12] = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+    float model_rows[12] = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+                            0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
     float color[4] = {0};
     BLB_RenderMaterial material = {0};
     color[0] = 0.1f;
@@ -507,8 +580,9 @@ void blb_render_draw_physics_debug_colliders2d(BLB_Scene *scene, BLB_Renderer *r
     material.double_sided = true;
     material.alpha_mode = BLB_ALPHA_OPAQUE;
     material.render_mode = BLB_RENDER_ADDITIVE;
-    BLB_RendererDrawPolygon3D(renderer, &polygon, &view_projection.Elements[0][0], model_rows, color[0], color[1], color[2], color[3], &material,
-                              NULL);
+    BLB_RendererDrawPolygon3D(renderer, &polygon, &view_projection.Elements[0][0],
+                              model_rows, color[0], color[1], color[2], color[3],
+                              &material, NULL);
   }
 
   free(polygon.vertices);
@@ -534,9 +608,11 @@ static int debug_edge_compare(const void *left, const void *right) {
   return 0;
 }
 
-static bool debug_handler_add_object2d(BLB_Polygon3D *lines, size_t *vertex_capacity, size_t *index_capacity, const BLB_Object2D *object,
+static bool debug_handler_add_object2d(BLB_Polygon3D *lines, size_t *vertex_capacity,
+                                       size_t *index_capacity, const BLB_Object2D *object,
                                        const BLB_CameraCache *camera_cache) {
-  if (!object || !object->polygon || !object->polygon->vertices || object->polygon->vertex_count < 2)
+  if (!object || !object->polygon || !object->polygon->vertices ||
+      object->polygon->vertex_count < 2)
     return true;
 
   BLB_Mat4 model = BLB_M4D(1.0f);
@@ -570,9 +646,11 @@ static bool debug_handler_add_object2d(BLB_Polygon3D *lines, size_t *vertex_capa
     size_t edge_count = 0;
 
     for (size_t i = 0; i + 2 < polygon->index_count; i += 3) {
-      const unsigned int ids[3] = {polygon->indices[i], polygon->indices[i + 1], polygon->indices[i + 2]};
+      const unsigned int ids[3] = {polygon->indices[i], polygon->indices[i + 1],
+                                   polygon->indices[i + 2]};
 
-      if (ids[0] >= polygon->vertex_count || ids[1] >= polygon->vertex_count || ids[2] >= polygon->vertex_count)
+      if (ids[0] >= polygon->vertex_count || ids[1] >= polygon->vertex_count ||
+          ids[2] >= polygon->vertex_count)
         continue;
 
       for (size_t edge = 0; edge < 3; ++edge) {
@@ -591,7 +669,8 @@ static bool debug_handler_add_object2d(BLB_Polygon3D *lines, size_t *vertex_capa
     for (size_t i = 0; i < edge_count && ok;) {
       size_t next = i + 1;
 
-      while (next < edge_count && edges[next].a == edges[i].a && edges[next].b == edges[i].b)
+      while (next < edge_count && edges[next].a == edges[i].a &&
+             edges[next].b == edges[i].b)
         ++next;
 
       if (next == i + 1) {
@@ -599,8 +678,10 @@ static bool debug_handler_add_object2d(BLB_Polygon3D *lines, size_t *vertex_capa
         const BLB_Vec2 b = polygon->vertices[edges[i].b];
         const BLB_Vec4 a4 = BLB_MulM4V4(model, BLB_V4(a.x, a.y, 0.0f, 1.0f));
         const BLB_Vec4 b4 = BLB_MulM4V4(model, BLB_V4(b.x, b.y, 0.0f, 1.0f));
-        ok = physics_debug_add_line(lines, vertex_capacity, index_capacity, BLB_V3(a4.x / a4.w, a4.y / a4.w, a4.z / a4.w),
-                                    BLB_V3(b4.x / b4.w, b4.y / b4.w, b4.z / b4.w), camera_cache);
+        ok = physics_debug_add_line(lines, vertex_capacity, index_capacity,
+                                    BLB_V3(a4.x / a4.w, a4.y / a4.w, a4.z / a4.w),
+                                    BLB_V3(b4.x / b4.w, b4.y / b4.w, b4.z / b4.w),
+                                    camera_cache);
       }
       i = next;
     }
@@ -615,17 +696,21 @@ static bool debug_handler_add_object2d(BLB_Polygon3D *lines, size_t *vertex_capa
     const BLB_Vec4 a4 = BLB_MulM4V4(model, BLB_V4(a.x, a.y, 0.0f, 1.0f));
     const BLB_Vec4 b4 = BLB_MulM4V4(model, BLB_V4(b.x, b.y, 0.0f, 1.0f));
 
-    if (!physics_debug_add_line(lines, vertex_capacity, index_capacity, BLB_V3(a4.x / a4.w, a4.y / a4.w, a4.z / a4.w),
-                                BLB_V3(b4.x / b4.w, b4.y / b4.w, b4.z / b4.w), camera_cache))
+    if (!physics_debug_add_line(lines, vertex_capacity, index_capacity,
+                                BLB_V3(a4.x / a4.w, a4.y / a4.w, a4.z / a4.w),
+                                BLB_V3(b4.x / b4.w, b4.y / b4.w, b4.z / b4.w),
+                                camera_cache))
       return false;
   }
 
   return true;
 }
 
-static bool debug_handler_add_object3d(BLB_Polygon3D *lines, size_t *vertex_capacity, size_t *index_capacity, const BLB_Object3D *object,
+static bool debug_handler_add_object3d(BLB_Polygon3D *lines, size_t *vertex_capacity,
+                                       size_t *index_capacity, const BLB_Object3D *object,
                                        const BLB_CameraCache *camera_cache) {
-  if (!object || !object->polygon || !object->polygon->vertices || object->polygon->vertex_count == 0)
+  if (!object || !object->polygon || !object->polygon->vertices ||
+      object->polygon->vertex_count == 0)
     return true;
 
   const BLB_Polygon3D *source = object->polygon;
@@ -643,11 +728,14 @@ static bool debug_handler_add_object3d(BLB_Polygon3D *lines, size_t *vertex_capa
   }
 
   const BLB_Vec3 corners[8] = {
-      BLB_V3(min_v.x, min_v.y, min_v.z), BLB_V3(max_v.x, min_v.y, min_v.z), BLB_V3(min_v.x, max_v.y, min_v.z), BLB_V3(max_v.x, max_v.y, min_v.z),
-      BLB_V3(min_v.x, min_v.y, max_v.z), BLB_V3(max_v.x, min_v.y, max_v.z), BLB_V3(min_v.x, max_v.y, max_v.z), BLB_V3(max_v.x, max_v.y, max_v.z),
+      BLB_V3(min_v.x, min_v.y, min_v.z), BLB_V3(max_v.x, min_v.y, min_v.z),
+      BLB_V3(min_v.x, max_v.y, min_v.z), BLB_V3(max_v.x, max_v.y, min_v.z),
+      BLB_V3(min_v.x, min_v.y, max_v.z), BLB_V3(max_v.x, min_v.y, max_v.z),
+      BLB_V3(min_v.x, max_v.y, max_v.z), BLB_V3(max_v.x, max_v.y, max_v.z),
   };
   static const unsigned int edge_indices[12][2] = {
-      {0, 1}, {0, 2}, {0, 4}, {1, 3}, {1, 5}, {2, 3}, {2, 6}, {3, 7}, {4, 5}, {4, 6}, {5, 7}, {6, 7},
+      {0, 1}, {0, 2}, {0, 4}, {1, 3}, {1, 5}, {2, 3},
+      {2, 6}, {3, 7}, {4, 5}, {4, 6}, {5, 7}, {6, 7},
   };
 
   const BLB_Mat4 model = blb_render_object3d_model_matrix(object, camera_cache, 1.0f);
@@ -658,15 +746,18 @@ static bool debug_handler_add_object3d(BLB_Polygon3D *lines, size_t *vertex_capa
     const BLB_Vec4 a4 = BLB_MulM4V4(model, BLB_V4(a.x, a.y, a.z, 1.0f));
     const BLB_Vec4 b4 = BLB_MulM4V4(model, BLB_V4(b.x, b.y, b.z, 1.0f));
 
-    if (!physics_debug_add_line(lines, vertex_capacity, index_capacity, BLB_V3(a4.x / a4.w, a4.y / a4.w, a4.z / a4.w),
-                                BLB_V3(b4.x / b4.w, b4.y / b4.w, b4.z / b4.w), camera_cache))
+    if (!physics_debug_add_line(lines, vertex_capacity, index_capacity,
+                                BLB_V3(a4.x / a4.w, a4.y / a4.w, a4.z / a4.w),
+                                BLB_V3(b4.x / b4.w, b4.y / b4.w, b4.z / b4.w),
+                                camera_cache))
       return false;
   }
 
   return true;
 }
 
-void blb_render_draw_handler_debug_hitboxes(BLB_Scene *scene, BLB_Renderer *renderer, const BLB_CameraCache *camera_cache) {
+void blb_render_draw_handler_debug_hitboxes(BLB_Scene *scene, BLB_Renderer *renderer,
+                                            const BLB_CameraCache *camera_cache) {
   if (!scene || !renderer || !camera_cache || !camera_cache->valid)
     return;
 
@@ -680,14 +771,16 @@ void blb_render_draw_handler_debug_hitboxes(BLB_Scene *scene, BLB_Renderer *rend
     BLB_Object2D *object = scene->objects2d[i];
 
     if (object && object->visible && object->handler && object->handler->enabled)
-      ok = debug_handler_add_object2d(&lines, &vertex_capacity, &index_capacity, object, camera_cache);
+      ok = debug_handler_add_object2d(&lines, &vertex_capacity, &index_capacity, object,
+                                      camera_cache);
   }
 
   for (int i = 0; i < scene->object3d_count && ok; ++i) {
     BLB_Object3D *object = scene->objects3d[i];
 
     if (object && object->visible && object->handler && object->handler->enabled)
-      ok = debug_handler_add_object3d(&lines, &vertex_capacity, &index_capacity, object, camera_cache);
+      ok = debug_handler_add_object3d(&lines, &vertex_capacity, &index_capacity, object,
+                                      camera_cache);
   }
 
   if (ok && lines.vertex_count && lines.index_count) {
@@ -701,8 +794,11 @@ void blb_render_draw_handler_debug_hitboxes(BLB_Scene *scene, BLB_Renderer *rend
     material.double_sided = true;
     material.alpha_mode = BLB_ALPHA_OPAQUE;
     material.render_mode = BLB_RENDER_ADDITIVE;
-    float model_rows[12] = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
-    BLB_RendererDrawPolygon3D(renderer, &lines, &view_projection.Elements[0][0], model_rows, color[0], color[1], color[2], color[3], &material, NULL);
+    float model_rows[12] = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+                            0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+    BLB_RendererDrawPolygon3D(renderer, &lines, &view_projection.Elements[0][0],
+                              model_rows, color[0], color[1], color[2], color[3],
+                              &material, NULL);
   }
 
   free(lines.vertices);
