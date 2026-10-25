@@ -1,6 +1,8 @@
 #include "bulba/core/objects3d/torus.h"
+#include "bulba/core/physics/physics3d/physics3d.h"
+#include "bulba/core/utils/delta_time.h"
 
-#include "bulba/core/math3v/HandmadeMath.h"
+#include "bulba/core/math3v/vec_math.h"
 #include "bulba/core/objects3d/objects3d.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
@@ -50,6 +52,7 @@ static size_t torus_get_slices(int level_of_detail) {
     level_of_detail = 1;
 
   size_t index = (size_t)(level_of_detail - 1);
+
   if (index >= lod_count)
     index = lod_count - 1;
 
@@ -59,6 +62,7 @@ static size_t torus_get_slices(int level_of_detail) {
 static uint32_t float_bits(float value) {
   uint32_t bits = 0;
   memcpy(&bits, &value, sizeof(bits));
+
   return bits;
 }
 
@@ -68,6 +72,7 @@ static uint64_t hash64_mix(uint64_t x) {
   x ^= x >> 27u;
   x *= UINT64_C(0x94d049bb133111eb);
   x ^= x >> 31u;
+
   return x;
 }
 
@@ -79,6 +84,7 @@ static uint64_t torus_geometry_id(float major_radius, float minor_radius, size_t
   key ^= ((uint64_t)(slices & ((1u << TORUS_KEY_SLICE_BITS) - 1u))) << 16u;
   key ^= UINT64_C(0x544f5255535f4745);
   uint64_t hash = hash64_mix(key);
+
   return hash != 0 ? hash : UINT64_C(1);
 }
 
@@ -100,6 +106,7 @@ static BLB_Polygon3D *create_torus_polygon(float major_radius, float minor_radiu
   const size_t index_count = 6u * slices * stacks;
 
   BLB_Polygon3D *polygon = calloc(1, sizeof(*polygon));
+
   if (!polygon)
     return NULL;
 
@@ -111,6 +118,7 @@ static BLB_Polygon3D *create_torus_polygon(float major_radius, float minor_radiu
 
   if (!polygon->vertices || !polygon->base_vertices || !polygon->normals || !polygon->uvs || !polygon->indices) {
     free_torus_polygon(polygon);
+
     return NULL;
   }
 
@@ -129,18 +137,19 @@ static BLB_Polygon3D *create_torus_polygon(float major_radius, float minor_radiu
       const float cos_theta = cosf(theta);
       const float radial = major_radius + minor_radius * cos_phi;
 
-      const HMM_Vec3 vertex = HMM_V3(radial * cos_theta, minor_radius * sin_phi, radial * sin_theta);
-      const HMM_Vec3 normal = HMM_NormV3(HMM_V3(cos_phi * cos_theta, sin_phi, cos_phi * sin_theta));
+      const BLB_Vec3 vertex = BLB_V3(radial * cos_theta, minor_radius * sin_phi, radial * sin_theta);
+      const BLB_Vec3 normal = BLB_NormV3(BLB_V3(cos_phi * cos_theta, sin_phi, cos_phi * sin_theta));
 
       polygon->vertices[vertex_index] = vertex;
       polygon->base_vertices[vertex_index] = vertex;
       polygon->normals[vertex_index] = normal;
-      polygon->uvs[vertex_index] = HMM_V2((float)j / (float)slices, v);
+      polygon->uvs[vertex_index] = BLB_V2((float)j / (float)slices, v);
       ++vertex_index;
     }
   }
 
   size_t index = 0;
+
   for (size_t i = 0; i < stacks; ++i) {
     const size_t row = i * (slices + 1u);
     const size_t next_row = (i + 1u) * (slices + 1u);
@@ -162,6 +171,7 @@ static BLB_Polygon3D *create_torus_polygon(float major_radius, float minor_radiu
 
   polygon->vertex_count = vertex_count;
   polygon->index_count = index_count;
+
   return polygon;
 }
 
@@ -170,6 +180,7 @@ static bool torus_cache_reserve(size_t required) {
     return true;
 
   size_t capacity = torus_cache_capacity ? torus_cache_capacity : TORUS_CACHE_INITIAL_CAPACITY;
+
   while (capacity < required) {
     if (capacity > SIZE_MAX / 2u)
       return false;
@@ -177,11 +188,13 @@ static bool torus_cache_reserve(size_t required) {
   }
 
   BLB_TorusGeometry *new_cache = realloc(torus_cache, capacity * sizeof(*new_cache));
+
   if (!new_cache)
     return false;
 
   torus_cache = new_cache;
   torus_cache_capacity = capacity;
+
   return true;
 }
 
@@ -198,6 +211,7 @@ static BLB_TorusGeometry *torus_cache_acquire(float major_radius, float minor_ra
   for (size_t i = 0; i < torus_cache_count; ++i) {
     if (torus_geometry_matches(&torus_cache[i], geometry_id, major_radius, minor_radius, slices)) {
       torus_cache[i].refs++;
+
       return &torus_cache[i];
     }
   }
@@ -206,6 +220,7 @@ static BLB_TorusGeometry *torus_cache_acquire(float major_radius, float minor_ra
     return NULL;
 
   BLB_Polygon3D *polygon = create_torus_polygon(major_radius, minor_radius, slices);
+
   if (!polygon)
     return NULL;
 
@@ -228,6 +243,7 @@ static void torus_cache_release(BLB_Object3D *object) {
 
   for (size_t i = 0; i < torus_cache_count; ++i) {
     BLB_TorusGeometry *entry = &torus_cache[i];
+
     if (entry->geometry_id != object->geometry_id || entry->polygon != object->polygon)
       continue;
 
@@ -240,16 +256,19 @@ static void torus_cache_release(BLB_Object3D *object) {
     free_torus_polygon(entry->polygon);
 
     const size_t last = torus_cache_count - 1u;
+
     if (i != last)
       torus_cache[i] = torus_cache[last];
     --torus_cache_count;
+
     return;
   }
 }
 
-BLB_Object3D *BLB_CreateTorus3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of_detail, float outer_radius, float hole_radius, BLB_Texture *texture,
+BLB_Object3D *BLB_CreateTorus3D(BLB_Vec3 scale, BLB_Vec3 position, int level_of_detail, float outer_radius, float hole_radius, BLB_Texture *texture,
                                 BLB_TextureProjection mapping) {
   BLB_Object3D *object = calloc(1, sizeof(*object));
+
   if (!object)
     return NULL;
 
@@ -270,19 +289,20 @@ BLB_Object3D *BLB_CreateTorus3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of_
   if (major_radius <= 0.000001f || minor_radius <= 0.000001f)
     goto fail;
 
-  object->delta_time = calloc(1, sizeof(*object->delta_time));
-  if (!object->delta_time)
-    goto fail;
+  object->delta_time = BLB_DeltaTime_Get();
 
   object->type = BLB_OBJECT_TORUS;
+
   if (!BLB_OBJECTS_ID || object->type >= BLB_OBJECTS_ID_COUNT)
     goto fail;
 
   object->id = &BLB_OBJECTS_ID[object->type];
+
   if (object->id->id == BLB_INVALID_OBJECT_ID)
     goto fail;
 
   BLB_TorusGeometry *geometry = torus_cache_acquire(major_radius, minor_radius, slices);
+
   if (!geometry)
     goto fail;
 
@@ -298,16 +318,20 @@ BLB_Object3D *BLB_CreateTorus3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of_
   object->mesh.index_count = object->polygon->index_count;
 
   object->position = position;
-  object->rotation = HMM_V3(0.0f, 0.0f, 0.0f);
+  object->rotation = BLB_V3(0.0f, 0.0f, 0.0f);
   object->scale = scale;
   object->render_mode = BLB_RENDER_OPAQUE;
-
-  object->color = HMM_V4(255.0f, 255.0f, 255.0f, 255.0f);
+  object->color = BLB_V4(255.0f, 255.0f, 255.0f, 255.0f);
   object->visible = true;
   object->entity_id = BLB_INVALID_ENTITY_ID;
   object->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;
 
+  for (int i = 0; i < BLB_TRANSFORM_TYPE_COUNT; i++) {
+    object->physics_sync_mode[i] = BLB_PHYSICS_SYNC_BIDIRECTIONAL;
+  }
+
   object->material = BLB_Material_Create3D();
+
   if (!object->material) {
     torus_cache_release(object);
     object->geometry_id = 0;
@@ -320,20 +344,23 @@ BLB_Object3D *BLB_CreateTorus3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of_
 
   if (texture)
     BLB_Object3D_SetTexture(object, texture);
+
   if (object->material && texture)
     object->material->base_color_texture.projection = mapping;
 
   return object;
-
 fail:
-  free(object->delta_time);
   free(object);
+
   return NULL;
 }
 
 void BLB_DestroyTorus3D(BLB_Object3D *object) {
   if (!object)
     return;
+
+  if (object->rigid_body)
+    BLB_Physics3D_BodyDestroy(object->rigid_body->world, object);
 
   if (object->material)
     BLB_Material_Release(object->material);
@@ -350,6 +377,5 @@ void BLB_DestroyTorus3D(BLB_Object3D *object) {
   object->geometry_id = 0;
 
   free(object->handler);
-  free(object->delta_time);
   free(object);
 }

@@ -1,3 +1,4 @@
+#include "bulba/core/camera.h"
 #include "bulba/graphics/vulkan/renderer.h"
 
 #include <math.h>
@@ -41,6 +42,7 @@ int create_text_buffers(VULKAN *vulkan) {
                       &vulkan->text_vertex_buffers[i]) != 0) {
       for (uint32_t j = 0; j <= i; j++)
         destroy_buffer(vulkan, &vulkan->text_vertex_buffers[j]);
+
       return -1;
     }
   }
@@ -370,9 +372,16 @@ static VkPipelineLayout select_text_layout(VULKAN *vulkan, BLB_RenderMode mode) 
   return vulkan->text_pipeline_layout_2d[mode];
 }
 
-void VULKAN_RendererDrawText(VULKAN *vulkan, const Font *font, const char *text, float x, float y, float glyph_scale, HMM_Vec2 transform_scale,
+void VULKAN_RendererDrawText(VULKAN *vulkan, const Font *font, const char *text, float x, float y, float glyph_scale, BLB_Vec2 transform_scale,
                              float rotation, float r, float g, float b, float a, float emission, float glow, float roundness,
                              BLB_RenderMode render_mode) {
+  VULKAN_RendererDrawTextTransformed(vulkan, font, text, x, y, glyph_scale, transform_scale, rotation, r, g, b, a, emission, glow, roundness,
+                                     render_mode, NULL);
+}
+
+void VULKAN_RendererDrawTextTransformed(VULKAN *vulkan, const Font *font, const char *text, float x, float y, float glyph_scale,
+                                        BLB_Vec2 transform_scale, float rotation, float r, float g, float b, float a, float emission, float glow,
+                                        float roundness, BLB_RenderMode render_mode, const float *mvp) {
 
   if (!vulkan || !font || !text)
     return;
@@ -599,7 +608,7 @@ void VULKAN_RendererDrawText(VULKAN *vulkan, const Font *font, const char *text,
   if (vertex_count == 0)
     return;
 
-  float angle = HMM_AngleDeg(rotation);
+  float angle = BLB_AngleDeg(rotation);
 
   float cosine = cosf(angle);
   float sine = sinf(angle);
@@ -617,9 +626,12 @@ void VULKAN_RendererDrawText(VULKAN *vulkan, const Font *font, const char *text,
 
   VulkanTextPushConstants data = {0};
 
-  data.viewport[0] = (float)vulkan->swapchain_extent.width;
-
-  data.viewport[1] = (float)vulkan->swapchain_extent.height;
+  if (mvp) {
+    memcpy(data.mvp, mvp, sizeof(data.mvp));
+  } else {
+    BLB_Mat4 projection = BLB_CameraPixelProjection((float)vulkan->swapchain_extent.width, (float)vulkan->swapchain_extent.height);
+    memcpy(data.mvp, projection.Elements, sizeof(data.mvp));
+  }
 
   data.material[0] = emission;
   data.material[1] = glow;

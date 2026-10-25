@@ -15,14 +15,14 @@
 #include "text3d_vert.h"
 
 int create_render_pass(VULKAN *vulkan) {
-  VkAttachmentDescription color = {.format = vulkan->swapchain_format,
+  VkAttachmentDescription color = {.format = vulkan->postprocess ? VK_FORMAT_R16G16B16A16_SFLOAT : vulkan->swapchain_format,
                                    .samples = VK_SAMPLE_COUNT_1_BIT,
                                    .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                                    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                                    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                                    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                   .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
+                                   .finalLayout = vulkan->postprocess ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
 
   VkAttachmentDescription depth = {.format = VK_FORMAT_D32_SFLOAT,
                                    .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -50,13 +50,20 @@ int create_render_pass(VULKAN *vulkan) {
                                     .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
                                     .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT};
 
+  VkSubpassDependency dependencies[2] = {dependency,
+                                         {.srcSubpass = 0,
+                                          .dstSubpass = VK_SUBPASS_EXTERNAL,
+                                          .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                          .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                          .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                                          .dstAccessMask = VK_ACCESS_SHADER_READ_BIT}};
   VkRenderPassCreateInfo info = {.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                                  .attachmentCount = 2,
                                  .pAttachments = attachments,
                                  .subpassCount = 1,
                                  .pSubpasses = &subpass,
-                                 .dependencyCount = 1,
-                                 .pDependencies = &dependency};
+                                 .dependencyCount = vulkan->postprocess ? 2u : 1u,
+                                 .pDependencies = dependencies};
 
   return vkCreateRenderPass(vulkan->device, &info, NULL, &vulkan->render_pass) == VK_SUCCESS ? 0 : -1;
 }
@@ -223,8 +230,10 @@ static void destroy_custom_pipeline_entry(VULKAN *vulkan, VULKAN_CustomPipeline 
 
   if (entry->pipeline != VK_NULL_HANDLE)
     vkDestroyPipeline(vulkan->device, entry->pipeline, NULL);
+
   if (entry->layout != VK_NULL_HANDLE)
     vkDestroyPipelineLayout(vulkan->device, entry->layout, NULL);
+
   if (entry->shader)
     BLB_Shader_Release((BLB_ShaderProgram *)entry->shader);
 
@@ -243,25 +252,33 @@ static VULKAN_CustomPipeline *find_custom_pipeline(VULKAN *vulkan, const BLB_Sha
                                                    uint32_t depth_variant) {
   for (size_t i = 0; i < VULKAN_MAX_CUSTOM_PIPELINES; ++i) {
     VULKAN_CustomPipeline *entry = &vulkan->custom_pipelines[i];
+
     if (!entry->used)
       continue;
+
     if (entry->shader == shader && entry->is_2d == is_2d && entry->render_mode == mode && entry->depth_variant == depth_variant)
       return entry;
   }
+
   return NULL;
 }
 
 static VULKAN_CustomPipeline *find_custom_pipeline_slot(VULKAN *vulkan) {
   VULKAN_CustomPipeline *oldest = NULL;
+
   for (size_t i = 0; i < VULKAN_MAX_CUSTOM_PIPELINES; ++i) {
     VULKAN_CustomPipeline *entry = &vulkan->custom_pipelines[i];
+
     if (!entry->used)
       return entry;
+
     if (!oldest || entry->last_used_frame < oldest->last_used_frame)
       oldest = entry;
   }
+
   if (oldest)
     destroy_custom_pipeline_entry(vulkan, oldest);
+
   return oldest;
 }
 
@@ -269,16 +286,21 @@ int VULKAN_GetOrCreateCustomPipeline(VULKAN *vulkan, const BLB_ShaderProgram *sh
                                      VkPipeline *pipeline, VkPipelineLayout *layout) {
   if (!vulkan || !shader || !pipeline || !layout || vulkan->device == VK_NULL_HANDLE || vulkan->render_pass == VK_NULL_HANDLE)
     return -1;
+
   if (!shader->vertex_code || !shader->fragment_code || shader->vertex_size == 0 || shader->fragment_size == 0)
     return -1;
+
   if (shader->asset.is_2d != is_2d)
     return -1;
+
   if (shader->asset.source_type != BLB_SHADER_SOURCE_SPIRV)
     return -1;
+
   if ((int)mode < (int)BLB_RENDER_OPAQUE || (int)mode >= (int)BLB_RENDER_MODE_COUNT || depth_variant >= VULKAN_DEPTH_VARIANTS)
     return -1;
 
   VULKAN_CustomPipeline *entry = find_custom_pipeline(vulkan, shader, is_2d, mode, depth_variant);
+
   if (entry && entry->shader_revision != BLB_Shader_GetRevision(shader)) {
     destroy_custom_pipeline_entry(vulkan, entry);
     entry = NULL;
@@ -292,10 +314,12 @@ int VULKAN_GetOrCreateCustomPipeline(VULKAN *vulkan, const BLB_ShaderProgram *sh
   }
 
   entry = find_custom_pipeline_slot(vulkan);
+
   if (!entry)
     return -1;
 
   VkDescriptorSetLayout light_layout = is_2d ? vulkan->light_descriptor_set_layout_2d : vulkan->light_descriptor_set_layout_3d;
+
   if (create_basic_pipeline(vulkan, shader->vertex_code, shader->vertex_size, shader->fragment_code, shader->fragment_size, light_layout,
                             &entry->layout, &entry->pipeline, is_2d, mode, depth_variant) != 0) {
     *entry = (VULKAN_CustomPipeline){0};
@@ -467,6 +491,7 @@ static int create_text_pipeline(VULKAN *vulkan, const void *vertex_code, size_t 
   if (vkCreatePipelineLayout(vulkan->device, &layout, NULL, pipeline_layout) != VK_SUCCESS) {
     vkDestroyShaderModule(vulkan->device, vert, NULL);
     vkDestroyShaderModule(vulkan->device, frag, NULL);
+
     return -1;
   }
 
@@ -606,6 +631,7 @@ int create_shadow_pipeline(VULKAN *vulkan) {
 
   if (vkCreatePipelineLayout(vulkan->device, &layout, NULL, &vulkan->shadow_pipeline_layout) != VK_SUCCESS) {
     vkDestroyShaderModule(vulkan->device, vert, NULL);
+
     return -1;
   }
 

@@ -11,23 +11,23 @@ struct aiNode;
 
 typedef struct {
   double time;
-  HMM_Vec3 value;
+  BLB_Vec3 value;
 } BLB_ModelVectorKey;
 
 typedef struct {
   double time;
-  HMM_Quat value;
+  BLB_Quat value;
 } BLB_ModelQuaternionKey;
 
 typedef struct {
   char *name;
   int parent_index;
-  HMM_Vec3 bind_position;
-  HMM_Quat bind_rotation;
-  HMM_Vec3 bind_scale;
-  HMM_Mat4 bind_local;
-  HMM_Mat4 bind_residual;
-  HMM_Mat4 bind_global;
+  BLB_Vec3 bind_position;
+  BLB_Quat bind_rotation;
+  BLB_Vec3 bind_scale;
+  BLB_Mat4 bind_local;
+  BLB_Mat4 bind_residual;
+  BLB_Mat4 bind_global;
   /* valid only while the assimp scene is alive. clean before import returns. */
   const struct aiNode *source_node;
   bool is_bone;
@@ -58,7 +58,7 @@ typedef struct {
 
 typedef struct {
   BLB_ModelSkinVertex *vertices;
-  HMM_Mat4 *offsets;
+  BLB_Mat4 *offsets;
   size_t vertex_count;
 } BLB_ModelSkinSubmesh;
 
@@ -70,25 +70,25 @@ typedef struct {
   BLB_ModelSkinSubmesh *skins;
   size_t skin_count;
   size_t skin_capacity;
-  HMM_Mat4 root_inverse;
+  BLB_Mat4 root_inverse;
 } BLB_ModelAnimationAsset;
 
 typedef struct {
   BLB_ModelAnimationAsset *asset;
-  HMM_Vec3 *positions;
-  HMM_Quat *rotations;
-  HMM_Vec3 *scales;
-  HMM_Vec3 *manual_positions;
-  HMM_Quat *manual_rotations;
-  HMM_Vec3 *manual_scales;
+  BLB_Vec3 *positions;
+  BLB_Quat *rotations;
+  BLB_Vec3 *scales;
+  BLB_Vec3 *manual_positions;
+  BLB_Quat *manual_rotations;
+  BLB_Vec3 *manual_scales;
   uint8_t *manual_overrides;
   uint8_t *transform_dirty;
-  HMM_Mat4 *global_transforms;
+  BLB_Mat4 *global_transforms;
   BLB_Polygon3D **submesh_polygons;
 
-  HMM_Vec3 **source_normals;
-  HMM_Vec3 **bind_pose_vertices;
-  HMM_Vec3 **bind_pose_normals;
+  BLB_Vec3 **source_normals;
+  BLB_Vec3 **bind_pose_vertices;
+  BLB_Vec3 **bind_pose_normals;
   size_t submesh_count;
   BLB_Polygon3D *combined_polygon;
   bool bind_pose_captured;

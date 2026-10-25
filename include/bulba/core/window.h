@@ -1,9 +1,15 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#include "bulba/handlers/handlers.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include "bulba/handlers/handlers.h"
+
+typedef enum BLB_CursorMode {
+  BLB_CURSOR_NORMAL = 0x00034001,
+  BLB_CURSOR_HIDDEN = 0x00034002,
+  BLB_CURSOR_DISABLED = 0x00034003,
+} BLB_CursorMode;
 
 struct GLFWwindow;
 typedef struct BLB_Scene BLB_Scene;
@@ -36,5 +42,6 @@ void BLB_WindowSetFullscreen(BLB_Window *window, bool fullscreen);
 void BLB_WindowToggleFullscreen(BLB_Window *window);
 bool BLB_WindowResizeStable(const BLB_Window *window, double quiet_seconds);
 bool BLB_WindowShouldClose(const BLB_Window *window);
+void BLB_WindowSetCursorMode(BLB_Window *window, BLB_CursorMode mode);
 
 #endif

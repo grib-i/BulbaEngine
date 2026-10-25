@@ -1,4 +1,5 @@
 #include "bulba/core/objects3d/particles3d.h"
+#include "bulba/core/utils/delta_time.h"
 
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
@@ -37,17 +38,18 @@ static void free_polygon(BLB_Polygon3D **polygon) {
 
 static float variation_value(uint32_t id) {
   float value = fmodf((float)id * 0.61803398875f, 1.0f);
+
   return value * 2.0f - 1.0f;
 }
 
-static HMM_Vec4 color_lerp(HMM_Vec4 a, HMM_Vec4 b, float t) {
+static BLB_Vec4 color_lerp(BLB_Vec4 a, BLB_Vec4 b, float t) {
   if (t < 0.0f)
     t = 0.0f;
 
   if (t > 1.0f)
     t = 1.0f;
 
-  return HMM_V4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
+  return BLB_V4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
 }
 
 static BLB_Polygon3D *create_quad_polygon(void) {
@@ -56,20 +58,21 @@ static BLB_Polygon3D *create_quad_polygon(void) {
   if (polygon == NULL)
     return NULL;
 
-  polygon->vertices = malloc(sizeof(HMM_Vec3) * 4);
-  polygon->base_vertices = malloc(sizeof(HMM_Vec3) * 4);
-  polygon->uvs = malloc(sizeof(HMM_Vec2) * 4);
+  polygon->vertices = malloc(sizeof(BLB_Vec3) * 4);
+  polygon->base_vertices = malloc(sizeof(BLB_Vec3) * 4);
+  polygon->uvs = malloc(sizeof(BLB_Vec2) * 4);
   polygon->indices = malloc(sizeof(unsigned int) * 6);
-  polygon->normals = malloc(sizeof(HMM_Vec3) * 4);
+  polygon->normals = malloc(sizeof(BLB_Vec3) * 4);
 
   if (polygon->vertices == NULL || polygon->base_vertices == NULL || polygon->uvs == NULL || polygon->indices == NULL || polygon->normals == NULL) {
     free_polygon(&polygon);
+
     return NULL;
   }
 
-  HMM_Vec3 vertices[4] = {HMM_V3(-0.5f, -0.5f, 0.0f), HMM_V3(0.5f, -0.5f, 0.0f), HMM_V3(0.5f, 0.5f, 0.0f), HMM_V3(-0.5f, 0.5f, 0.0f)};
-  HMM_Vec2 uvs[4] = {HMM_V2(0.0f, 0.0f), HMM_V2(1.0f, 0.0f), HMM_V2(1.0f, 1.0f), HMM_V2(0.0f, 1.0f)};
-  HMM_Vec3 normals[4] = {HMM_V3(0.0f, 0.0f, 1.0f), HMM_V3(0.0f, 0.0f, 1.0f), HMM_V3(0.0f, 0.0f, 1.0f), HMM_V3(0.0f, 0.0f, 1.0f)};
+  BLB_Vec3 vertices[4] = {BLB_V3(-0.5f, -0.5f, 0.0f), BLB_V3(0.5f, -0.5f, 0.0f), BLB_V3(0.5f, 0.5f, 0.0f), BLB_V3(-0.5f, 0.5f, 0.0f)};
+  BLB_Vec2 uvs[4] = {BLB_V2(0.0f, 0.0f), BLB_V2(1.0f, 0.0f), BLB_V2(1.0f, 1.0f), BLB_V2(0.0f, 1.0f)};
+  BLB_Vec3 normals[4] = {BLB_V3(0.0f, 0.0f, 1.0f), BLB_V3(0.0f, 0.0f, 1.0f), BLB_V3(0.0f, 0.0f, 1.0f), BLB_V3(0.0f, 0.0f, 1.0f)};
   unsigned int indices[6] = {0, 1, 2, 0, 2, 3};
 
   for (size_t i = 0; i < 4; i++) {
@@ -101,50 +104,51 @@ static BLB_Polygon3D *create_cube_polygon(void) {
   if (polygon == NULL)
     return NULL;
 
-  polygon->vertices = malloc(sizeof(HMM_Vec3) * 24);
-  polygon->base_vertices = malloc(sizeof(HMM_Vec3) * 24);
-  polygon->uvs = malloc(sizeof(HMM_Vec2) * 24);
+  polygon->vertices = malloc(sizeof(BLB_Vec3) * 24);
+  polygon->base_vertices = malloc(sizeof(BLB_Vec3) * 24);
+  polygon->uvs = malloc(sizeof(BLB_Vec2) * 24);
   polygon->indices = malloc(sizeof(unsigned int) * 36);
-  polygon->normals = malloc(sizeof(HMM_Vec3) * 24);
+  polygon->normals = malloc(sizeof(BLB_Vec3) * 24);
 
   if (polygon->vertices == NULL || polygon->base_vertices == NULL || polygon->uvs == NULL || polygon->indices == NULL || polygon->normals == NULL) {
     free_polygon(&polygon);
+
     return NULL;
   }
 
-  HMM_Vec3 vertices[24] = {HMM_V3(-0.5f, -0.5f, -0.5f), HMM_V3(0.5f, -0.5f, -0.5f),  HMM_V3(0.5f, 0.5f, -0.5f),  HMM_V3(-0.5f, 0.5f, -0.5f),
+  BLB_Vec3 vertices[24] = {BLB_V3(-0.5f, -0.5f, -0.5f), BLB_V3(0.5f, -0.5f, -0.5f),  BLB_V3(0.5f, 0.5f, -0.5f),  BLB_V3(-0.5f, 0.5f, -0.5f),
 
-                           HMM_V3(0.5f, -0.5f, -0.5f),  HMM_V3(0.5f, -0.5f, 0.5f),   HMM_V3(0.5f, 0.5f, 0.5f),   HMM_V3(0.5f, 0.5f, -0.5f),
+                           BLB_V3(0.5f, -0.5f, -0.5f),  BLB_V3(0.5f, -0.5f, 0.5f),   BLB_V3(0.5f, 0.5f, 0.5f),   BLB_V3(0.5f, 0.5f, -0.5f),
 
-                           HMM_V3(0.5f, -0.5f, 0.5f),   HMM_V3(-0.5f, -0.5f, 0.5f),  HMM_V3(-0.5f, 0.5f, 0.5f),  HMM_V3(0.5f, 0.5f, 0.5f),
+                           BLB_V3(0.5f, -0.5f, 0.5f),   BLB_V3(-0.5f, -0.5f, 0.5f),  BLB_V3(-0.5f, 0.5f, 0.5f),  BLB_V3(0.5f, 0.5f, 0.5f),
 
-                           HMM_V3(-0.5f, -0.5f, 0.5f),  HMM_V3(-0.5f, -0.5f, -0.5f), HMM_V3(-0.5f, 0.5f, -0.5f), HMM_V3(-0.5f, 0.5f, 0.5f),
+                           BLB_V3(-0.5f, -0.5f, 0.5f),  BLB_V3(-0.5f, -0.5f, -0.5f), BLB_V3(-0.5f, 0.5f, -0.5f), BLB_V3(-0.5f, 0.5f, 0.5f),
 
-                           HMM_V3(-0.5f, 0.5f, -0.5f),  HMM_V3(0.5f, 0.5f, -0.5f),   HMM_V3(0.5f, 0.5f, 0.5f),   HMM_V3(-0.5f, 0.5f, 0.5f),
+                           BLB_V3(-0.5f, 0.5f, -0.5f),  BLB_V3(0.5f, 0.5f, -0.5f),   BLB_V3(0.5f, 0.5f, 0.5f),   BLB_V3(-0.5f, 0.5f, 0.5f),
 
-                           HMM_V3(-0.5f, -0.5f, 0.5f),  HMM_V3(0.5f, -0.5f, 0.5f),   HMM_V3(0.5f, -0.5f, -0.5f), HMM_V3(-0.5f, -0.5f, -0.5f)};
+                           BLB_V3(-0.5f, -0.5f, 0.5f),  BLB_V3(0.5f, -0.5f, 0.5f),   BLB_V3(0.5f, -0.5f, -0.5f), BLB_V3(-0.5f, -0.5f, -0.5f)};
 
   unsigned int indices[36] = {0,  3,  2,  0,  2,  1,  4,  7,  6,  4,  6,  5,  8,  10, 9,  8,  11, 10,
                               12, 15, 14, 12, 14, 13, 16, 19, 18, 16, 18, 17, 20, 23, 22, 20, 22, 21};
 
-  HMM_Vec3 normals[24] = {HMM_V3(0.0f, 0.0f, -1.0f), HMM_V3(0.0f, 0.0f, -1.0f), HMM_V3(0.0f, 0.0f, -1.0f), HMM_V3(0.0f, 0.0f, -1.0f),
+  BLB_Vec3 normals[24] = {BLB_V3(0.0f, 0.0f, -1.0f), BLB_V3(0.0f, 0.0f, -1.0f), BLB_V3(0.0f, 0.0f, -1.0f), BLB_V3(0.0f, 0.0f, -1.0f),
 
-                          HMM_V3(1.0f, 0.0f, 0.0f),  HMM_V3(1.0f, 0.0f, 0.0f),  HMM_V3(1.0f, 0.0f, 0.0f),  HMM_V3(1.0f, 0.0f, 0.0f),
+                          BLB_V3(1.0f, 0.0f, 0.0f),  BLB_V3(1.0f, 0.0f, 0.0f),  BLB_V3(1.0f, 0.0f, 0.0f),  BLB_V3(1.0f, 0.0f, 0.0f),
 
-                          HMM_V3(0.0f, 0.0f, 1.0f),  HMM_V3(0.0f, 0.0f, 1.0f),  HMM_V3(0.0f, 0.0f, 1.0f),  HMM_V3(0.0f, 0.0f, 1.0f),
+                          BLB_V3(0.0f, 0.0f, 1.0f),  BLB_V3(0.0f, 0.0f, 1.0f),  BLB_V3(0.0f, 0.0f, 1.0f),  BLB_V3(0.0f, 0.0f, 1.0f),
 
-                          HMM_V3(-1.0f, 0.0f, 0.0f), HMM_V3(-1.0f, 0.0f, 0.0f), HMM_V3(-1.0f, 0.0f, 0.0f), HMM_V3(-1.0f, 0.0f, 0.0f),
+                          BLB_V3(-1.0f, 0.0f, 0.0f), BLB_V3(-1.0f, 0.0f, 0.0f), BLB_V3(-1.0f, 0.0f, 0.0f), BLB_V3(-1.0f, 0.0f, 0.0f),
 
-                          HMM_V3(0.0f, 1.0f, 0.0f),  HMM_V3(0.0f, 1.0f, 0.0f),  HMM_V3(0.0f, 1.0f, 0.0f),  HMM_V3(0.0f, 1.0f, 0.0f),
+                          BLB_V3(0.0f, 1.0f, 0.0f),  BLB_V3(0.0f, 1.0f, 0.0f),  BLB_V3(0.0f, 1.0f, 0.0f),  BLB_V3(0.0f, 1.0f, 0.0f),
 
-                          HMM_V3(0.0f, -1.0f, 0.0f), HMM_V3(0.0f, -1.0f, 0.0f), HMM_V3(0.0f, -1.0f, 0.0f), HMM_V3(0.0f, -1.0f, 0.0f)};
+                          BLB_V3(0.0f, -1.0f, 0.0f), BLB_V3(0.0f, -1.0f, 0.0f), BLB_V3(0.0f, -1.0f, 0.0f), BLB_V3(0.0f, -1.0f, 0.0f)};
 
-  HMM_Vec2 face_uvs[6][4] = {{HMM_V2(1.00f, 0.333333f), HMM_V2(0.75f, 0.333333f), HMM_V2(0.75f, 0.666667f), HMM_V2(1.00f, 0.666667f)},
-                             {HMM_V2(0.75f, 0.333333f), HMM_V2(0.50f, 0.333333f), HMM_V2(0.50f, 0.666667f), HMM_V2(0.75f, 0.666667f)},
-                             {HMM_V2(0.50f, 0.333333f), HMM_V2(0.25f, 0.333333f), HMM_V2(0.25f, 0.666667f), HMM_V2(0.50f, 0.666667f)},
-                             {HMM_V2(0.25f, 0.333333f), HMM_V2(0.00f, 0.333333f), HMM_V2(0.00f, 0.666667f), HMM_V2(0.25f, 0.666667f)},
-                             {HMM_V2(0.25f, 1.000000f), HMM_V2(0.50f, 1.000000f), HMM_V2(0.50f, 0.666667f), HMM_V2(0.25f, 0.666667f)},
-                             {HMM_V2(0.25f, 0.333333f), HMM_V2(0.50f, 0.333333f), HMM_V2(0.50f, 0.000000f), HMM_V2(0.25f, 0.000000f)}};
+  BLB_Vec2 face_uvs[6][4] = {{BLB_V2(1.00f, 0.333333f), BLB_V2(0.75f, 0.333333f), BLB_V2(0.75f, 0.666667f), BLB_V2(1.00f, 0.666667f)},
+                             {BLB_V2(0.75f, 0.333333f), BLB_V2(0.50f, 0.333333f), BLB_V2(0.50f, 0.666667f), BLB_V2(0.75f, 0.666667f)},
+                             {BLB_V2(0.50f, 0.333333f), BLB_V2(0.25f, 0.333333f), BLB_V2(0.25f, 0.666667f), BLB_V2(0.50f, 0.666667f)},
+                             {BLB_V2(0.25f, 0.333333f), BLB_V2(0.00f, 0.333333f), BLB_V2(0.00f, 0.666667f), BLB_V2(0.25f, 0.666667f)},
+                             {BLB_V2(0.25f, 1.000000f), BLB_V2(0.50f, 1.000000f), BLB_V2(0.50f, 0.666667f), BLB_V2(0.25f, 0.666667f)},
+                             {BLB_V2(0.25f, 0.333333f), BLB_V2(0.50f, 0.333333f), BLB_V2(0.50f, 0.000000f), BLB_V2(0.25f, 0.000000f)}};
 
   for (size_t face = 0; face < 6; face++) {
     for (size_t corner = 0; corner < 4; corner++) {
@@ -172,7 +176,7 @@ static BLB_Polygon3D *create_cube_polygon(void) {
   return polygon;
 }
 
-static BLB_Polygon3D *acquire_particle_polygon(HMM_Vec3 scale) {
+static BLB_Polygon3D *acquire_particle_polygon(BLB_Vec3 scale) {
   if (scale.z == 0.0f) {
     if (quad_polygon == NULL)
       quad_polygon = create_quad_polygon();
@@ -249,10 +253,10 @@ static void release_particle_resources(BLB_Particle3D *particle) {
   particle->mesh = NULL;
 }
 
-static HMM_Vec3 particle_scale_from_system(const BLB_ParticleSystem3D *ps, uint32_t id) {
+static BLB_Vec3 particle_scale_from_system(const BLB_ParticleSystem3D *ps, uint32_t id) {
   float variation = variation_value(id);
 
-  return HMM_V3((ps->particle_scale.x + ps->particle_scale_variation.x * variation) * ps->particle_system_scale.x,
+  return BLB_V3((ps->particle_scale.x + ps->particle_scale_variation.x * variation) * ps->particle_system_scale.x,
                 (ps->particle_scale.y + ps->particle_scale_variation.y * variation) * ps->particle_system_scale.y,
                 (ps->particle_scale.z + ps->particle_scale_variation.z * variation) * ps->particle_system_scale.z);
 }
@@ -261,14 +265,14 @@ static float particle_lifetime_max(const BLB_ParticleSystem3D *ps, uint32_t id) 
   return ps->lifetime + ps->lifetime_variation * variation_value(id);
 }
 
-static HMM_Vec3 particle_velocity_from_system(const BLB_ParticleSystem3D *ps, uint32_t id) {
-  return HMM_V3(ps->velocity.x + ps->velocity_variation.x * variation_value(id + 17u),
+static BLB_Vec3 particle_velocity_from_system(const BLB_ParticleSystem3D *ps, uint32_t id) {
+  return BLB_V3(ps->velocity.x + ps->velocity_variation.x * variation_value(id + 17u),
                 ps->velocity.y + ps->velocity_variation.y * variation_value(id + 31u),
                 ps->velocity.z + ps->velocity_variation.z * variation_value(id + 47u));
 }
 
-static bool initialize_particle(BLB_Particle3D *particle, BLB_ParticleID id, HMM_Vec3 position, HMM_Vec3 velocity, HMM_Vec3 scale, HMM_Vec3 rotation,
-                                HMM_Vec4 color, float lifetime, float lifetime_max, BLB_Texture *texture, BLB_Material *material) {
+static bool initialize_particle(BLB_Particle3D *particle, BLB_ParticleID id, BLB_Vec3 position, BLB_Vec3 velocity, BLB_Vec3 scale, BLB_Vec3 rotation,
+                                BLB_Vec4 color, float lifetime, float lifetime_max, BLB_Texture *texture, BLB_Material *material) {
   if (particle == NULL)
     return false;
 
@@ -282,11 +286,11 @@ static bool initialize_particle(BLB_Particle3D *particle, BLB_ParticleID id, HMM
   particle->velocity = velocity;
   particle->scale = scale;
   particle->rotation = rotation;
-  particle->rotation_speed = HMM_V3(0.0f, 0.0f, 0.0f);
+  particle->rotation_speed = BLB_V3(0.0f, 0.0f, 0.0f);
   particle->color = color;
   particle->lifetime = lifetime;
   particle->lifetime_max = lifetime_max;
-  particle->delta_time = 0.0f;
+  particle->delta_time = BLB_DeltaTime_Get();
   particle->render_mode = BLB_RENDER_OPAQUE;
   particle->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE | BLB_PARTICLE;
   particle->visible = true;
@@ -301,6 +305,7 @@ static bool initialize_particle(BLB_Particle3D *particle, BLB_ParticleID id, HMM
   if (particle->mesh == NULL) {
     release_particle_polygon(particle->polygon);
     particle->polygon = NULL;
+
     return false;
   }
 
@@ -314,6 +319,7 @@ static bool initialize_particle(BLB_Particle3D *particle, BLB_ParticleID id, HMM
       release_particle_polygon(particle->polygon);
       particle->polygon = NULL;
       particle->mesh = NULL;
+
       return false;
     }
     BLB_Material_SetAlphaMode(particle->material, BLB_ALPHA_BLEND);
@@ -361,7 +367,7 @@ static BLB_ParticleSystemID generate_particle_system_id(void) {
   return id;
 }
 
-BLB_Particle3D *BLB_CreateParticle3D(BLB_ParticleID id, HMM_Vec3 position, HMM_Vec3 velocity, HMM_Vec3 scale, HMM_Vec3 rotation, HMM_Vec4 color,
+BLB_Particle3D *BLB_CreateParticle3D(BLB_ParticleID id, BLB_Vec3 position, BLB_Vec3 velocity, BLB_Vec3 scale, BLB_Vec3 rotation, BLB_Vec4 color,
                                      float lifetime, float lifetime_max, BLB_Texture *texture, BLB_Material *material) {
   if (id.id == BLB_INVALID_PARTICLE_ID)
     id = generate_particle_id();
@@ -373,6 +379,7 @@ BLB_Particle3D *BLB_CreateParticle3D(BLB_ParticleID id, HMM_Vec3 position, HMM_V
 
   if (!initialize_particle(particle, id, position, velocity, scale, rotation, color, lifetime, lifetime_max, texture, material)) {
     free(particle);
+
     return NULL;
   }
 
@@ -387,58 +394,58 @@ void BLB_DestroyParticle3D(BLB_Particle3D *p) {
   free(p);
 }
 
-void BLB_Particle3D_Move(BLB_Particle3D *p, HMM_Vec3 velocity) {
+void BLB_Particle3D_Move(BLB_Particle3D *p, BLB_Vec3 velocity) {
   if (!p)
     return;
 
-  if (p->delta_time > 0.0f)
-    velocity = HMM_MulV3F(velocity, p->delta_time);
+  if (p->delta_time >= 0.0f)
+    velocity = BLB_MulV3F(velocity, p->delta_time);
 
-  p->position = HMM_AddV3(p->position, velocity);
+  p->position = BLB_AddV3(p->position, velocity);
 }
 
-void BLB_Particle3D_SetPosition(BLB_Particle3D *p, HMM_Vec3 position) {
+void BLB_Particle3D_SetPosition(BLB_Particle3D *p, BLB_Vec3 position) {
   if (!p)
     return;
 
   p->position = position;
 }
 
-void BLB_Particle3D_Rotate(BLB_Particle3D *p, HMM_Vec3 angular_velocity) {
+void BLB_Particle3D_Rotate(BLB_Particle3D *p, BLB_Vec3 angular_velocity) {
   if (!p)
     return;
 
-  if (p->delta_time > 0.0f)
-    angular_velocity = HMM_MulV3F(angular_velocity, p->delta_time);
+  if (p->delta_time >= 0.0f)
+    angular_velocity = BLB_MulV3F(angular_velocity, p->delta_time);
 
-  p->rotation = HMM_AddV3(p->rotation, angular_velocity);
+  p->rotation = BLB_AddV3(p->rotation, angular_velocity);
 }
 
-void BLB_Particle3D_SetRotation(BLB_Particle3D *p, HMM_Vec3 rotation) {
+void BLB_Particle3D_SetRotation(BLB_Particle3D *p, BLB_Vec3 rotation) {
   if (!p)
     return;
 
   p->rotation = rotation;
 }
 
-void BLB_Particle3D_Scale(BLB_Particle3D *p, HMM_Vec3 scale_velocity) {
+void BLB_Particle3D_Scale(BLB_Particle3D *p, BLB_Vec3 scale_velocity) {
   if (!p)
     return;
 
-  if (p->delta_time > 0.0f)
-    scale_velocity = HMM_MulV3F(scale_velocity, p->delta_time);
+  if (p->delta_time >= 0.0f)
+    scale_velocity = BLB_MulV3F(scale_velocity, p->delta_time);
 
-  p->scale = HMM_AddV3(p->scale, scale_velocity);
+  p->scale = BLB_AddV3(p->scale, scale_velocity);
 }
 
-void BLB_Particle3D_SetScale(BLB_Particle3D *p, HMM_Vec3 scale) {
+void BLB_Particle3D_SetScale(BLB_Particle3D *p, BLB_Vec3 scale) {
   if (!p)
     return;
 
   p->scale = scale;
 }
 
-void BLB_Particle3D_Transform(BLB_Particle3D *p, HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale) {
+void BLB_Particle3D_Transform(BLB_Particle3D *p, BLB_Vec3 position, BLB_Vec3 rotation, BLB_Vec3 scale) {
   if (!p)
     return;
 
@@ -494,9 +501,10 @@ void BLB_Particle3D_FlipZ(BLB_Particle3D *p) {
   p->scale.z *= -1.0f;
 }
 
-BLB_ParticleSystem3D *BLB_CreateParticleSystem3D(HMM_Vec3 particle_system_scale, HMM_Vec3 position, size_t count, size_t capacity, float lifetime,
+BLB_ParticleSystem3D *BLB_CreateParticleSystem3D(BLB_Vec3 particle_system_scale, BLB_Vec3 position, size_t count, size_t capacity, float lifetime,
                                                  float lifetime_variation, BLB_Texture *texture) {
   BLB_ParticleSystem3D *ps = calloc(1, sizeof(*ps));
+
   if (ps == NULL)
     return NULL;
 
@@ -515,6 +523,7 @@ BLB_ParticleSystem3D *BLB_CreateParticleSystem3D(HMM_Vec3 particle_system_scale,
 
     if (ps->particles == NULL) {
       free(ps);
+
       return NULL;
     }
   }
@@ -523,26 +532,26 @@ BLB_ParticleSystem3D *BLB_CreateParticleSystem3D(HMM_Vec3 particle_system_scale,
   ps->emission_accumulator = 0.0f;
   ps->lifetime = lifetime;
   ps->lifetime_variation = lifetime_variation;
-  ps->delta_time = 0.0f;
+  ps->delta_time = BLB_DeltaTime_Get();
 
   ps->render_mode = BLB_RENDER_OPAQUE;
   ps->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE | BLB_PARTICLE_SYSTEM;
   ps->visible = true;
 
   ps->position = position;
-  ps->velocity = HMM_V3(0.0f, 0.0f, 0.0f);
-  ps->velocity_variation = HMM_V3(0.0f, 0.0f, 0.0f);
-  ps->gravity = HMM_V3(0.0f, -9.81f, 0.0f);
+  ps->velocity = BLB_V3(0.0f, 0.0f, 0.0f);
+  ps->velocity_variation = BLB_V3(0.0f, 0.0f, 0.0f);
+  ps->gravity = BLB_V3(0.0f, -9.81f, 0.0f);
 
   ps->particle_system_scale = particle_system_scale;
-  ps->particle_scale = HMM_V3(1.0f, 1.0f, 0.0f);
-  ps->particle_scale_variation = HMM_V3(0.0f, 0.0f, 0.0f);
+  ps->particle_scale = BLB_V3(1.0f, 1.0f, 0.0f);
+  ps->particle_scale_variation = BLB_V3(0.0f, 0.0f, 0.0f);
 
-  ps->color = HMM_V4(255.0f, 255.0f, 255.0f, 255.0f);
+  ps->color = BLB_V4(255.0f, 255.0f, 255.0f, 255.0f);
   ps->color_end = ps->color;
 
-  ps->rotation = HMM_V3(0.0f, 0.0f, 0.0f);
-  ps->rotation_speed = HMM_V3(0.0f, 0.0f, 0.0f);
+  ps->rotation = BLB_V3(0.0f, 0.0f, 0.0f);
+  ps->rotation_speed = BLB_V3(0.0f, 0.0f, 0.0f);
 
   ps->looping = false;
   ps->playing = true;
@@ -556,6 +565,7 @@ BLB_ParticleSystem3D *BLB_CreateParticleSystem3D(HMM_Vec3 particle_system_scale,
 
   if (ps->material == NULL) {
     BLB_DestroyParticleSystem3D(ps);
+
     return NULL;
   }
 
@@ -569,7 +579,7 @@ BLB_ParticleSystem3D *BLB_CreateParticleSystem3D(HMM_Vec3 particle_system_scale,
   for (size_t i = 0; i < count; i++) {
     BLB_ParticleID id = generate_particle_id();
 
-    HMM_Vec3 scale = particle_scale_from_system(ps, id.id);
+    BLB_Vec3 scale = particle_scale_from_system(ps, id.id);
     float particle_lifetime = particle_lifetime_max(ps, id.id);
 
     if (particle_lifetime < 0.0f)
@@ -579,10 +589,13 @@ BLB_ParticleSystem3D *BLB_CreateParticleSystem3D(HMM_Vec3 particle_system_scale,
                              particle_lifetime, ps->texture, ps->material)) {
       ps->count = i;
       BLB_DestroyParticleSystem3D(ps);
+
       return NULL;
     }
 
     ps->particles[i].rotation_speed = ps->rotation_speed;
+    ps->particles[i].camera_attached = ps->camera_attached;
+    ps->particles[ps->count].camera_attached = ps->camera_attached;
     ps->count++;
   }
 
@@ -611,34 +624,43 @@ size_t BLB_ParticleSystem3D_Emit(BLB_ParticleSystem3D *ps, size_t count) {
   if (!ps || count == 0)
     return 0;
   size_t emitted = 0;
+
   for (size_t i = 0; i < ps->count && emitted < count; ++i) {
     if (ps->particles[i].visible)
       continue;
     BLB_ParticleID id = generate_particle_id();
-    HMM_Vec3 scale = particle_scale_from_system(ps, id.id);
+    BLB_Vec3 scale = particle_scale_from_system(ps, id.id);
     float lifetime = particle_lifetime_max(ps, id.id);
+
     if (lifetime < 0.0f)
       lifetime = 0.0f;
     release_particle_resources(&ps->particles[i]);
+
     if (!initialize_particle(&ps->particles[i], id, ps->position, particle_velocity_from_system(ps, id.id), scale, ps->rotation, ps->color, 0.0f,
                              lifetime, ps->texture, ps->material))
       continue;
     ps->particles[i].rotation_speed = ps->rotation_speed;
+    ps->particles[i].camera_attached = ps->camera_attached;
     emitted++;
   }
+
   while (emitted < count && ps->count < ps->capacity) {
     BLB_ParticleID id = generate_particle_id();
-    HMM_Vec3 scale = particle_scale_from_system(ps, id.id);
+    BLB_Vec3 scale = particle_scale_from_system(ps, id.id);
     float lifetime = particle_lifetime_max(ps, id.id);
+
     if (lifetime < 0.0f)
       lifetime = 0.0f;
+
     if (!initialize_particle(&ps->particles[ps->count], id, ps->position, particle_velocity_from_system(ps, id.id), scale, ps->rotation, ps->color,
                              0.0f, lifetime, ps->texture, ps->material))
       break;
     ps->particles[ps->count].rotation_speed = ps->rotation_speed;
+    ps->particles[ps->count].camera_attached = ps->camera_attached;
     ps->count++;
     emitted++;
   }
+
   return emitted;
 }
 
@@ -652,6 +674,7 @@ bool BLB_ParticleSystem3D_SetCount(BLB_ParticleSystem3D *ps, size_t count) {
 
     memset(ps->particles + count, 0, sizeof(*ps->particles) * (ps->count - count));
     ps->count = count;
+
     return true;
   }
 
@@ -686,7 +709,7 @@ bool BLB_ParticleSystem3D_SetCount(BLB_ParticleSystem3D *ps, size_t count) {
   for (size_t i = old_count; i < count; i++) {
     BLB_ParticleID id = generate_particle_id();
 
-    HMM_Vec3 scale = particle_scale_from_system(ps, id.id);
+    BLB_Vec3 scale = particle_scale_from_system(ps, id.id);
     float particle_lifetime = particle_lifetime_max(ps, id.id);
 
     if (particle_lifetime < 0.0f)
@@ -699,12 +722,15 @@ bool BLB_ParticleSystem3D_SetCount(BLB_ParticleSystem3D *ps, size_t count) {
 
       memset(ps->particles + old_count, 0, sizeof(*ps->particles) * (i - old_count));
       ps->count = old_count;
+
       return false;
     }
   }
 
-  for (size_t i = old_count; i < count; ++i)
+  for (size_t i = old_count; i < count; ++i) {
     ps->particles[i].rotation_speed = ps->rotation_speed;
+    ps->particles[i].camera_attached = ps->camera_attached;
+  }
 
   ps->count = count;
 
@@ -726,13 +752,13 @@ void BLB_ParticleSystem3D_Clear(BLB_ParticleSystem3D *ps) {
 }
 
 void BLB_ParticleSystem3D_Update(BLB_ParticleSystem3D *ps, float delta_time) {
-  if (!ps)
+  if (!ps || !isfinite(delta_time))
     return;
-
-  ps->delta_time = delta_time;
 
   if (delta_time < 0.0f)
     delta_time = 0.0f;
+
+  ps->delta_time = delta_time;
 
   if (!ps->playing || !ps->visible)
     return;
@@ -742,12 +768,15 @@ void BLB_ParticleSystem3D_Update(BLB_ParticleSystem3D *ps, float delta_time) {
 
     p->delta_time = delta_time;
 
+    if (ps->camera_attached)
+      p->camera_attached = true;
+
     if (!p->visible)
       continue;
 
-    p->velocity = HMM_AddV3(p->velocity, HMM_MulV3F(ps->gravity, delta_time));
-    p->position = HMM_AddV3(p->position, HMM_MulV3F(p->velocity, delta_time));
-    p->rotation = HMM_AddV3(p->rotation, HMM_MulV3F(p->rotation_speed, delta_time));
+    p->velocity = BLB_AddV3(p->velocity, BLB_MulV3F(ps->gravity, delta_time));
+    p->position = BLB_AddV3(p->position, BLB_MulV3F(p->velocity, delta_time));
+    p->rotation = BLB_AddV3(p->rotation, BLB_MulV3F(p->rotation_speed, delta_time));
     p->lifetime += delta_time;
 
     if (p->lifetime_max > 0.0f) {
@@ -777,9 +806,11 @@ void BLB_ParticleSystem3D_Update(BLB_ParticleSystem3D *ps, float delta_time) {
   if (ps->emission_rate > 0.0f) {
     ps->emission_accumulator += ps->emission_rate * delta_time;
     size_t emit_count = (size_t)ps->emission_accumulator;
+
     if (emit_count > 0) {
       size_t emitted = BLB_ParticleSystem3D_Emit(ps, emit_count);
       ps->emission_accumulator -= (float)emitted;
+
       if (ps->emission_accumulator > (float)(ps->capacity > 0 ? ps->capacity : 1u))
         ps->emission_accumulator = (float)(ps->capacity > 0 ? ps->capacity : 1u);
     }
@@ -827,82 +858,82 @@ void BLB_ParticleSystem3D_Restart(BLB_ParticleSystem3D *ps) {
   ps->playing = true;
 }
 
-void BLB_ParticleSystem3D_Move(BLB_ParticleSystem3D *ps, HMM_Vec3 velocity) {
+void BLB_ParticleSystem3D_Move(BLB_ParticleSystem3D *ps, BLB_Vec3 velocity) {
   if (!ps)
     return;
 
-  if (ps->delta_time > 0.0f)
-    velocity = HMM_MulV3F(velocity, ps->delta_time);
+  if (ps->delta_time >= 0.0f)
+    velocity = BLB_MulV3F(velocity, ps->delta_time);
 
-  ps->position = HMM_AddV3(ps->position, velocity);
+  ps->position = BLB_AddV3(ps->position, velocity);
 
   for (size_t i = 0; i < ps->count; i++)
-    ps->particles[i].position = HMM_AddV3(ps->particles[i].position, velocity);
+    ps->particles[i].position = BLB_AddV3(ps->particles[i].position, velocity);
 }
 
-void BLB_ParticleSystem3D_SetPosition(BLB_ParticleSystem3D *ps, HMM_Vec3 position) {
+void BLB_ParticleSystem3D_SetPosition(BLB_ParticleSystem3D *ps, BLB_Vec3 position) {
   if (!ps)
     return;
 
-  HMM_Vec3 delta = HMM_V3(position.x - ps->position.x, position.y - ps->position.y, position.z - ps->position.z);
+  BLB_Vec3 delta = BLB_V3(position.x - ps->position.x, position.y - ps->position.y, position.z - ps->position.z);
 
   ps->position = position;
 
   for (size_t i = 0; i < ps->count; i++)
-    ps->particles[i].position = HMM_AddV3(ps->particles[i].position, delta);
+    ps->particles[i].position = BLB_AddV3(ps->particles[i].position, delta);
 }
 
-void BLB_ParticleSystem3D_Rotate(BLB_ParticleSystem3D *ps, HMM_Vec3 angular_velocity) {
+void BLB_ParticleSystem3D_Rotate(BLB_ParticleSystem3D *ps, BLB_Vec3 angular_velocity) {
   if (!ps)
     return;
 
-  if (ps->delta_time > 0.0f)
-    angular_velocity = HMM_MulV3F(angular_velocity, ps->delta_time);
+  if (ps->delta_time >= 0.0f)
+    angular_velocity = BLB_MulV3F(angular_velocity, ps->delta_time);
 
-  ps->rotation = HMM_AddV3(ps->rotation, angular_velocity);
+  ps->rotation = BLB_AddV3(ps->rotation, angular_velocity);
 
   for (size_t i = 0; i < ps->count; i++)
-    ps->particles[i].rotation = HMM_AddV3(ps->particles[i].rotation, angular_velocity);
+    ps->particles[i].rotation = BLB_AddV3(ps->particles[i].rotation, angular_velocity);
 }
 
-void BLB_ParticleSystem3D_SetRotation(BLB_ParticleSystem3D *ps, HMM_Vec3 rotation) {
+void BLB_ParticleSystem3D_SetRotation(BLB_ParticleSystem3D *ps, BLB_Vec3 rotation) {
   if (!ps)
     return;
 
-  HMM_Vec3 delta = HMM_V3(rotation.x - ps->rotation.x, rotation.y - ps->rotation.y, rotation.z - ps->rotation.z);
+  BLB_Vec3 delta = BLB_V3(rotation.x - ps->rotation.x, rotation.y - ps->rotation.y, rotation.z - ps->rotation.z);
 
   ps->rotation = rotation;
 
   for (size_t i = 0; i < ps->count; i++)
-    ps->particles[i].rotation = HMM_AddV3(ps->particles[i].rotation, delta);
+    ps->particles[i].rotation = BLB_AddV3(ps->particles[i].rotation, delta);
 }
 
-void BLB_ParticleSystem3D_Scale(BLB_ParticleSystem3D *ps, HMM_Vec3 scale_velocity) {
+void BLB_ParticleSystem3D_Scale(BLB_ParticleSystem3D *ps, BLB_Vec3 scale_velocity) {
   if (!ps)
     return;
 
-  if (ps->delta_time > 0.0f)
-    scale_velocity = HMM_MulV3F(scale_velocity, ps->delta_time);
+  if (ps->delta_time >= 0.0f)
+    scale_velocity = BLB_MulV3F(scale_velocity, ps->delta_time);
 
-  ps->particle_system_scale = HMM_AddV3(ps->particle_system_scale, scale_velocity);
+  ps->particle_system_scale = BLB_AddV3(ps->particle_system_scale, scale_velocity);
 
   for (size_t i = 0; i < ps->count; i++)
-    ps->particles[i].scale = HMM_AddV3(ps->particles[i].scale, scale_velocity);
+    ps->particles[i].scale = BLB_AddV3(ps->particles[i].scale, scale_velocity);
 }
 
-void BLB_ParticleSystem3D_SetScale(BLB_ParticleSystem3D *ps, HMM_Vec3 scale) {
+void BLB_ParticleSystem3D_SetScale(BLB_ParticleSystem3D *ps, BLB_Vec3 scale) {
   if (!ps)
     return;
 
-  HMM_Vec3 delta = HMM_V3(scale.x - ps->particle_system_scale.x, scale.y - ps->particle_system_scale.y, scale.z - ps->particle_system_scale.z);
+  BLB_Vec3 delta = BLB_V3(scale.x - ps->particle_system_scale.x, scale.y - ps->particle_system_scale.y, scale.z - ps->particle_system_scale.z);
 
   ps->particle_system_scale = scale;
 
   for (size_t i = 0; i < ps->count; i++)
-    ps->particles[i].scale = HMM_AddV3(ps->particles[i].scale, delta);
+    ps->particles[i].scale = BLB_AddV3(ps->particles[i].scale, delta);
 }
 
-void BLB_ParticleSystem3D_Transform(BLB_ParticleSystem3D *ps, HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale) {
+void BLB_ParticleSystem3D_Transform(BLB_ParticleSystem3D *ps, BLB_Vec3 position, BLB_Vec3 rotation, BLB_Vec3 scale) {
   if (!ps)
     return;
 
@@ -972,3 +1003,22 @@ void BLB_ParticleSystem3D_FlipZ(BLB_ParticleSystem3D *ps) {
   for (size_t i = 0; i < ps->count; i++)
     ps->particles[i].scale.z *= -1.0f;
 }
+
+void BLB_Particle3D_SetCameraAttached(BLB_Particle3D *p, bool attached) {
+  if (!p)
+    return;
+  p->camera_attached = attached;
+}
+
+bool BLB_Particle3D_IsCameraAttached(const BLB_Particle3D *p) { return p && p->camera_attached; }
+
+void BLB_ParticleSystem3D_SetCameraAttached(BLB_ParticleSystem3D *ps, bool attached) {
+  if (!ps)
+    return;
+  ps->camera_attached = attached;
+
+  for (size_t i = 0; i < ps->count; ++i)
+    ps->particles[i].camera_attached = attached;
+}
+
+bool BLB_ParticleSystem3D_IsCameraAttached(const BLB_ParticleSystem3D *ps) { return ps && ps->camera_attached; }

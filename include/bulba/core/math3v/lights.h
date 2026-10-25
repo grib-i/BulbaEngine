@@ -52,14 +52,14 @@ typedef struct BLB_Light2D {
   bool enabled;
 } BLB_Light2D;
 
-BLB_Light3D *BLB_CreateLight3D(BLB_LightType type, HMM_Vec3 position, HMM_Vec3 rotation);
+BLB_Light3D *BLB_CreateLight3D(BLB_LightType type, BLB_Vec3 position, BLB_Vec3 rotation);
 
-BLB_Light2D *BLB_CreateLight2D(BLB_LightType type, HMM_Vec2 position, float rotation);
+BLB_Light2D *BLB_CreateLight2D(BLB_LightType type, BLB_Vec2 position, float rotation);
 
 void BLB_DestroyLight3D(BLB_Light3D *light);
 void BLB_DestroyLight2D(BLB_Light2D *light);
 
-HMM_Vec3 BLB_GetLightDirection3D(const BLB_Light3D *light);
-HMM_Vec2 BLB_GetLightDirection2D(const BLB_Light2D *light);
+BLB_Vec3 BLB_GetLightDirection3D(const BLB_Light3D *light);
+BLB_Vec2 BLB_GetLightDirection2D(const BLB_Light2D *light);
 
 #endif

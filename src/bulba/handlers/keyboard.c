@@ -75,6 +75,9 @@ static int key_to_native(BLB_Key key) {
   case BLB_KEY_PAUSE:
     return GLFW_KEY_PAUSE;
 
+  case BLB_KEY_SPACE:
+    return GLFW_KEY_SPACE;
+
   case BLB_KEY_F1:
   case BLB_KEY_F2:
   case BLB_KEY_F3:
@@ -240,6 +243,9 @@ static BLB_Key native_to_key(int key) {
   case GLFW_KEY_PAUSE:
     return BLB_KEY_PAUSE;
 
+  case GLFW_KEY_SPACE:
+    return BLB_KEY_SPACE;
+
   case GLFW_KEY_F1:
   case GLFW_KEY_F2:
   case GLFW_KEY_F3:
@@ -351,6 +357,7 @@ static void key_cb(GLFWwindow *window, int key, int scancode, int action, int mo
 
   if (action == GLFW_PRESS || action == GLFW_REPEAT)
     state->down = true;
+
   else if (action == GLFW_RELEASE)
     state->down = false;
 
@@ -452,16 +459,19 @@ BLB_KeyEvent BLB_KeyboardInfo(const BLB_Handlers *handlers, BLB_Key key) {
 
 bool BLB_KeyboardDown(const BLB_Handlers *handlers, BLB_Key key) {
   const BLB_KeyState *state = BLB_KeyboardGet(handlers, key);
+
   return state ? state->down : false;
 }
 
 bool BLB_KeyboardHeld(const BLB_Handlers *handlers, BLB_Key key) {
   const BLB_KeyState *state = BLB_KeyboardGet(handlers, key);
+
   return state ? state->down && !state->pressed && !state->released : false;
 }
 
 bool BLB_KeyboardPressed(const BLB_Handlers *handlers, BLB_Key key) {
   const BLB_KeyState *state = BLB_KeyboardGet(handlers, key);
+
   return state ? state->pressed : false;
 }
 
@@ -474,6 +484,7 @@ bool BLB_KeyboardReleased(const BLB_Handlers *handlers, BLB_Key key) {
 
 bool BLB_KeyboardRepeated(const BLB_Handlers *handlers, BLB_Key key) {
   const BLB_KeyState *state = BLB_KeyboardGet(handlers, key);
+
   return state ? state->repeated : false;
 }
 

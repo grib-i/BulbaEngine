@@ -1,6 +1,6 @@
 #include "bulba/core/utils/io/object_io.h"
 
-#include "bulba/core/math3v/physics3d.h"
+#include "bulba/core/physics/physics3d.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
 #include "bulba/core/scene.h"
@@ -49,6 +49,7 @@ static int BLB_ObjectFile_Read(FILE *file, void *data, size_t size, size_t count
 
 static int BLB_ObjectFile_WriteBool(FILE *file, bool value) {
   uint8_t data = value ? 1u : 0u;
+
   return BLB_ObjectFile_Write(file, &data, sizeof(data), 1);
 }
 
@@ -69,30 +70,30 @@ static int BLB_ObjectFile_WriteU64(FILE *file, uint64_t value) { return BLB_Obje
 
 static int BLB_ObjectFile_ReadU64(FILE *file, uint64_t *value) { return BLB_ObjectFile_Read(file, value, sizeof(*value), 1); }
 
-static int BLB_ObjectFile_WriteVec2(FILE *file, HMM_Vec2 value) {
+static int BLB_ObjectFile_WriteVec2(FILE *file, BLB_Vec2 value) {
   return BLB_ObjectFile_Write(file, &value.x, sizeof(value.x), 1) || BLB_ObjectFile_Write(file, &value.y, sizeof(value.y), 1);
 }
 
-static int BLB_ObjectFile_ReadVec2(FILE *file, HMM_Vec2 *value) {
+static int BLB_ObjectFile_ReadVec2(FILE *file, BLB_Vec2 *value) {
   return BLB_ObjectFile_Read(file, &value->x, sizeof(value->x), 1) || BLB_ObjectFile_Read(file, &value->y, sizeof(value->y), 1);
 }
 
-static int BLB_ObjectFile_WriteVec3(FILE *file, HMM_Vec3 value) {
+static int BLB_ObjectFile_WriteVec3(FILE *file, BLB_Vec3 value) {
   return BLB_ObjectFile_Write(file, &value.x, sizeof(value.x), 1) || BLB_ObjectFile_Write(file, &value.y, sizeof(value.y), 1) ||
          BLB_ObjectFile_Write(file, &value.z, sizeof(value.z), 1);
 }
 
-static int BLB_ObjectFile_ReadVec3(FILE *file, HMM_Vec3 *value) {
+static int BLB_ObjectFile_ReadVec3(FILE *file, BLB_Vec3 *value) {
   return BLB_ObjectFile_Read(file, &value->x, sizeof(value->x), 1) || BLB_ObjectFile_Read(file, &value->y, sizeof(value->y), 1) ||
          BLB_ObjectFile_Read(file, &value->z, sizeof(value->z), 1);
 }
 
-static int BLB_ObjectFile_WriteQuat(FILE *file, HMM_Quat value) {
+static int BLB_ObjectFile_WriteQuat(FILE *file, BLB_Quat value) {
   return BLB_ObjectFile_Write(file, &value.x, sizeof(value.x), 1) || BLB_ObjectFile_Write(file, &value.y, sizeof(value.y), 1) ||
          BLB_ObjectFile_Write(file, &value.z, sizeof(value.z), 1) || BLB_ObjectFile_Write(file, &value.w, sizeof(value.w), 1);
 }
 
-static int BLB_ObjectFile_ReadQuat(FILE *file, HMM_Quat *value) {
+static int BLB_ObjectFile_ReadQuat(FILE *file, BLB_Quat *value) {
   return BLB_ObjectFile_Read(file, &value->x, sizeof(value->x), 1) || BLB_ObjectFile_Read(file, &value->y, sizeof(value->y), 1) ||
          BLB_ObjectFile_Read(file, &value->z, sizeof(value->z), 1) || BLB_ObjectFile_Read(file, &value->w, sizeof(value->w), 1);
 }
@@ -342,11 +343,13 @@ static int BLB_ObjectFile_ReadTexture(FILE *file, BLB_Texture **out_texture) {
   if ((size_t)width > SIZE_MAX / (size_t)height)
     return -1;
   size_t texels = (size_t)width * (size_t)height;
+
   if (type == BLB_TEXTURE_3D) {
     if ((size_t)depth > SIZE_MAX / texels)
       return -1;
     texels *= (size_t)depth;
   }
+
   if (texels > SIZE_MAX / 4u || pixel_size != texels * 4u)
     return -1;
 
@@ -358,6 +361,7 @@ static int BLB_ObjectFile_ReadTexture(FILE *file, BLB_Texture **out_texture) {
 
     if (BLB_ObjectFile_Read(file, pixels, 1, pixel_size) != 0) {
       free(pixels);
+
       return -1;
     }
   }
@@ -600,6 +604,7 @@ static int BLB_ObjectFile_ReadMaterial(FILE *file, BLB_Material **out_material) 
   return 0;
 error:
   BLB_Material_Release(material);
+
   return -1;
 }
 
@@ -654,6 +659,7 @@ static int BLB_ObjectFile_ReadMesh(FILE *file, Mesh *mesh) {
   return 0;
 error:
   BLB_ObjectFile_DestroyMesh(mesh);
+
   return -1;
 }
 
@@ -721,6 +727,7 @@ error:
   free(polygon->uvs);
   free(polygon->indices);
   free(polygon);
+
   return -1;
 }
 
@@ -781,6 +788,7 @@ error:
   free(polygon->uvs);
   free(polygon->indices);
   free(polygon);
+
   return -1;
 }
 
@@ -885,14 +893,14 @@ static int BLB_ObjectFile_WritePhysicsShape3D(FILE *file, const BLB_Physics3DSha
 
   switch (shape->type) {
   case BLB_PHYSICS3D_SHAPE_BOX:
-    return BLB_ObjectFile_WriteVec3(file, shape->data.box.half_extents);
+    return BLB_ObjectFile_WriteVec3(file, shape->data.box.scale);
 
   case BLB_PHYSICS3D_SHAPE_SPHERE:
     return BLB_ObjectFile_Write(file, &shape->data.sphere.radius, sizeof(float), 1);
 
   case BLB_PHYSICS3D_SHAPE_CAPSULE:
     return BLB_ObjectFile_Write(file, &shape->data.capsule.radius, sizeof(float), 1) ||
-           BLB_ObjectFile_Write(file, &shape->data.capsule.half_height, sizeof(float), 1);
+           BLB_ObjectFile_Write(file, &shape->data.capsule.height, sizeof(float), 1);
 
   case BLB_PHYSICS3D_SHAPE_PLANE:
     return BLB_ObjectFile_WriteVec3(file, shape->data.plane.normal) || BLB_ObjectFile_Write(file, &shape->data.plane.distance, sizeof(float), 1);
@@ -906,11 +914,15 @@ static int BLB_ObjectFile_WritePhysicsShape3D(FILE *file, const BLB_Physics3DSha
                                   sizeof(*shape->data.triangle_mesh.vertices)) != 0)
       return -1;
 
-    return BLB_ObjectFile_WriteArray(file, shape->data.triangle_mesh.indices, shape->data.triangle_mesh.index_count,
-                                     sizeof(*shape->data.triangle_mesh.indices));
+    if (BLB_ObjectFile_WriteArray(file, shape->data.triangle_mesh.indices, shape->data.triangle_mesh.index_count,
+                                  sizeof(*shape->data.triangle_mesh.indices)) != 0)
+      return -1;
+
+    return BLB_ObjectFile_WriteArray(file, &shape->data.triangle_mesh.scale, sizeof(shape->data.triangle_mesh.scale), 1);
 
   case BLB_PHYSICS3D_SHAPE_COMPOUND:
     BLB_ObjectFile_Error("compound 3D physics shape is not supported", NULL);
+
     return -1;
 
   default:
@@ -933,14 +945,14 @@ static int BLB_ObjectFile_ReadPhysicsShape3D(FILE *file, BLB_Physics3DShape *sha
 
   switch (shape->type) {
   case BLB_PHYSICS3D_SHAPE_BOX:
-    return BLB_ObjectFile_ReadVec3(file, &shape->data.box.half_extents);
+    return BLB_ObjectFile_ReadVec3(file, &shape->data.box.scale);
 
   case BLB_PHYSICS3D_SHAPE_SPHERE:
     return BLB_ObjectFile_Read(file, &shape->data.sphere.radius, sizeof(float), 1);
 
   case BLB_PHYSICS3D_SHAPE_CAPSULE:
     return BLB_ObjectFile_Read(file, &shape->data.capsule.radius, sizeof(float), 1) ||
-           BLB_ObjectFile_Read(file, &shape->data.capsule.half_height, sizeof(float), 1);
+           BLB_ObjectFile_Read(file, &shape->data.capsule.height, sizeof(float), 1);
 
   case BLB_PHYSICS3D_SHAPE_PLANE:
     return BLB_ObjectFile_ReadVec3(file, &shape->data.plane.normal) || BLB_ObjectFile_Read(file, &shape->data.plane.distance, sizeof(float), 1);
@@ -999,14 +1011,12 @@ static int BLB_ObjectFile_WritePhysics3D(FILE *file, const BLB_Object3D *object)
   if (BLB_ObjectFile_WriteBool(file, collider_present) != 0)
     return -1;
 
-  BLB_RigidBody3D *body = (BLB_RigidBody3D *)object->rigid_body;
-
-  uint32_t body_type = (uint32_t)BLB_Physics3D_BodyGetType(body);
-  bool body_active = BLB_Physics3D_BodyIsActive(body);
-  HMM_Vec3 body_position = BLB_Physics3D_BodyGetPosition(body);
-  HMM_Quat body_rotation = BLB_Physics3D_BodyGetRotation(body);
-  HMM_Vec3 body_velocity = BLB_Physics3D_BodyGetVelocity(body);
-  HMM_Vec3 body_angular_velocity = BLB_Physics3D_BodyGetAngularVelocity(body);
+  uint32_t body_type = (uint32_t)BLB_Physics3D_BodyGetType(object);
+  bool body_active = BLB_Physics3D_BodyIsActive(object);
+  BLB_Vec3 body_position = BLB_Physics3D_BodyGetPosition(object);
+  BLB_Quat body_rotation = BLB_Physics3D_BodyGetRotation(object);
+  BLB_Vec3 body_velocity = BLB_Physics3D_BodyGetVelocity(object);
+  BLB_Vec3 body_angular_velocity = BLB_Physics3D_BodyGetAngularVelocity(object);
 
   if (BLB_ObjectFile_Write(file, &body_type, sizeof(body_type), 1) != 0 || BLB_ObjectFile_WriteBool(file, body_active) != 0 ||
       BLB_ObjectFile_WriteVec3(file, body_position) != 0 || BLB_ObjectFile_WriteQuat(file, body_rotation) != 0 ||
@@ -1016,18 +1026,17 @@ static int BLB_ObjectFile_WritePhysics3D(FILE *file, const BLB_Object3D *object)
   if (!collider_present)
     return 0;
 
-  BLB_Collider3D *collider = (BLB_Collider3D *)object->collider;
-  const BLB_Physics3DShape *shape = BLB_Physics3D_ColliderGetShape(collider);
+  const BLB_Physics3DShape *shape = BLB_Physics3D_ColliderGetShape(object);
 
   if (!shape)
     return -1;
 
-  BLB_PhysicsFilter filter = BLB_Physics3D_ColliderGetFilter(collider);
-  float density = BLB_Physics3D_ColliderGetDensity(collider);
-  float friction = BLB_Physics3D_ColliderGetFriction(collider);
-  float restitution = BLB_Physics3D_ColliderGetRestitution(collider);
-  bool trigger = BLB_Physics3D_ColliderIsTrigger(collider);
-  bool active = BLB_Physics3D_ColliderIsActive(collider);
+  BLB_PhysicsFilter filter = BLB_Physics3D_ColliderGetFilter(object);
+  float density = BLB_Physics3D_ColliderGetDensity(object);
+  float friction = BLB_Physics3D_ColliderGetFriction(object);
+  float restitution = BLB_Physics3D_ColliderGetRestitution(object);
+  bool trigger = BLB_Physics3D_ColliderIsTrigger(object);
+  bool active = BLB_Physics3D_ColliderIsActive(object);
 
   if (BLB_ObjectFile_WritePhysicsShape3D(file, shape) != 0 || BLB_ObjectFile_Write(file, &filter, sizeof(filter), 1) != 0 ||
       BLB_ObjectFile_Write(file, &density, sizeof(density), 1) != 0 || BLB_ObjectFile_Write(file, &friction, sizeof(friction), 1) != 0 ||
@@ -1043,10 +1052,10 @@ static int BLB_ObjectFile_ReadPhysics3D(FILE *file, BLB_Object3D *object, BLB_Sc
   bool collider_present;
   uint32_t body_type;
   bool body_active;
-  HMM_Vec3 body_position;
-  HMM_Quat body_rotation;
-  HMM_Vec3 body_velocity;
-  HMM_Vec3 body_angular_velocity;
+  BLB_Vec3 body_position;
+  BLB_Quat body_rotation;
+  BLB_Vec3 body_velocity;
+  BLB_Vec3 body_angular_velocity;
   BLB_Physics3DShape shape;
   BLB_PhysicsFilter filter;
   float density;
@@ -1080,6 +1089,7 @@ static int BLB_ObjectFile_ReadPhysics3D(FILE *file, BLB_Object3D *object, BLB_Sc
         BLB_ObjectFile_Read(file, &friction, sizeof(friction), 1) != 0 || BLB_ObjectFile_Read(file, &restitution, sizeof(restitution), 1) != 0 ||
         BLB_ObjectFile_ReadBool(file, &trigger) != 0 || BLB_ObjectFile_ReadBool(file, &collider_active) != 0) {
       BLB_ObjectFile_DestroyPhysicsShape3D(&shape);
+
       return -1;
     }
   }
@@ -1087,95 +1097,60 @@ static int BLB_ObjectFile_ReadPhysics3D(FILE *file, BLB_Object3D *object, BLB_Sc
   if (!scene) {
     BLB_ObjectFile_DestroyPhysicsShape3D(&shape);
     BLB_ObjectFile_Log("LOAD", "physics", 0);
+
     return 0;
   }
 
   if (!scene->physics_world3d) {
     BLB_ObjectFile_DestroyPhysicsShape3D(&shape);
     BLB_ObjectFile_Error("scene has no 3D physics world", NULL);
+
     return -1;
   }
 
-  BLB_RigidBody3D *body = BLB_Physics3D_BodyCreate(scene->physics_world3d, (BLB_Physics3DBodyType)body_type);
+  BLB_Physics3D_SetBody(scene->physics_world3d, object, (BLB_Physics3DBodyType)body_type);
+  BLB_RigidBody3D *body = BLB_Physics3D_GetBody(object);
 
   if (!body) {
     BLB_ObjectFile_DestroyPhysicsShape3D(&shape);
+
     return -1;
   }
 
-  BLB_Physics3D_BodySetPosition(body, body_position);
-  BLB_Physics3D_BodySetRotation(body, body_rotation);
-  BLB_Physics3D_BodySetVelocity(body, body_velocity);
-  BLB_Physics3D_BodySetAngularVelocity(body, body_angular_velocity);
-  BLB_Physics3D_BodySetActive(body, body_active);
+  BLB_Physics3D_BodySetPosition(object, body_position);
+  BLB_Physics3D_BodySetRotation(object, body_rotation);
+  BLB_Physics3D_BodySetVelocity(object, body_velocity);
+  BLB_Physics3D_BodySetAngularVelocity(object, body_angular_velocity);
+  BLB_Physics3D_BodySetActive(object, body_active);
 
-  object->rigid_body = (BLB_RigidBody *)body;
+  object->rigid_body = (BLB_RigidBody3D *)body;
 
   if (!collider_present) {
     BLB_ObjectFile_DestroyPhysicsShape3D(&shape);
+
     return 0;
   }
 
-  BLB_Collider3D *collider = BLB_Physics3D_ColliderCreate(body, &shape);
+  BLB_Physics3D_SetCollider(object, &shape);
+  BLB_Collider3D *collider = BLB_Physics3D_GetCollider(object);
 
   BLB_ObjectFile_DestroyPhysicsShape3D(&shape);
 
   if (!collider) {
-    BLB_Physics3D_BodyDestroy(scene->physics_world3d, body);
+    BLB_Physics3D_BodyDestroy(scene->physics_world3d, object);
     object->rigid_body = NULL;
+
     return -1;
   }
 
-  BLB_Physics3D_ColliderSetFilter(collider, filter);
-  BLB_Physics3D_ColliderSetDensity(collider, density);
-  BLB_Physics3D_ColliderSetFriction(collider, friction);
-  BLB_Physics3D_ColliderSetRestitution(collider, restitution);
-  BLB_Physics3D_ColliderSetTrigger(collider, trigger);
-  BLB_Physics3D_ColliderSetActive(collider, collider_active);
+  BLB_Physics3D_ColliderSetFilter(object, filter);
+  BLB_Physics3D_ColliderSetDensity(object, density);
+  BLB_Physics3D_ColliderSetFriction(object, friction);
+  BLB_Physics3D_ColliderSetRestitution(object, restitution);
+  BLB_Physics3D_ColliderSetTrigger(object, trigger);
+  BLB_Physics3D_ColliderSetActive(object, collider_active);
 
-  object->collider = (BLB_Collider *)collider;
-
-  return 0;
-}
-
-static int BLB_ObjectFile_Write3DData(FILE *file, const BLB_Object3D *object) {
-  uint64_t entity_id = (uint64_t)object->entity_id;
-  uint64_t component_mask = (uint64_t)object->component_mask;
-  uint32_t type = (uint32_t)object->type;
-  uint32_t render_mode = (uint32_t)object->render_mode;
-
-  if (BLB_ObjectFile_WriteU64(file, entity_id) != 0 || BLB_ObjectFile_WriteU64(file, component_mask) != 0 ||
-      BLB_ObjectFile_Write(file, &type, sizeof(type), 1) != 0 || BLB_ObjectFile_WriteU64(file, object->geometry_id) != 0 ||
-      BLB_ObjectFile_WriteVec3(file, object->position) != 0 || BLB_ObjectFile_WriteVec3(file, object->rotation) != 0 ||
-      BLB_ObjectFile_WriteVec3(file, object->scale) != 0 || BLB_ObjectFile_Write(file, &render_mode, sizeof(render_mode), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &object->color, sizeof(object->color), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &object->glow, sizeof(object->glow), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &object->emission, sizeof(object->emission), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_WriteBool(file, object->visible) != 0 ||
-      BLB_ObjectFile_WriteBool(file, object->camera_attached) != 0 || BLB_ObjectFile_WriteBool(file, object->delta_time != NULL) != 0)
-    return -1;
-
-  if (object->delta_time && BLB_ObjectFile_Write(file, object->delta_time, sizeof(*object->delta_time), 1) != 0)
-    return -1;
-
-  if (BLB_ObjectFile_WriteObjectID(file, object->id) != 0)
-    return -1;
-
-  if (BLB_ObjectFile_WriteMaterial(file, object->material) != 0)
-    return -1;
-
-  if (BLB_ObjectFile_WriteTexture(file, object->texture) != 0)
-    return -1;
-
-  if (BLB_ObjectFile_WritePolygon3D(file, object->polygon) != 0)
-    return -1;
-
-  if (BLB_ObjectFile_WriteMesh(file, &object->mesh) != 0)
-    return -1;
-
-  if (BLB_ObjectFile_WritePhysics3D(file, object) != 0)
-    return -1;
+  object->collider = (BLB_Collider3D *)collider;
 
   return 0;
 }
@@ -1191,15 +1166,15 @@ static int BLB_ObjectFile_Read3DData(FILE *file, BLB_Object3D *object, BLB_Scene
       BLB_ObjectFile_Read(file, &type, sizeof(type), 1) != 0 || BLB_ObjectFile_ReadU64(file, &object->geometry_id) != 0 ||
       BLB_ObjectFile_ReadVec3(file, &object->position) != 0 || BLB_ObjectFile_ReadVec3(file, &object->rotation) != 0 ||
       BLB_ObjectFile_ReadVec3(file, &object->scale) != 0 || BLB_ObjectFile_Read(file, &render_mode, sizeof(render_mode), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->color, sizeof(object->color), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->glow, sizeof(object->glow), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->emission, sizeof(object->emission), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &object->color, sizeof(object->color), 1) != 0 || BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_ReadBool(file, &object->visible) != 0)
     return -1;
 
   if (version >= 2 && BLB_ObjectFile_ReadBool(file, &object->camera_attached) != 0)
     return -1;
+
   if (BLB_ObjectFile_ReadBool(file, &delta_time_present) != 0)
     return -1;
 
@@ -1212,12 +1187,12 @@ static int BLB_ObjectFile_Read3DData(FILE *file, BLB_Object3D *object, BLB_Scene
   object->render_mode = (BLB_RenderMode)render_mode;
 
   if (delta_time_present) {
-    object->delta_time = malloc(sizeof(*object->delta_time));
+    object->delta_time = 1.0f / 60.0f;
 
     if (!object->delta_time)
       return -1;
 
-    if (BLB_ObjectFile_Read(file, object->delta_time, sizeof(*object->delta_time), 1) != 0)
+    if (BLB_ObjectFile_Read(file, &object->delta_time, sizeof(object->delta_time), 1) != 0)
       return -1;
   }
 
@@ -1245,11 +1220,13 @@ static int BLB_ObjectFile_Read3DData(FILE *file, BLB_Object3D *object, BLB_Scene
 int BLB_Object3D_Save(const BLB_Object3D *object, const char *path) {
   if (!object || !path) {
     BLB_ObjectFile_Error("invalid arguments to BLB_Object3D_Save", path);
+
     return -1;
   }
 
   if (BLB_ObjectFile_CheckExtension(path, ".b3o") != 0) {
     BLB_ObjectFile_Error("invalid 3D object extension", path);
+
     return -1;
   }
 
@@ -1268,6 +1245,7 @@ int BLB_Object3D_Save(const BLB_Object3D *object, const char *path) {
   if (!file) {
     BLB_ObjectFile_Error(strerror(errno), temp_path);
     free(temp_path);
+
     return -1;
   }
 
@@ -1287,19 +1265,20 @@ int BLB_Object3D_Save(const BLB_Object3D *object, const char *path) {
     result |= BLB_ObjectFile_WriteVec3(file, object->scale);
     result |= BLB_ObjectFile_Write(file, &render_mode, sizeof(render_mode), 1);
     result |= BLB_ObjectFile_Write(file, &object->color, sizeof(object->color), 1);
-    result |= BLB_ObjectFile_Write(file, &object->glow, sizeof(object->glow), 1);
-    result |= BLB_ObjectFile_Write(file, &object->emission, sizeof(object->emission), 1);
+    /* Preserve the two legacy glow/emission slots consumed by the reader. */
+    result |= BLB_ObjectFile_Write(file, &(float){0.0f}, sizeof(float), 1);
+    result |= BLB_ObjectFile_Write(file, &(float){0.0f}, sizeof(float), 1);
     result |= BLB_ObjectFile_Write(file, &object->roundness, sizeof(object->roundness), 1);
     result |= BLB_ObjectFile_Write(file, &object->layer, sizeof(object->layer), 1);
     result |= BLB_ObjectFile_WriteBool(file, object->visible);
     result |= BLB_ObjectFile_WriteBool(file, object->camera_attached);
-    result |= BLB_ObjectFile_WriteBool(file, object->delta_time != NULL);
+    result |= BLB_ObjectFile_WriteBool(file, object->delta_time != 0);
 
     BLB_ObjectFile_Log("SAVE", "core", result);
   }
 
   if (result == 0 && object->delta_time) {
-    result = BLB_ObjectFile_Write(file, object->delta_time, sizeof(*object->delta_time), 1);
+    result = BLB_ObjectFile_Write(file, &object->delta_time, sizeof(object->delta_time), 1);
     BLB_ObjectFile_Log("SAVE", "delta_time", result);
   }
 
@@ -1340,6 +1319,7 @@ int BLB_Object3D_Save(const BLB_Object3D *object, const char *path) {
     remove(temp_path);
     BLB_ObjectFile_Error("failed to save 3D object", path);
     free(temp_path);
+
     return -1;
   }
 
@@ -1347,12 +1327,14 @@ int BLB_Object3D_Save(const BLB_Object3D *object, const char *path) {
     BLB_ObjectFile_Error(strerror(errno), path);
     remove(temp_path);
     free(temp_path);
+
     return -1;
   }
 
   free(temp_path);
 
   BLB_ObjectFile_Log("SAVE", "complete", 0);
+
   return 0;
 }
 
@@ -1362,6 +1344,7 @@ BLB_Object3D *BLB_Object3D_Load(const char *path, BLB_Scene *scene) {
 
   if (BLB_ObjectFile_CheckExtension(path, ".b3o") != 0) {
     BLB_ObjectFile_Error("invalid 3D object extension", path);
+
     return NULL;
   }
 
@@ -1369,6 +1352,7 @@ BLB_Object3D *BLB_Object3D_Load(const char *path, BLB_Scene *scene) {
 
   if (!file) {
     BLB_ObjectFile_Error(strerror(errno), path);
+
     return NULL;
   }
 
@@ -1387,6 +1371,7 @@ BLB_Object3D *BLB_Object3D_Load(const char *path, BLB_Scene *scene) {
       BLB_ObjectFile_Error("failed to read 3D object header", path);
 
     fclose(file);
+
     return NULL;
   }
 
@@ -1394,6 +1379,7 @@ BLB_Object3D *BLB_Object3D_Load(const char *path, BLB_Scene *scene) {
 
   if (!object) {
     fclose(file);
+
     return NULL;
   }
 
@@ -1409,7 +1395,7 @@ BLB_Object3D *BLB_Object3D_Load(const char *path, BLB_Scene *scene) {
 
   if (result != 0) {
     if (object->rigid_body && scene && scene->physics_world3d)
-      BLB_Physics3D_BodyDestroy(scene->physics_world3d, (BLB_RigidBody3D *)object->rigid_body);
+      BLB_Physics3D_BodyDestroy(scene->physics_world3d, object);
 
     if (object->material)
       BLB_Material_Release(object->material);
@@ -1425,14 +1411,15 @@ BLB_Object3D *BLB_Object3D_Load(const char *path, BLB_Scene *scene) {
     if (object->id && !BLB_ObjectFile_IsGlobalObjectID(object->id))
       free(object->id);
 
-    free(object->delta_time);
     free(object);
 
     BLB_ObjectFile_Error("failed to load 3D object", path);
+
     return NULL;
   }
 
   BLB_ObjectFile_Log("LOAD", "complete", 0);
+
   return object;
 }
 
@@ -1447,14 +1434,15 @@ static int BLB_ObjectFile_Write2DData(FILE *file, const BLB_Object2D *object) {
       BLB_ObjectFile_Write(file, &object->rotation, sizeof(object->rotation), 1) != 0 || BLB_ObjectFile_WriteVec2(file, object->scale) != 0 ||
       BLB_ObjectFile_Write(file, &render_mode, sizeof(render_mode), 1) != 0 ||
       BLB_ObjectFile_Write(file, &object->color, sizeof(object->color), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &object->glow, sizeof(object->glow), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &object->emission, sizeof(object->emission), 1) != 0 ||
+      /* Preserve the two legacy glow/emission slots consumed by the reader. */
+      BLB_ObjectFile_Write(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Write(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
       BLB_ObjectFile_Write(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_WriteBool(file, object->visible) != 0 ||
-      BLB_ObjectFile_WriteBool(file, object->camera_attached) != 0 || BLB_ObjectFile_WriteBool(file, object->delta_time != NULL) != 0)
+      BLB_ObjectFile_WriteBool(file, object->camera_attached) != 0 || BLB_ObjectFile_WriteBool(file, object->delta_time != 0) != 0)
     return -1;
 
-  if (object->delta_time && BLB_ObjectFile_Write(file, object->delta_time, sizeof(*object->delta_time), 1) != 0)
+  if (object->delta_time && BLB_ObjectFile_Write(file, &object->delta_time, sizeof(object->delta_time), 1) != 0)
     return -1;
 
   if (BLB_ObjectFile_WriteObjectID(file, object->id) != 0 || BLB_ObjectFile_WriteMaterial(file, object->material) != 0 ||
@@ -1476,9 +1464,8 @@ static int BLB_ObjectFile_Read2DData(FILE *file, BLB_Object2D *object, uint32_t 
       BLB_ObjectFile_Read(file, &type, sizeof(type), 1) != 0 || BLB_ObjectFile_ReadVec2(file, &object->position) != 0 ||
       BLB_ObjectFile_Read(file, &object->rotation, sizeof(object->rotation), 1) != 0 || BLB_ObjectFile_ReadVec2(file, &object->scale) != 0 ||
       BLB_ObjectFile_Read(file, &render_mode, sizeof(render_mode), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->color, sizeof(object->color), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->glow, sizeof(object->glow), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->emission, sizeof(object->emission), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &object->color, sizeof(object->color), 1) != 0 || BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_ReadBool(file, &object->visible) != 0)
     return -1;
@@ -1488,8 +1475,10 @@ static int BLB_ObjectFile_Read2DData(FILE *file, BLB_Object2D *object, uint32_t 
       return -1;
   } else {
     bool legacy_screen_space = false;
+
     if (BLB_ObjectFile_ReadBool(file, &legacy_screen_space) != 0)
       return -1;
+
     if (version >= 2 && BLB_ObjectFile_ReadBool(file, &object->camera_attached) != 0)
       return -1;
     object->camera_attached = object->camera_attached || legacy_screen_space;
@@ -1507,12 +1496,12 @@ static int BLB_ObjectFile_Read2DData(FILE *file, BLB_Object2D *object, uint32_t 
   object->render_mode = (BLB_RenderMode)render_mode;
 
   if (delta_time_present) {
-    object->delta_time = malloc(sizeof(*object->delta_time));
+    object->delta_time = 1.0f / 60.0f;
 
     if (!object->delta_time)
       return -1;
 
-    if (BLB_ObjectFile_Read(file, object->delta_time, sizeof(*object->delta_time), 1) != 0)
+    if (BLB_ObjectFile_Read(file, &object->delta_time, sizeof(object->delta_time), 1) != 0)
       return -1;
   }
 
@@ -1527,11 +1516,13 @@ static int BLB_ObjectFile_Read2DData(FILE *file, BLB_Object2D *object, uint32_t 
 int BLB_Object2D_Save(const BLB_Object2D *object, const char *path) {
   if (!object || !path) {
     BLB_ObjectFile_Error("invalid arguments to BLB_Object2D_Save", path);
+
     return -1;
   }
 
   if (BLB_ObjectFile_CheckExtension(path, ".b2o") != 0) {
     BLB_ObjectFile_Error("invalid 2D object extension", path);
+
     return -1;
   }
 
@@ -1548,6 +1539,7 @@ int BLB_Object2D_Save(const BLB_Object2D *object, const char *path) {
   if (!file) {
     BLB_ObjectFile_Error(strerror(errno), temp_path);
     free(temp_path);
+
     return -1;
   }
 
@@ -1566,6 +1558,7 @@ int BLB_Object2D_Save(const BLB_Object2D *object, const char *path) {
     remove(temp_path);
     free(temp_path);
     BLB_ObjectFile_Error("failed to save 2D object", path);
+
     return -1;
   }
 
@@ -1573,12 +1566,14 @@ int BLB_Object2D_Save(const BLB_Object2D *object, const char *path) {
     BLB_ObjectFile_Error(strerror(errno), path);
     remove(temp_path);
     free(temp_path);
+
     return -1;
   }
 
   free(temp_path);
 
   BLB_ObjectFile_Log("SAVE", "complete", 0);
+
   return 0;
 }
 
@@ -1590,6 +1585,7 @@ BLB_Object2D *BLB_Object2D_Load(const char *path, BLB_Scene *scene) {
 
   if (BLB_ObjectFile_CheckExtension(path, ".b2o") != 0) {
     BLB_ObjectFile_Error("invalid 2D object extension", path);
+
     return NULL;
   }
 
@@ -1597,6 +1593,7 @@ BLB_Object2D *BLB_Object2D_Load(const char *path, BLB_Scene *scene) {
 
   if (!file) {
     BLB_ObjectFile_Error(strerror(errno), path);
+
     return NULL;
   }
 
@@ -1615,6 +1612,7 @@ BLB_Object2D *BLB_Object2D_Load(const char *path, BLB_Scene *scene) {
       BLB_ObjectFile_Error("failed to read 2D object header", path);
 
     fclose(file);
+
     return NULL;
   }
 
@@ -1622,6 +1620,7 @@ BLB_Object2D *BLB_Object2D_Load(const char *path, BLB_Scene *scene) {
 
   if (!object) {
     fclose(file);
+
     return NULL;
   }
 
@@ -1658,13 +1657,14 @@ BLB_Object2D *BLB_Object2D_Load(const char *path, BLB_Scene *scene) {
     if (object->id && !BLB_ObjectFile_IsGlobalObjectID(object->id))
       free(object->id);
 
-    free(object->delta_time);
     free(object);
 
     BLB_ObjectFile_Error("failed to load 2D object", path);
+
     return NULL;
   }
 
   BLB_ObjectFile_Log("LOAD", "complete", 0);
+
   return object;
 }

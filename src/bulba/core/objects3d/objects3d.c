@@ -1,7 +1,13 @@
 #include "bulba/core/objects3d/objects3d.h"
+
+#include "bulba/core/math3v/vec_math.h"
+#include "bulba/core/math3v/math3v.h"
+#include "bulba/core/physics/physics3d/physics3d.h"
 #include "bulba/core/render/material.h"
-#include "bulba/core/render/object_aggregation.h"
+#include "bulba/core/render/optimization/object_aggregation.h"
 #include "bulba/core/render/texture.h"
+#include "bulba/core/utils/object.h"
+
 #include <ctype.h>
 #include <math.h>
 #include <stdio.h>
@@ -13,6 +19,7 @@ static void mark_transform_changed(BLB_Object3D *object) {
     return;
 
   ++object->transform_revision;
+
   if (object->transform_revision == 0)
     object->transform_revision = 1;
 
@@ -25,76 +32,129 @@ static void mark_transform_changed(BLB_Object3D *object) {
     object->optimization_cluster->dirty = true;
 }
 
-void BLB_Object3D_Move(BLB_Object3D *object, HMM_Vec3 velocity) {
-  if (!object)
+static void apply_position(BLB_Object3D *object, BLB_Vec3 value, BLB_TransformType operation) {
+  if (!object || !isfinite(value.x) || !isfinite(value.y) || !isfinite(value.z))
+    return;
+
+  object->position = value;
+  mark_transform_changed(object);
+
+  if (object->rigid_body && BLB_PhysicsSyncToBody(object->physics_sync_mode[operation])) {
+    b3Body_SetTransform(object->rigid_body->handle, (b3Pos){value.x, value.y, value.z}, b3Body_GetRotation(object->rigid_body->handle));
+  }
+}
+
+void BLB_Object3D_Move(BLB_Object3D *object, BLB_Vec3 velocity) {
+  if (!object || object->delta_time == 0.0f)
     return;
 
   if (object->delta_time)
-    velocity = HMM_MulV3F(velocity, *object->delta_time);
+    velocity = BLB_MulV3F(velocity, object->delta_time);
 
-  object->position = HMM_AddV3(object->position, velocity);
-  mark_transform_changed(object);
+  apply_position(object, BLB_AddV3(object->position, velocity), BLB_TRANSFORM_TYPE_MOVE);
 }
 
-void BLB_Object3D_SetPosition(BLB_Object3D *object, HMM_Vec3 position) {
-  if (!object)
+void BLB_Object3D_SetPosition(BLB_Object3D *object, BLB_Vec3 value) { apply_position(object, value, BLB_TRANSFORM_TYPE_SET_POSITION); }
+
+static void apply_rotation(BLB_Object3D *object, BLB_Vec3 value, BLB_TransformType operation) {
+  if (!object || !isfinite(value.x) || !isfinite(value.y) || !isfinite(value.z))
     return;
+
+  object->rotation = value;
+  mark_transform_changed(object);
+
+  if (object->rigid_body && BLB_PhysicsSyncToBody(object->physics_sync_mode[operation])) {
+    b3Body_SetTransform(object->rigid_body->handle, b3Body_GetPosition(object->rigid_body->handle),
+                        blb_to_b3_quat(BLB_QuatFromEuler(BLB_MulV3F(value, (float)BLB_PI / 180.0f))));
+  }
+}
+
+void BLB_Object3D_Rotate(BLB_Object3D *object, BLB_Vec3 velocity) {
+  if (!object || object->delta_time == 0.0f)
+    return;
+
+  if (object->delta_time)
+    velocity = BLB_MulV3F(velocity, object->delta_time);
+
+  apply_rotation(object, BLB_AddV3(object->rotation, velocity), BLB_TRANSFORM_TYPE_ROTATE);
+}
+
+void BLB_Object3D_SetRotation(BLB_Object3D *object, BLB_Vec3 value) { apply_rotation(object, value, BLB_TRANSFORM_TYPE_SET_ROTATION); }
+
+static void apply_scale(BLB_Object3D *object, BLB_Vec3 value, BLB_TransformType operation) {
+  if (!object || !isfinite(value.x) || !isfinite(value.y) || !isfinite(value.z))
+    return;
+
+  object->scale = value;
+  mark_transform_changed(object);
+
+  if (object->rigid_body && BLB_PhysicsSyncToBody(object->physics_sync_mode[operation])) {
+    BLB_Physics3D_ColliderSetScale(object, value);
+  }
+}
+
+void BLB_Object3D_Scale(BLB_Object3D *object, BLB_Vec3 velocity) {
+  if (!object || object->delta_time == 0.0f)
+    return;
+
+  if (object->delta_time)
+    velocity = BLB_MulV3F(velocity, object->delta_time);
+
+  apply_scale(object, BLB_AddV3(object->scale, velocity), BLB_TRANSFORM_TYPE_SCALE);
+}
+
+void BLB_Object3D_SetScale(BLB_Object3D *object, BLB_Vec3 value) { apply_scale(object, value, BLB_TRANSFORM_TYPE_SET_SCALE); }
+
+void BLB_Object3D_Transform(BLB_Object3D *object, BLB_Vec3 position, BLB_Vec3 rotation, BLB_Vec3 scale) {
+  apply_position(object, position, BLB_TRANSFORM_TYPE_TRANSFORM);
+  apply_rotation(object, rotation, BLB_TRANSFORM_TYPE_TRANSFORM);
+  apply_scale(object, scale, BLB_TRANSFORM_TYPE_TRANSFORM);
+}
+
+void blb_object3d_sync_from_body(BLB_Object3D *object) {
+  if (!object || !object->rigid_body)
+    return;
+
+  BLB_Vec3 position = object->position;
+  BLB_Vec3 rotation = object->rotation;
+  BLB_Vec3 scale = object->scale;
+
+  if (BLB_PhysicsSyncToObject(object->physics_sync_mode[BLB_TRANSFORM_TYPE_SET_POSITION]))
+    position = BLB_Physics3D_BodyGetPosition(object);
+
+  if (BLB_PhysicsSyncToObject(object->physics_sync_mode[BLB_TRANSFORM_TYPE_SET_ROTATION]))
+    rotation = BLB_MulV3F(BLB_EulerFromQuat(BLB_Physics3D_BodyGetRotation(object)), 180.0f / (float)BLB_PI);
+
+  if (object->collider && BLB_PhysicsSyncToObject(object->physics_sync_mode[BLB_TRANSFORM_TYPE_SET_SCALE]))
+    scale = object->collider->sync_scale;
+
+  if (memcmp(&position, &object->position, sizeof(position)) || memcmp(&rotation, &object->rotation, sizeof(rotation)) ||
+      memcmp(&scale, &object->scale, sizeof(scale)))
+    mark_transform_changed(object);
 
   object->position = position;
-  mark_transform_changed(object);
-}
-
-void BLB_Object3D_Rotate(BLB_Object3D *object, HMM_Vec3 angular_velocity) {
-  if (!object)
-    return;
-
-  if (object->delta_time)
-    angular_velocity = HMM_MulV3F(angular_velocity, *object->delta_time);
-
-  object->rotation = HMM_AddV3(object->rotation, angular_velocity);
-  mark_transform_changed(object);
-}
-
-void BLB_Object3D_SetRotation(BLB_Object3D *object, HMM_Vec3 rotation) {
-  if (!object)
-    return;
-
-  object->rotation = rotation;
-  mark_transform_changed(object);
-}
-
-void BLB_Object3D_Scale(BLB_Object3D *object, HMM_Vec3 scale_velocity) {
-  if (!object)
-    return;
-
-  if (object->delta_time)
-    scale_velocity = HMM_MulV3F(scale_velocity, *object->delta_time);
-
-  object->scale = HMM_AddV3(object->scale, scale_velocity);
-  mark_transform_changed(object);
-}
-
-void BLB_Object3D_SetScale(BLB_Object3D *object, HMM_Vec3 scale) {
-  if (!object)
-    return;
-
-  object->scale = scale;
-  mark_transform_changed(object);
-}
-
-void BLB_Object3D_Transform(BLB_Object3D *object, HMM_Vec3 position, HMM_Vec3 rotation, HMM_Vec3 scale) {
-  if (!object)
-    return;
-
-  object->position = position;
   object->rotation = rotation;
   object->scale = scale;
-  mark_transform_changed(object);
+}
+
+void blb_object3d_sync_to_body(BLB_Object3D *object) {
+  if (!object || !object->rigid_body)
+    return;
+
+  if (object->physics_sync_mode[BLB_TRANSFORM_TYPE_SET_POSITION] == BLB_PHYSICS_SYNC_OBJECT_TO_BODY)
+    apply_position(object, object->position, BLB_TRANSFORM_TYPE_SET_POSITION);
+
+  if (object->physics_sync_mode[BLB_TRANSFORM_TYPE_SET_ROTATION] == BLB_PHYSICS_SYNC_OBJECT_TO_BODY)
+    apply_rotation(object, object->rotation, BLB_TRANSFORM_TYPE_SET_ROTATION);
+
+  if (object->physics_sync_mode[BLB_TRANSFORM_TYPE_SET_SCALE] == BLB_PHYSICS_SYNC_OBJECT_TO_BODY)
+    apply_scale(object, object->scale, BLB_TRANSFORM_TYPE_SET_SCALE);
 }
 
 void BLB_Object3D_SetCameraAttached(BLB_Object3D *object, bool attached) {
   if (!object || object->camera_attached == attached)
     return;
+
   object->camera_attached = attached;
   mark_transform_changed(object);
 }
@@ -122,11 +182,14 @@ typedef struct {
 static char *mtl_trim(char *value) {
   if (!value)
     return value;
+
   while (*value && isspace((unsigned char)*value))
     ++value;
   size_t length = strlen(value);
+
   while (length && isspace((unsigned char)value[length - 1]))
     value[--length] = '\0';
+
   return value;
 }
 
@@ -142,6 +205,7 @@ static BLB_Texture *mtl_load_texture(const char *mtl_path, const char *texture_p
     slash = backslash;
 
   bool absolute = texture_path[0] == '/' || texture_path[0] == '\\' || (strlen(texture_path) > 1 && texture_path[1] == ':');
+
   if (!absolute && slash) {
     size_t prefix = (size_t)(slash - mtl_path + 1);
 
@@ -166,6 +230,7 @@ static void mtl_apply_texture(BLB_Material *material, const char *mtl_path, cons
     return;
 
   BLB_Texture *texture = mtl_load_texture(mtl_path, texture_path);
+
   if (!texture)
     return;
 
@@ -187,24 +252,30 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
 
   while (fgets(line, sizeof(line), file)) {
     char *value = mtl_trim(line);
+
     if (!value[0] || value[0] == '#')
       continue;
 
     char *separator = value;
+
     while (*separator && !isspace((unsigned char)*separator))
       ++separator;
 
     char *argument = separator;
+
     if (*separator)
       *separator++ = '\0';
 
     argument = mtl_trim(separator);
+
     if (strcmp(value, "newmtl") == 0) {
       char *name_comment = strchr(argument, '#');
+
       if (name_comment)
         *name_comment = '\0';
 
       argument = mtl_trim(argument);
+
       if (!argument[0]) {
         current = NULL;
         continue;
@@ -216,9 +287,11 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
 
         if (!next) {
           fclose(file);
+
           for (size_t i = 0; i < material_count; ++i)
             BLB_Material_Release(materials[i].material);
           free(materials);
+
           return -1;
         }
 
@@ -230,10 +303,12 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
 
       if (!current) {
         fclose(file);
+
         for (size_t i = 0; i < material_count; ++i)
           BLB_Material_Release(materials[i].material);
 
         free(materials);
+
         return -1;
       }
 
@@ -274,6 +349,7 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
         BLB_Material_SetBaseColor(current, current->base_color[0], current->base_color[1], current->base_color[2], fminf(1.0f, fmaxf(0.0f, alpha)));
     } else if (strcmp(value, "Tr") == 0) {
       float transparency;
+
       if (sscanf(argument, "%f", &transparency) == 1)
         BLB_Material_SetBaseColor(current, current->base_color[0], current->base_color[1], current->base_color[2],
                                   1.0f - fminf(1.0f, fmaxf(0.0f, transparency)));
@@ -288,10 +364,12 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
       if (texture_name[0] == '"' || texture_name[0] == '\'') {
         char quote = *texture_name++;
         char *last = strrchr(texture_name, quote);
+
         if (last)
           *last = '\0';
       } else {
         char *comment = strchr(texture_name, '#');
+
         if (comment)
           *comment = '\0';
 
@@ -300,6 +378,7 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
 
       if (texture_name[0] == '-') {
         char *last_space = strrchr(texture_name, ' ');
+
         if (last_space)
           texture_name = mtl_trim(last_space + 1);
       }
@@ -311,18 +390,22 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
   }
 
   fclose(file);
+
   if (material_count == 0) {
     free(materials);
+
     return -1;
   }
 
   for (size_t i = 0; i < material_count; ++i) {
     mtl_apply_texture(materials[i].material, path, materials[i].texture_path);
+
     if (materials[i].material->base_color[3] < 0.999f)
       BLB_Material_SetAlphaMode(materials[i].material, BLB_ALPHA_BLEND);
   }
 
   bool matched_submesh = false;
+
   if (object->submeshes && object->submesh_count) {
     for (size_t i = 0; i < object->submesh_count; ++i) {
       BLB_Material *existing = object->submeshes[i].material;
@@ -346,6 +429,7 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
       for (size_t i = 0; i < object->submesh_count; ++i) {
         BLB_Material *existing = object->submeshes[i].material;
         BLB_Material *replacement = materials[i < material_count ? i : material_count - 1u].material;
+
         if (existing == replacement)
           continue;
 
@@ -364,6 +448,7 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
     BLB_Material_Release(materials[i].material);
 
   free(materials);
+
   return 0;
 }
 
@@ -371,17 +456,21 @@ int BLB_Object3D_SetMaterialFromFile(BLB_Object3D *object, const char *path) {
   if (!object || !path || !path[0])
     return -1;
   const char *ext = strrchr(path, '.');
+
   if (ext && strlen(ext) == 4u && tolower((unsigned char)ext[1]) == 'm' && tolower((unsigned char)ext[2]) == 't' &&
       tolower((unsigned char)ext[3]) == 'l')
     return material_load_mtl(object, path);
   BLB_Material *material = BLB_Material_Load(path, NULL, NULL, NULL, NULL);
+
   if (!material || material->domain != BLB_MATERIAL_3D) {
     if (material)
       BLB_Material_Release(material);
+
     return -1;
   }
   BLB_Object3D_SetMaterial(object, material);
   BLB_Material_Release(material);
+
   return 0;
 }
 
@@ -402,6 +491,7 @@ int BLB_Object3D_SetTexture(BLB_Object3D *object, BLB_Texture *texture) {
     BLB_Texture_Release(object->texture);
 
   object->texture = texture;
+
   return 0;
 }
 
@@ -435,11 +525,13 @@ void BLB_Object3D_SetHandler(BLB_Object3D *object, const BLB_ObjectHandler *hand
 
   if (!handler) {
     BLB_Object3D_ClearHandler(object);
+
     return;
   }
 
   if (!object->handler) {
     object->handler = malloc(sizeof(*object->handler));
+
     if (!object->handler)
       return;
   }
@@ -458,4 +550,58 @@ void BLB_Object3D_ClearHandler(BLB_Object3D *object) {
     return;
   free(object->handler);
   object->handler = NULL;
+}
+
+void BLB_Object3D_SetColor(BLB_Object3D *object, BLB_Vec4 color) {
+  if (!object)
+    return;
+
+  object->color = color;
+}
+
+void BLB_Object3D_SetRoundness(BLB_Object3D *object, float roundness) {
+  if (!object)
+    return;
+
+  object->roundness = roundness;
+}
+
+void BLB_Object3D_SetLayer(BLB_Object3D *object, unsigned short layer) {
+  if (!object)
+    return;
+
+  object->layer = layer;
+}
+
+void BLB_Object3D_SetVisible(BLB_Object3D *object, bool visible) {
+  if (!object)
+    return;
+
+  object->visible = visible;
+}
+
+void BLB_Object3D_SetLOD_Override(BLB_Object3D *object, bool override) {
+  if (!object)
+    return;
+
+  object->lod_override = override;
+}
+
+void BLB_Object3D_SetLOD_SharedCache(BLB_Object3D *object, bool shared_cache) {
+  if (!object)
+    return;
+
+  object->lod_shared_cache = shared_cache;
+}
+
+void BLB_Object3D_SetPhysicsSyncMode(BLB_Object3D *object, BLB_PhysicsSyncMode mode, BLB_TransformType operation) {
+  if (!object || operation < 0 || operation >= BLB_TRANSFORM_TYPE_COUNT || mode < BLB_PHYSICS_SYNC_NONE || mode > BLB_PHYSICS_SYNC_BIDIRECTIONAL)
+    return;
+
+  if (operation == BLB_TRANSFORM_TYPE_TRANSFORM) {
+    for (int i = 0; i < BLB_TRANSFORM_TYPE_COUNT; ++i)
+      object->physics_sync_mode[i] = mode;
+  } else {
+    object->physics_sync_mode[operation] = mode;
+  }
 }

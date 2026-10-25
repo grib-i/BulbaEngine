@@ -8,11 +8,7 @@
 #define BLB_SHADER_NAME_MAX 64
 #define BLB_SHADER_PATH_MAX 512
 
-typedef enum {
-  BLB_SHADER_SOURCE_GLSL = 0,
-  BLB_SHADER_SOURCE_SPIRV = 1,
-  BLB_SHADER_SOURCE_HLSL = 2
-} BLB_ShaderSourceType;
+typedef enum { BLB_SHADER_SOURCE_GLSL = 0, BLB_SHADER_SOURCE_SPIRV = 1, BLB_SHADER_SOURCE_HLSL = 2 } BLB_ShaderSourceType;
 
 typedef struct {
   char name[BLB_SHADER_NAME_MAX];

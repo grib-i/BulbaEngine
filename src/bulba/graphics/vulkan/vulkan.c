@@ -12,6 +12,7 @@ static int pick_device(VULKAN *v) {
     return -1;
 
   uint32_t n = 0;
+
   if (vkEnumeratePhysicalDevices(v->instance, &n, NULL) != VK_SUCCESS)
     return -1;
 
@@ -19,11 +20,13 @@ static int pick_device(VULKAN *v) {
     return -1;
 
   VkPhysicalDevice *devices = malloc(sizeof(*devices) * n);
+
   if (!devices)
     return -1;
 
   if (vkEnumeratePhysicalDevices(v->instance, &n, devices) != VK_SUCCESS) {
     free(devices);
+
     return -1;
   }
 
@@ -93,6 +96,7 @@ int VULKAN_Init(VULKAN *v, GLFWwindow *w) {
   uint32_t extension_count = 0;
 
   const char **extensions = glfwGetRequiredInstanceExtensions(&extension_count);
+
   if (!extensions || extension_count == 0)
     return fail(v, "GLFW did not provide Vulkan instance extensions");
 
@@ -122,12 +126,14 @@ int VULKAN_Init(VULKAN *v, GLFWwindow *w) {
   if (result != VK_SUCCESS) {
     fail_vk(v, "glfwCreateWindowSurface", result);
     VULKAN_Shutdown(v);
+
     return -1;
   }
 
   if (pick_device(v) != 0) {
     fail(v, "No Vulkan physical device with graphics and present support was found");
     VULKAN_Shutdown(v);
+
     return -1;
   }
 
@@ -160,6 +166,7 @@ int VULKAN_Init(VULKAN *v, GLFWwindow *w) {
   if (result != VK_SUCCESS) {
     fail_vk(v, "vkCreateDevice", result);
     VULKAN_Shutdown(v);
+
     return -1;
   }
 
@@ -170,6 +177,7 @@ int VULKAN_Init(VULKAN *v, GLFWwindow *w) {
   if (VULKAN_CreateSwapchain(v, false) != 0) {
     fail(v, "VULKAN_CreateSwapchain failed");
     VULKAN_Shutdown(v);
+
     return -1;
   }
 

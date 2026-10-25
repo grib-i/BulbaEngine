@@ -20,15 +20,19 @@ double BLB_Platform_TimeSeconds(void) {
   static LARGE_INTEGER frequency;
   static int initialized;
   LARGE_INTEGER counter;
+
   if (!initialized) {
     QueryPerformanceFrequency(&frequency);
     initialized = 1;
   }
+
   QueryPerformanceCounter(&counter);
+
   return (double)counter.QuadPart / (double)frequency.QuadPart;
 #else
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
+
   return (double)ts.tv_sec + (double)ts.tv_nsec / 1000000000.0;
 #endif
 }
@@ -39,8 +43,10 @@ void BLB_Platform_SleepSeconds(double seconds) {
 
 #ifdef _WIN32
   double milliseconds = seconds * 1000.0;
+
   if (milliseconds < 1.0)
     milliseconds = 1.0;
+
   if (milliseconds > (double)MAXDWORD)
     milliseconds = (double)MAXDWORD;
   Sleep((DWORD)(milliseconds + 0.5));
@@ -48,12 +54,15 @@ void BLB_Platform_SleepSeconds(double seconds) {
   struct timespec request;
   request.tv_sec = (time_t)seconds;
   request.tv_nsec = (long)((seconds - (double)request.tv_sec) * 1000000000.0);
+
   if (request.tv_nsec < 0)
     request.tv_nsec = 0;
+
   if (request.tv_nsec >= 1000000000L) {
     request.tv_sec++;
     request.tv_nsec -= 1000000000L;
   }
+
   while (nanosleep(&request, &request) != 0 && errno == EINTR) {
   }
 #endif
@@ -64,9 +73,12 @@ char *BLB_Platform_DuplicateString(const char *value) {
     return NULL;
   size_t size = strlen(value) + 1;
   char *copy = malloc(size);
+
   if (!copy)
     return NULL;
+
   memcpy(copy, value, size);
+
   return copy;
 }
 

@@ -101,37 +101,45 @@ int VULKAN_CreateSwapchain(VULKAN *v, bool vsync) {
     return -1;
 
   uint32_t nf = 0;
+
   if (vkGetPhysicalDeviceSurfaceFormatsKHR(v->physical_device, v->surface, &nf, NULL) != VK_SUCCESS || nf == 0)
     return -1;
 
   VkSurfaceFormatKHR *fs = malloc(sizeof(*fs) * nf);
+
   if (!fs)
     return -1;
 
   if (vkGetPhysicalDeviceSurfaceFormatsKHR(v->physical_device, v->surface, &nf, fs) != VK_SUCCESS) {
     free(fs);
+
     return -1;
   }
 
   VkSurfaceFormatKHR sf;
+
   if (choose_format_count(fs, nf, &sf) != 0) {
     free(fs);
+
     return -1;
   }
 
   free(fs);
 
   uint32_t np = 0;
+
   if (vkGetPhysicalDeviceSurfacePresentModesKHR(v->physical_device, v->surface, &np, NULL) != VK_SUCCESS || np == 0)
     return -1;
 
   VkPresentModeKHR *ps = malloc(sizeof(*ps) * np);
+
   if (!ps)
     return -1;
 
   if (vkGetPhysicalDeviceSurfacePresentModesKHR(v->physical_device, v->surface, &np, ps) != VK_SUCCESS) {
 
     free(ps);
+
     return -1;
   }
 
@@ -172,19 +180,23 @@ int VULKAN_CreateSwapchain(VULKAN *v, bool vsync) {
   if (vkGetSwapchainImagesKHR(v->device, v->swapchain, &image_count, NULL) != VK_SUCCESS || image_count == 0) {
 
     destroy_swapchain_partial(v);
+
     return -1;
   }
 
   v->swapchain_image_count = image_count;
   v->swapchain_images = calloc(image_count, sizeof(VkImage));
   v->swapchain_image_views = calloc(image_count, sizeof(VkImageView));
+
   if (!v->swapchain_images || !v->swapchain_image_views) {
     destroy_swapchain_partial(v);
+
     return -1;
   }
 
   if (vkGetSwapchainImagesKHR(v->device, v->swapchain, &image_count, v->swapchain_images) != VK_SUCCESS) {
     destroy_swapchain_partial(v);
+
     return -1;
   }
 
@@ -209,6 +221,7 @@ int VULKAN_CreateSwapchain(VULKAN *v, bool vsync) {
     if (vkCreateImageView(v->device, &view, NULL, &v->swapchain_image_views[i]) != VK_SUCCESS) {
 
       destroy_swapchain_partial(v);
+
       return -1;
     }
   }

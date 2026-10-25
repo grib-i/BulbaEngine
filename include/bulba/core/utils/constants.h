@@ -1,125 +1,109 @@
 #ifndef BLB_CONSTANTS_H
 #define BLB_CONSTANTS_H
 
-#include "bulba/core/math3v/HandmadeMath.h"
-#include <stdbool.h>
-#include <stdint.h>
+#include <math.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* Math */
 
-// Math
-extern const float BLB_PI;
-extern const float BLB_TAU;
-extern const float BLB_HALF_PI;
-extern const float BLB_QUARTER_PI;
+#define BLB_PI 3.14159265358979323846
+#define BLB_PI32 3.14159265359f
 
-extern const float BLB_E;
-extern const float BLB_SQRT2;
-extern const float BLB_SQRT3;
+#define BLB_DEG180 180.0
+#define BLB_DEG18032 180.0f
 
-extern const float BLB_DEG2RAD;
-extern const float BLB_RAD2DEG;
+#define BLB_TURNHALF 0.5
+#define BLB_TURNHALF32 0.5f
 
-extern const float BLB_EPSILON;
-extern const float BLB_EPSILON_SMALL;
-extern const float BLB_EPSILON_LARGE;
+#define BLB_TAU (6.28318530717958647692f)
+#define BLB_HALF_PI (1.57079632679489661923f)
+#define BLB_QUARTER_PI (0.78539816339744830962f)
 
-extern const float BLB_INFINITY;
-extern const float BLB_NEGATIVE_INFINITY;
+#define BLB_E (2.71828182845904523536f)
+#define BLB_SQRT2 (1.41421356237309504880f)
+#define BLB_SQRT3 (1.73205080756887729353f)
 
-// Time
-extern const float BLB_DEFAULT_FPS;
-extern const float BLB_DEFAULT_DELTA_TIME;
+#define BLB_DEG2RAD (0.01745329251994329577f)
+#define BLB_RAD2DEG (57.2957795130823208768f)
 
-// Physics
-extern const float BLB_GRAVITY;
-extern const float BLB_GRAVITY_X;
-extern const float BLB_GRAVITY_Y;
-extern const float BLB_GRAVITY_Z;
+#define BLB_EPSILON (1e-6f)
+#define BLB_EPSILON_SMALL (1e-8f)
+#define BLB_EPSILON_LARGE (1e-4f)
 
-extern const float BLB_DEFAULT_PHYSICS_FPS;
-extern const float BLB_DEFAULT_PHYSICS_DELTA_TIME;
+#define BLB_INFINITY (INFINITY)
+#define BLB_NEGATIVE_INFINITY (-INFINITY)
 
-extern const float BLB_DEFAULT_FRICTION;
-extern const float BLB_DEFAULT_RESTITUTION;
-extern const float BLB_DEFAULT_LINEAR_DAMPING;
-extern const float BLB_DEFAULT_ANGULAR_DAMPING;
+/* Time */
+#define BLB_DEFAULT_FPS (60.0f)
+#define BLB_DEFAULT_DELTA_TIME (1.0f / 60.0f)
 
-// Transform
-extern const float BLB_DEFAULT_POSITION;
-extern const float BLB_DEFAULT_ROTATION;
-extern const float BLB_DEFAULT_SCALE;
+/* Physics */
+#define BLB_GRAVITY (9.81f)
 
-// Camera
-extern const float BLB_DEFAULT_FOV;
-extern const float BLB_DEFAULT_NEAR_CLIP;
-extern const float BLB_DEFAULT_FAR_CLIP;
+#define BLB_GRAVITY_X (0.0f)
+#define BLB_GRAVITY_Y (-9.81f)
+#define BLB_GRAVITY_Z (0.0f)
 
-extern const float BLB_DEFAULT_CAMERA_SPEED;
-extern const float BLB_DEFAULT_CAMERA_SENSITIVITY;
+#define BLB_DEFAULT_PHYSICS_FPS (60.0f)
+#define BLB_DEFAULT_PHYSICS_DELTA_TIME (1.0f / 60.0f)
 
-// Rendering
-extern const float BLB_DEFAULT_EXPOSURE;
-extern const float BLB_DEFAULT_GAMMA;
+#define BLB_DEFAULT_FRICTION (0.5f)
+#define BLB_DEFAULT_RESTITUTION (0.0f)
+#define BLB_DEFAULT_LINEAR_DAMPING (0.1f)
+#define BLB_DEFAULT_ANGULAR_DAMPING (0.1f)
 
-extern const float BLB_DEFAULT_AMBIENT_STRENGTH;
+/* Transform */
+#define BLB_DEFAULT_POSITION (0.0f)
+#define BLB_DEFAULT_ROTATION (0.0f)
+#define BLB_DEFAULT_SCALE (1.0f)
 
-extern const float BLB_DEFAULT_SHADOW_BIAS;
+/* Camera */
+#define BLB_DEFAULT_FOV (60.0f)
+#define BLB_DEFAULT_NEAR_CLIP (0.01f)
+#define BLB_DEFAULT_FAR_CLIP (10000.0f)
 
-// Material
-extern const float BLB_DEFAULT_METALLIC;
-extern const float BLB_DEFAULT_ROUGHNESS;
-extern const float BLB_DEFAULT_SPECULAR;
-extern const float BLB_DEFAULT_IOR;
-extern const float BLB_DEFAULT_TRANSMISSION;
+#define BLB_DEFAULT_CAMERA_SPEED (5.0f)
+#define BLB_DEFAULT_CAMERA_SENSITIVITY (0.1f)
 
-extern const float BLB_DEFAULT_CLEARCOAT;
-extern const float BLB_DEFAULT_SHEEN;
-extern const float BLB_DEFAULT_IRIDESCENCE;
-extern const float BLB_DEFAULT_ANISOTROPY;
+/* Rendering */
+#define BLB_DEFAULT_EXPOSURE (1.0f)
+#define BLB_DEFAULT_GAMMA (2.2f)
 
-extern const float BLB_DEFAULT_EMISSION;
-extern const float BLB_DEFAULT_EMISSION_STRENGTH;
+#define BLB_DEFAULT_AMBIENT_STRENGTH (0.1f)
 
-extern const float BLB_DEFAULT_ALPHA;
+#define BLB_DEFAULT_SHADOW_BIAS (0.005f)
 
-// Lighting
-extern const float BLB_DEFAULT_LIGHT_INTENSITY;
-extern const float BLB_DEFAULT_LIGHT_RANGE;
+/* Material */
+#define BLB_DEFAULT_METALLIC (0.0f)
+#define BLB_DEFAULT_ROUGHNESS (0.5f)
+#define BLB_DEFAULT_SPECULAR (0.5f)
+#define BLB_DEFAULT_IOR (1.5f)
+#define BLB_DEFAULT_TRANSMISSION (0.0f)
 
-// Audio
-extern const float BLB_DEFAULT_AUDIO_VOLUME;
-extern const float BLB_DEFAULT_AUDIO_PITCH;
+#define BLB_DEFAULT_CLEARCOAT (0.0f)
+#define BLB_DEFAULT_SHEEN (0.0f)
+#define BLB_DEFAULT_IRIDESCENCE (0.0f)
+#define BLB_DEFAULT_ANISOTROPY (0.0f)
 
-// Particles
-extern const float BLB_DEFAULT_PARTICLE_LIFETIME;
-extern const float BLB_DEFAULT_PARTICLE_SCALE;
+#define BLB_DEFAULT_EMISSION (0.0f)
+#define BLB_DEFAULT_EMISSION_STRENGTH (1.0f)
 
-// Colors
-extern const HMM_Vec4 BLB_COLOR_BLACK;
-extern const HMM_Vec4 BLB_COLOR_WHITE;
+#define BLB_DEFAULT_ALPHA (1.0f)
 
-extern const HMM_Vec4 BLB_COLOR_RED;
-extern const HMM_Vec4 BLB_COLOR_GREEN;
-extern const HMM_Vec4 BLB_COLOR_BLUE;
+/* Lighting */
+#define BLB_DEFAULT_LIGHT_INTENSITY (1.0f)
+#define BLB_DEFAULT_LIGHT_RANGE (10.0f)
 
-extern const HMM_Vec4 BLB_COLOR_YELLOW;
-extern const HMM_Vec4 BLB_COLOR_CYAN;
-extern const HMM_Vec4 BLB_COLOR_MAGENTA;
+/* Audio */
+#define BLB_DEFAULT_AUDIO_VOLUME (1.0f)
+#define BLB_DEFAULT_AUDIO_PITCH (1.0f)
 
-extern const HMM_Vec4 BLB_COLOR_GRAY;
+/* Particles */
+#define BLB_DEFAULT_PARTICLE_LIFETIME (1.0f)
+#define BLB_DEFAULT_PARTICLE_SCALE (1.0f)
 
-extern const HMM_Vec4 BLB_COLOR_TRANSPARENT;
-
-// Common values
-extern const float BLB_ZERO;
-extern const float BLB_ONE;
-extern const float BLB_HALF;
-
-#ifdef __cplusplus
-}
-#endif
+/* Common values */
+#define BLB_ZERO (0.0f)
+#define BLB_ONE (1.0f)
+#define BLB_HALF (0.5f)
 
 #endif

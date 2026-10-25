@@ -9,7 +9,7 @@ static void write_light_3d(VulkanGPULight *destination, BLB_Light3D *source) {
   if (!destination || !source || !source->object)
     return;
 
-  HMM_Vec3 direction = BLB_GetLightDirection3D(source);
+  BLB_Vec3 direction = BLB_GetLightDirection3D(source);
 
   destination->direction[0] = direction.x;
   destination->direction[1] = direction.y;
@@ -32,14 +32,14 @@ static void write_light_3d(VulkanGPULight *destination, BLB_Light3D *source) {
   destination->parameters[3] = 0.0f;
 
   destination->cone[0] = source->range;
-  destination->cone[1] = source->inner_cone;
-  destination->cone[2] = source->outer_cone;
+  destination->cone[1] = fminf(1.0f, fmaxf(-1.0f, fmaxf(source->inner_cone, source->outer_cone)));
+  destination->cone[2] = fminf(1.0f, fmaxf(-1.0f, fminf(source->inner_cone, source->outer_cone)));
   destination->cone[3] = (float)source->type;
 }
 
-static HMM_Vec3 emission_temperature_color(float kelvin) {
+static BLB_Vec3 emission_temperature_color(float kelvin) {
   if (kelvin <= 0.0f)
-    return HMM_V3(1.0f, 1.0f, 1.0f);
+    return BLB_V3(1.0f, 1.0f, 1.0f);
 
   float temperature = fminf(fmaxf(kelvin, 1000.0f), 40000.0f) / 100.0f;
   float red;
@@ -63,17 +63,18 @@ static HMM_Vec3 emission_temperature_color(float kelvin) {
   else
     blue = fminf(fmaxf(0.54320678911f * logf(temperature - 10.0f) - 1.19625408914f, 0.0f), 1.0f);
 
-  return HMM_V3(red, green, blue);
+  return BLB_V3(red, green, blue);
 }
 
-static HMM_Vec3 transform_emissive_point_3d(const BLB_Object3D *object, HMM_Vec3 local) {
-  HMM_Mat4 rx = HMM_Rotate_RH(HMM_AngleDeg(object->rotation.x), HMM_V3(1.0f, 0.0f, 0.0f));
-  HMM_Mat4 ry = HMM_Rotate_RH(HMM_AngleDeg(object->rotation.y), HMM_V3(0.0f, 1.0f, 0.0f));
-  HMM_Mat4 rz = HMM_Rotate_RH(HMM_AngleDeg(object->rotation.z), HMM_V3(0.0f, 0.0f, 1.0f));
-  HMM_Mat4 rotation = HMM_MulM4(rz, HMM_MulM4(ry, rx));
-  HMM_Vec4 local_position = HMM_V4(local.x * object->scale.x, local.y * object->scale.y, local.z * object->scale.z, 1.0f);
-  HMM_Vec4 rotated = HMM_MulM4V4(rotation, local_position);
-  return HMM_AddV3(object->position, HMM_V3(rotated.x, rotated.y, rotated.z));
+static BLB_Vec3 transform_emissive_point_3d(const BLB_Object3D *object, BLB_Vec3 local) {
+  BLB_Mat4 rx = BLB_Rotate_RH(BLB_AngleDeg(object->rotation.x), BLB_V3(1.0f, 0.0f, 0.0f));
+  BLB_Mat4 ry = BLB_Rotate_RH(BLB_AngleDeg(object->rotation.y), BLB_V3(0.0f, 1.0f, 0.0f));
+  BLB_Mat4 rz = BLB_Rotate_RH(BLB_AngleDeg(object->rotation.z), BLB_V3(0.0f, 0.0f, 1.0f));
+  BLB_Mat4 rotation = BLB_MulM4(rz, BLB_MulM4(ry, rx));
+  BLB_Vec4 local_position = BLB_V4(local.x * object->scale.x, local.y * object->scale.y, local.z * object->scale.z, 1.0f);
+  BLB_Vec4 rotated = BLB_MulM4V4(rotation, local_position);
+
+  return BLB_AddV3(object->position, BLB_V3(rotated.x, rotated.y, rotated.z));
 }
 
 static size_t write_emissive_lights_3d(VulkanGPULight *destination, size_t capacity, BLB_Object3D *object) {
@@ -86,8 +87,9 @@ static size_t write_emissive_lights_3d(VulkanGPULight *destination, size_t capac
   if (total_strength <= 0.0001f)
     return 0;
 
-  HMM_Vec3 temperature = emission_temperature_color(material->temperature);
+  BLB_Vec3 temperature = emission_temperature_color(material->temperature);
   size_t sample_count = object->polygon->vertex_count < 6 ? object->polygon->vertex_count : 6;
+
   if (sample_count == 0)
     return 0;
 
@@ -97,7 +99,7 @@ static size_t write_emissive_lights_3d(VulkanGPULight *destination, size_t capac
 
   for (size_t sample = 0; sample < sample_count && written < capacity; sample++) {
     size_t index = sample_count == 1 ? 0 : (sample * (object->polygon->vertex_count - 1)) / (sample_count - 1);
-    HMM_Vec3 world = transform_emissive_point_3d(object, object->polygon->vertices[index]);
+    BLB_Vec3 world = transform_emissive_point_3d(object, object->polygon->vertices[index]);
     VulkanGPULight *light = &destination[written];
 
     light->direction[0] = 0.0f;
@@ -126,13 +128,14 @@ static size_t write_emissive_lights_3d(VulkanGPULight *destination, size_t capac
   return written;
 }
 
-static HMM_Vec2 transform_emissive_point_2d(const BLB_Object2D *object, HMM_Vec2 local) {
-  float angle = HMM_AngleDeg(object->rotation);
+static BLB_Vec2 transform_emissive_point_2d(const BLB_Object2D *object, BLB_Vec2 local) {
+  float angle = BLB_AngleDeg(object->rotation);
   float c = cosf(angle);
   float s = sinf(angle);
   float x = local.x * object->scale.x;
   float y = local.y * object->scale.y;
-  return HMM_V2(object->position.x + x * c - y * s, object->position.y + x * s + y * c);
+
+  return BLB_V2(object->position.x + x * c - y * s, object->position.y + x * s + y * c);
 }
 
 static size_t write_emissive_lights_2d(VulkanGPULight *destination, size_t capacity, BLB_Object2D *object) {
@@ -145,7 +148,7 @@ static size_t write_emissive_lights_2d(VulkanGPULight *destination, size_t capac
   if (total_strength <= 0.0001f)
     return 0;
 
-  HMM_Vec3 temperature = emission_temperature_color(material->temperature);
+  BLB_Vec3 temperature = emission_temperature_color(material->temperature);
   size_t sample_count = object->polygon->vertex_count < 6 ? object->polygon->vertex_count : 6;
   float sample_strength = total_strength / (float)sample_count;
   float range = fmaxf(material->glow_radius, 6.0f + sqrtf(total_strength) * 4.0f);
@@ -153,7 +156,7 @@ static size_t write_emissive_lights_2d(VulkanGPULight *destination, size_t capac
 
   for (size_t sample = 0; sample < sample_count && written < capacity; sample++) {
     size_t index = sample_count == 1 ? 0 : (sample * (object->polygon->vertex_count - 1)) / (sample_count - 1);
-    HMM_Vec2 world = transform_emissive_point_2d(object, object->polygon->vertices[index]);
+    BLB_Vec2 world = transform_emissive_point_2d(object, object->polygon->vertices[index]);
     VulkanGPULight *light = &destination[written];
 
     light->direction[0] = 1.0f;
@@ -163,7 +166,7 @@ static size_t write_emissive_lights_2d(VulkanGPULight *destination, size_t capac
     light->position[0] = world.x;
     light->position[1] = world.y;
     light->position[2] = 0.0f;
-    light->position[3] = 1.0f;
+    light->position[3] = object->camera_attached ? 1.0f : 0.0f;
     light->color[0] = material->emission_color[0] * temperature.x;
     light->color[1] = material->emission_color[1] * temperature.y;
     light->color[2] = material->emission_color[2] * temperature.z;
@@ -186,7 +189,7 @@ static void write_light_2d(VulkanGPULight *destination, BLB_Light2D *source) {
   if (!destination || !source || !source->object)
     return;
 
-  HMM_Vec2 direction = BLB_GetLightDirection2D(source);
+  BLB_Vec2 direction = BLB_GetLightDirection2D(source);
 
   destination->direction[0] = direction.x;
   destination->direction[1] = direction.y;
@@ -196,7 +199,7 @@ static void write_light_2d(VulkanGPULight *destination, BLB_Light2D *source) {
   destination->position[0] = source->object->position.x;
   destination->position[1] = source->object->position.y;
   destination->position[2] = 0.0f;
-  destination->position[3] = 1.0f;
+  destination->position[3] = source->object->camera_attached ? 1.0f : 0.0f;
 
   destination->color[0] = source->object->color.x / 255.0f;
   destination->color[1] = source->object->color.y / 255.0f;
@@ -209,8 +212,8 @@ static void write_light_2d(VulkanGPULight *destination, BLB_Light2D *source) {
   destination->parameters[3] = 0.0f;
 
   destination->cone[0] = source->range;
-  destination->cone[1] = source->inner_cone;
-  destination->cone[2] = source->outer_cone;
+  destination->cone[1] = fminf(1.0f, fmaxf(-1.0f, fmaxf(source->inner_cone, source->outer_cone)));
+  destination->cone[2] = fminf(1.0f, fmaxf(-1.0f, fminf(source->inner_cone, source->outer_cone)));
   destination->cone[3] = (float)source->type;
 }
 
@@ -250,6 +253,7 @@ void update_light_buffer_3d(VULKAN *vulkan) {
     count = VULKAN_MAX_LIGHTS;
 
   int shadow_light_index = -1;
+
   for (size_t i = 0; i < count; i++) {
     BLB_Light3D *source = vulkan->lights3d[i];
 
@@ -262,7 +266,7 @@ void update_light_buffer_3d(VULKAN *vulkan) {
     size_t destination_index = buffer->light_count;
     write_light_3d(&buffer->lights[destination_index], source);
 
-    if (vulkan->shadow_mode == 2u && source == vulkan->shadow_light3d)
+    if (source == vulkan->shadow_light3d)
       shadow_light_index = (int)destination_index;
 
     buffer->light_count++;
@@ -288,7 +292,7 @@ void update_light_buffer_3d(VULKAN *vulkan) {
     buffer->shadow_params[2] = -1.0f;
     buffer->shadow_params[3] = 0.0f;
 
-    if (vulkan->shadow_mode == 2u && shadow_light_index >= 0)
+    if (shadow_light_index >= 0)
       buffer->shadow_params[2] = (float)shadow_light_index;
   } else {
     vulkan->shadow_mode = 0;
@@ -624,7 +628,7 @@ void destroy_light_descriptors(VULKAN *vulkan, VkDescriptorPool *pool, VkDescrip
   }
 }
 
-void VULKAN_RendererSetCameraPosition(VULKAN *vulkan, HMM_Vec3 position) {
+void VULKAN_RendererSetCameraPosition(VULKAN *vulkan, BLB_Vec3 position) {
   if (!vulkan)
     return;
 

@@ -1,8 +1,13 @@
 #include "bulba/core/scene.h"
+#include "bulba/core/utils/delta_time.h"
+#include <math.h>
 
 #include "bulba/core/objects2d/objects2d.h"
 #include "bulba/core/objects3d/objects3d.h"
-#include "bulba/core/render/render_async.h"
+#include "bulba/core/render/optimization/object_aggregation.h"
+#include "bulba/core/render/optimization/object_optimization2d.h"
+#include "bulba/core/render/optimization/render_async.h"
+#include "bulba/core/render/optimization/visibility_cache.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -28,14 +33,14 @@ BLB_Scene *BLB_CreateScene(const char *name) {
 
   scene->name = duplicate_string(name ? name : "scene");
 
-  scene->physics_world2d = BLB_Physics2DWorld_Create();
-  scene->physics_world3d = BLB_Physics3DWorld_Create();
+  scene->physics_world2d = BLB_Physics2D_WorldCreate();
+  scene->physics_world3d = BLB_Physics3D_WorldCreate();
   scene->visibility_cache = BLB_RenderVisibilityCache_Create();
 
   if (!scene->name || !scene->physics_world2d || !scene->physics_world3d || !scene->visibility_cache) {
 
-    BLB_Physics2DWorld_Destroy(scene->physics_world2d);
-    BLB_Physics3DWorld_Destroy(scene->physics_world3d);
+    BLB_Physics2D_WorldDestroy(scene->physics_world2d);
+    BLB_Physics3D_WorldDestroy(scene->physics_world3d);
     BLB_RenderVisibilityCache_Destroy(scene->visibility_cache);
 
     free(scene->name);
@@ -56,7 +61,7 @@ BLB_Scene *BLB_CreateScene(const char *name) {
   scene->clear_color[2] = 15;
   scene->clear_color[3] = 255;
 
-  scene->delta_time = 0;
+  scene->delta_time = BLB_DeltaTime_Get();
   scene->time = 0.0;
   scene->frame_index = 0;
 
@@ -119,6 +124,7 @@ BLB_Scene *BLB_CreateScene(const char *name) {
   scene->optimization_async_generation = 0;
   scene->optimization_async_pending = false;
   scene->object_optimization2d = NULL;
+
   return scene;
 }
 
@@ -130,10 +136,11 @@ void BLB_DestroyScene(BLB_Scene *scene) {
   BLB_ObjectAggregation3D_Destroy(scene->optimization_async_result);
   scene->optimization_async_result = NULL;
 
-  BLB_Physics2DWorld_Destroy(scene->physics_world2d);
-  BLB_Physics3DWorld_Destroy(scene->physics_world3d);
+  BLB_Physics2D_WorldDestroy(scene->physics_world2d);
+  BLB_Physics3D_WorldDestroy(scene->physics_world3d);
   BLB_ObjectAggregation3D_Destroy(scene->object_aggregation3d);
   BLB_ObjectOptimization2D_Destroy(scene->object_optimization2d);
+  BLB_RenderVisibilityCache_Destroy(scene->visibility_cache);
   BLB_Skybox_Destroy(scene->skybox);
 
   free(scene->objects3d);
@@ -180,6 +187,9 @@ void BLB_SetSceneDeltaTime(BLB_Scene *scene, float delta_time) {
   if (!scene)
     return;
 
+  if (!isfinite(delta_time))
+    return;
+
   if (delta_time < 0.0f)
     delta_time = 0.0f;
 
@@ -187,6 +197,7 @@ void BLB_SetSceneDeltaTime(BLB_Scene *scene, float delta_time) {
     delta_time = 0.1f;
 
   scene->delta_time = delta_time;
+  scene->delta_time_manual = true;
   scene->time += delta_time;
   scene->frame_index++;
 }
@@ -211,7 +222,6 @@ void BLB_SetSceneClear(BLB_Scene *scene, bool enabled, unsigned char r, unsigned
   scene->clear_color[3] = a;
 }
 
-//
 #define ADD_ITEM(array, count, type, value)                                                                                                          \
   do {                                                                                                                                               \
     type **new_array = realloc((array), sizeof(type *) * ((size_t)(count) + 1));                                                                     \
@@ -235,8 +245,7 @@ int BLB_AddObject3D(BLB_Scene *scene, BLB_Object3D *object) {
   if (object->entity_id == BLB_INVALID_ENTITY_ID)
     object->entity_id = scene->next_entity_id++;
 
-  if (object->delta_time)
-    *object->delta_time = scene->delta_time;
+  object->delta_time = scene->delta_time;
 
   ADD_ITEM(scene->objects3d, scene->object3d_count, BLB_Object3D, object);
 }
@@ -248,8 +257,7 @@ int BLB_AddObject2D(BLB_Scene *scene, BLB_Object2D *object) {
   if (object->entity_id == BLB_INVALID_ENTITY_ID)
     object->entity_id = scene->next_entity_id++;
 
-  if (object->delta_time)
-    *object->delta_time = scene->delta_time;
+  object->delta_time = scene->delta_time;
 
   ADD_ITEM(scene->objects2d, scene->object2d_count, BLB_Object2D, object);
 }
@@ -261,9 +269,7 @@ int BLB_AddText2D(BLB_Scene *scene, BLB_Text2D *text) {
   if (text->entity_id == BLB_INVALID_ENTITY_ID)
     text->entity_id = scene->next_entity_id++;
 
-  if (text->delta_time)
-    *text->delta_time = scene->delta_time;
-
+  text->delta_time = scene->delta_time;
   ADD_ITEM(scene->text2d, scene->text2d_count, BLB_Text2D, text);
 }
 
@@ -274,9 +280,7 @@ int BLB_AddLight3D(BLB_Scene *scene, BLB_Light3D *light) {
   if (light->object->entity_id == BLB_INVALID_ENTITY_ID)
     light->object->entity_id = scene->next_entity_id++;
 
-  if (light->object->delta_time)
-    *light->object->delta_time = scene->delta_time;
-
+  light->object->delta_time = scene->delta_time;
   ADD_ITEM(scene->lights3d, scene->light3d_count, BLB_Light3D, light);
 }
 
@@ -287,15 +291,14 @@ int BLB_AddLight2D(BLB_Scene *scene, BLB_Light2D *light) {
   if (light->object->entity_id == BLB_INVALID_ENTITY_ID)
     light->object->entity_id = scene->next_entity_id++;
 
-  if (light->object->delta_time)
-    *light->object->delta_time = scene->delta_time;
-
+  light->object->delta_time = scene->delta_time;
   ADD_ITEM(scene->lights2d, scene->light2d_count, BLB_Light2D, light);
 }
 
 int BLB_AddParticle3D(BLB_Scene *scene, BLB_Particle3D *particle) {
   if (!scene || !particle)
     return -1;
+
   particle->delta_time = scene->delta_time;
   ADD_ITEM(scene->particles3d, scene->particle3d_count, BLB_Particle3D, particle);
 }
@@ -303,6 +306,7 @@ int BLB_AddParticle3D(BLB_Scene *scene, BLB_Particle3D *particle) {
 int BLB_AddParticle2D(BLB_Scene *scene, BLB_Particle2D *particle) {
   if (!scene || !particle)
     return -1;
+
   particle->delta_time = scene->delta_time;
   ADD_ITEM(scene->particles2d, scene->particle2d_count, BLB_Particle2D, particle);
 }
@@ -310,6 +314,7 @@ int BLB_AddParticle2D(BLB_Scene *scene, BLB_Particle2D *particle) {
 int BLB_AddParticleSystem3D(BLB_Scene *scene, BLB_ParticleSystem3D *system) {
   if (!scene || !system)
     return -1;
+
   system->delta_time = scene->delta_time;
   ADD_ITEM(scene->particle_systems3d, scene->particle_system3d_count, BLB_ParticleSystem3D, system);
 }
@@ -317,6 +322,7 @@ int BLB_AddParticleSystem3D(BLB_Scene *scene, BLB_ParticleSystem3D *system) {
 int BLB_AddParticleSystem2D(BLB_Scene *scene, BLB_ParticleSystem2D *system) {
   if (!scene || !system)
     return -1;
+
   system->delta_time = scene->delta_time;
   ADD_ITEM(scene->particle_systems2d, scene->particle_system2d_count, BLB_ParticleSystem2D, system);
 }
@@ -324,12 +330,14 @@ int BLB_AddParticleSystem2D(BLB_Scene *scene, BLB_ParticleSystem2D *system) {
 int BLB_AddAudio3D(BLB_Scene *scene, BLB_Audio3D *audio) {
   if (!scene || !audio)
     return -1;
+
   ADD_ITEM(scene->audio3d, scene->audio3d_count, BLB_Audio3D, audio);
 }
 
 int BLB_AddAudio2D(BLB_Scene *scene, BLB_Audio2D *audio) {
   if (!scene || !audio)
     return -1;
+
   ADD_ITEM(scene->audio2d, scene->audio2d_count, BLB_Audio2D, audio);
 }
 
@@ -358,6 +366,7 @@ static int remove_item(void *array, int *count, void *item) {
         *(void ***)array = NULL;
       } else {
         void **new_array = realloc(items, (size_t)*count * sizeof(void *));
+
         if (new_array)
           *(void ***)array = new_array;
       }
@@ -384,7 +393,18 @@ int BLB_RemoveObject3D(BLB_Scene *scene, BLB_Object3D *object) {
     i++;
   }
 
-  return remove_item((void **)&scene->objects3d, &scene->object3d_count, object);
+  int result = remove_item((void **)&scene->objects3d, &scene->object3d_count, object);
+
+  if (result == 0) {
+    BLB_RenderAsync_WaitAll();
+    BLB_ObjectAggregation3D_Destroy(scene->optimization_async_result);
+    scene->optimization_async_result = NULL;
+    BLB_ObjectAggregation3D_Destroy(scene->object_aggregation3d);
+    scene->object_aggregation3d = NULL;
+    scene->optimization_rebuild_pending = true;
+  }
+
+  return result;
 }
 
 int BLB_RemoveObject2D(BLB_Scene *scene, BLB_Object2D *object) {
@@ -402,7 +422,14 @@ int BLB_RemoveObject2D(BLB_Scene *scene, BLB_Object2D *object) {
     i++;
   }
 
-  return remove_item((void **)&scene->objects2d, &scene->object2d_count, object);
+  int result = remove_item((void **)&scene->objects2d, &scene->object2d_count, object);
+
+  if (result == 0) {
+    BLB_ObjectOptimization2D_Destroy(scene->object_optimization2d);
+    scene->object_optimization2d = NULL;
+  }
+
+  return result;
 }
 
 int BLB_RemoveText2D(BLB_Scene *scene, BLB_Text2D *text) {
@@ -429,35 +456,41 @@ int BLB_RemoveLight2D(BLB_Scene *scene, BLB_Light2D *light) {
 int BLB_RemoveParticle3D(BLB_Scene *scene, BLB_Particle3D *particle) {
   if (!scene || !particle)
     return -1;
+
   return remove_item((void **)&scene->particles3d, &scene->particle3d_count, particle);
 }
 
 int BLB_RemoveParticle2D(BLB_Scene *scene, BLB_Particle2D *particle) {
   if (!scene || !particle)
     return -1;
+
   return remove_item((void **)&scene->particles2d, &scene->particle2d_count, particle);
 }
 
 int BLB_RemoveParticleSystem3D(BLB_Scene *scene, BLB_ParticleSystem3D *system) {
   if (!scene || !system)
     return -1;
+
   return remove_item((void **)&scene->particle_systems3d, &scene->particle_system3d_count, system);
 }
 
 int BLB_RemoveParticleSystem2D(BLB_Scene *scene, BLB_ParticleSystem2D *system) {
   if (!scene || !system)
     return -1;
+
   return remove_item((void **)&scene->particle_systems2d, &scene->particle_system2d_count, system);
 }
 
 int BLB_RemoveAudio3D(BLB_Scene *scene, BLB_Audio3D *audio) {
   if (!scene || !audio)
     return -1;
+
   return remove_item((void **)&scene->audio3d, &scene->audio3d_count, audio);
 }
 
 int BLB_RemoveAudio2D(BLB_Scene *scene, BLB_Audio2D *audio) {
   if (!scene || !audio)
     return -1;
+
   return remove_item((void **)&scene->audio2d, &scene->audio2d_count, audio);
 }

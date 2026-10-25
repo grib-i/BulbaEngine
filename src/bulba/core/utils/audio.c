@@ -1,17 +1,19 @@
 #include "bulba/core/utils/audio.h"
 
 #define MINIAUDIO_IMPLEMENTATION
-#include "bulba/core/math3v/miniaudio.h"
+#include "miniaudio.h"
 
 #include <stdlib.h>
 
 BLB_IO_Audio *BLB_InitAudio(void) {
   BLB_IO_Audio *io_audio = malloc(sizeof(BLB_IO_Audio));
+
   if (!io_audio)
     return NULL;
 
   if (ma_engine_init(NULL, &io_audio->engine) != MA_SUCCESS) {
     free(io_audio);
+
     return NULL;
   }
 

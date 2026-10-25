@@ -1,5 +1,5 @@
 #include "bulba/bulba.h"
-#include "bulba/core/render/render_async.h"
+#include "bulba/core/render/optimization/render_async.h"
 
 static void cleanup(void) {
   BLB_RenderAsync_Shutdown();

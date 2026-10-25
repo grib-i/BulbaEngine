@@ -10,13 +10,15 @@ BLB_Skybox *BLB_Skybox_Create(BLB_Texture *texture) {
     return NULL;
 
   BLB_Skybox *skybox = calloc(1, sizeof(*skybox));
+
   if (!skybox)
     return NULL;
 
-  skybox->object = BLB_CreateCube3D(HMM_V3(1.0f, 1.0f, 1.0f), HMM_V3(0.0f, 0.0f, 0.0f), texture, BLB_TEXMAP_STRETCH);
+  skybox->object = BLB_CreateCube3D(BLB_V3(1.0f, 1.0f, 1.0f), BLB_V3(0.0f, 0.0f, 0.0f), texture, BLB_TEXMAP_STRETCH);
 
   if (!skybox->object) {
     free(skybox);
+
     return NULL;
   }
 
@@ -25,6 +27,7 @@ BLB_Skybox *BLB_Skybox_Create(BLB_Texture *texture) {
   if (!material) {
     BLB_DestroyCube3D(skybox->object);
     free(skybox);
+
     return NULL;
   }
 

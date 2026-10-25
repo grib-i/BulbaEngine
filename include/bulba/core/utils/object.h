@@ -4,7 +4,53 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define BLB_INVALID_OBJECT_ID UINT32_MAX
+typedef struct BLB_Object3D BLB_Object3D;
+typedef struct BLB_Object2D BLB_Object2D;
+
+typedef enum {
+  BLB_TRANSFORM_TYPE_NONE = -1,
+
+  BLB_TRANSFORM_TYPE_SET_POSITION = 0,
+  BLB_TRANSFORM_TYPE_MOVE,
+  BLB_TRANSFORM_TYPE_SET_ROTATION,
+  BLB_TRANSFORM_TYPE_ROTATE,
+  BLB_TRANSFORM_TYPE_SET_SCALE,
+  BLB_TRANSFORM_TYPE_SCALE,
+  BLB_TRANSFORM_TYPE_TRANSFORM,
+
+  BLB_TRANSFORM_TYPE_COUNT
+} BLB_TransformType;
+
+/*
+ * BLB_PHYSICS_SYNC_NONE — когда объект и тело не привязаны друг к другу, можно двигать, вращать и масштабировать объект и тело независимо друг от
+ * друга.
+ *
+ * BLB_PHYSICS_SYNC_OBJECT_TO_BODY — объект -> физическое тело. Изменения объекта передаются телу.
+ * BLB_PHYSICS_SYNC_BODY_TO_OBJECT — физическое тело -> объект. Изменения тела передаются объекту.
+ *
+ * BLB_PHYSICS_SYNC_BIDIRECTIONAL — когда объект и тело взаимно синхронизированны (взаимно привязаны друг к другу)
+ */
+typedef enum {
+  /* Object and body are independent */
+  BLB_PHYSICS_SYNC_NONE,
+
+  /* Object drives body: Object -> Body */
+  BLB_PHYSICS_SYNC_OBJECT_TO_BODY,
+
+  /* Body drives object: Body -> Object */
+  BLB_PHYSICS_SYNC_BODY_TO_OBJECT,
+
+  /* Object and body synchronize with each other: Object <-> Body */
+  BLB_PHYSICS_SYNC_BIDIRECTIONAL
+} BLB_PhysicsSyncMode;
+
+static inline int BLB_PhysicsSyncToBody(BLB_PhysicsSyncMode mode) {
+  return mode == BLB_PHYSICS_SYNC_OBJECT_TO_BODY || mode == BLB_PHYSICS_SYNC_BIDIRECTIONAL;
+}
+
+static inline int BLB_PhysicsSyncToObject(BLB_PhysicsSyncMode mode) {
+  return mode == BLB_PHYSICS_SYNC_BODY_TO_OBJECT || mode == BLB_PHYSICS_SYNC_BIDIRECTIONAL;
+}
 
 typedef enum {
   // 3D objects
@@ -30,6 +76,8 @@ typedef enum {
 
   BLB_OBJECT_COUNT = 15
 } BLB_ObjectType;
+
+#define BLB_INVALID_OBJECT_ID UINT32_MAX
 
 typedef struct {
   uint32_t id;

@@ -4,8 +4,6 @@
 #include "bulba/core/camera.h"
 #include "bulba/core/entity.h"
 #include "bulba/core/math3v/lights.h"
-#include "bulba/core/math3v/physics2d.h"
-#include "bulba/core/math3v/physics3d.h"
 #include "bulba/core/objects2d/audio2d.h"
 #include "bulba/core/objects2d/objects2d.h"
 #include "bulba/core/objects2d/particles2d.h"
@@ -14,13 +12,16 @@
 #include "bulba/core/objects3d/objects3d.h"
 #include "bulba/core/objects3d/particles3d.h"
 #include "bulba/core/objects3d/skybox.h"
-#include "bulba/core/render/object_aggregation.h"
-#include "bulba/core/render/object_optimization2d.h"
-#include "bulba/core/render/visibility_cache.h"
+#include "bulba/core/physics/physics2d.h"
+#include "bulba/core/physics/physics3d.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+typedef struct BLB_ObjectAggregation3D BLB_ObjectAggregation3D;
+typedef struct BLB_ObjectOptimization2D BLB_ObjectOptimization2D;
+typedef struct BLB_RenderVisibilityCache BLB_RenderVisibilityCache;
 
 typedef struct BLB_Scene {
   char *name;
@@ -34,6 +35,8 @@ typedef struct BLB_Scene {
   unsigned char clear_color[4];
 
   float delta_time;
+  bool delta_time_manual;
+  uint64_t delta_time_revision;
   double time;
   uint64_t frame_index;
 

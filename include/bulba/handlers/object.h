@@ -1,7 +1,7 @@
 #ifndef BLB_HANDLERS_OBJECT_H
 #define BLB_HANDLERS_OBJECT_H
 
-#include "bulba/core/math3v/HandmadeMath.h"
+#include "bulba/core/math3v/vec_math.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -46,16 +46,16 @@ typedef struct {
   double mouse_dx;
   double mouse_dy;
 
-  HMM_Vec2 world_position;
-  HMM_Vec2 screen_position;
-  HMM_Vec3 world_point;
-  HMM_Vec3 local_position;
+  BLB_Vec2 world_position;
+  BLB_Vec2 screen_position;
+  BLB_Vec3 world_point;
+  BLB_Vec3 local_position;
 
-  HMM_Vec3 ray_origin;
-  HMM_Vec3 ray_direction;
+  BLB_Vec3 ray_origin;
+  BLB_Vec3 ray_direction;
 
-  HMM_Vec3 hit_point;
-  HMM_Vec3 hit_normal;
+  BLB_Vec3 hit_point;
+  BLB_Vec3 hit_normal;
 
   float distance;
   float t;
@@ -88,8 +88,8 @@ typedef struct {
 
   const void *object_geometry;
 
-  HMM_Vec3 object_bounds_min;
-  HMM_Vec3 object_bounds_max;
+  BLB_Vec3 object_bounds_min;
+  BLB_Vec3 object_bounds_max;
 
   uint16_t captured_buttons;
   uint16_t down_buttons;

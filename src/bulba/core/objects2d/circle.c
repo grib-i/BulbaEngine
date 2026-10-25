@@ -1,6 +1,8 @@
 #include "bulba/core/objects2d/circle.h"
+#include "bulba/core/physics/physics2d/physics2d.h"
+#include "bulba/core/utils/delta_time.h"
 
-#include "bulba/core/math3v/HandmadeMath.h"
+#include "bulba/core/math3v/vec_math.h"
 #include "bulba/core/objects2d/objects2d.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/object_lod.h"
@@ -50,7 +52,7 @@ static size_t circle_get_segments(int level_of_detail) {
   return lod_segments[index];
 }
 
-BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of_detail, BLB_Texture *texture, bool camera_attached) {
+BLB_Object2D *BLB_CreateCircle2D(BLB_Vec2 scale, BLB_Vec2 position, int level_of_detail, BLB_Texture *texture, bool camera_attached) {
   BLB_Object2D *object = calloc(1, sizeof(*object));
 
   if (object == NULL)
@@ -58,10 +60,7 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
 
   bool polygon_created = false;
 
-  object->delta_time = calloc(1, sizeof(*object->delta_time));
-
-  if (object->delta_time == NULL)
-    goto fail;
+  object->delta_time = BLB_DeltaTime_Get();
 
   object->type = BLB_OBJECT_CIRCLE2D;
 
@@ -81,9 +80,9 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
     const size_t segments = circle_get_segments(level_of_detail);
     const size_t vertex_count = segments + 2;
     const size_t index_count = segments * 3;
-    polygon->vertices = malloc(sizeof(HMM_Vec2) * vertex_count);
-    polygon->base_vertices = malloc(sizeof(HMM_Vec2) * vertex_count);
-    polygon->uvs = malloc(sizeof(HMM_Vec2) * vertex_count);
+    polygon->vertices = malloc(sizeof(BLB_Vec2) * vertex_count);
+    polygon->base_vertices = malloc(sizeof(BLB_Vec2) * vertex_count);
+    polygon->uvs = malloc(sizeof(BLB_Vec2) * vertex_count);
     polygon->indices = malloc(sizeof(unsigned int) * index_count);
 
     if (polygon->vertices == NULL || polygon->base_vertices == NULL || polygon->uvs == NULL || polygon->indices == NULL)
@@ -91,11 +90,11 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
 
     const float radius = 0.5f;
 
-    const HMM_Vec2 center = HMM_V2(0.0f, 0.0f);
+    const BLB_Vec2 center = BLB_V2(0.0f, 0.0f);
 
     polygon->vertices[0] = center;
     polygon->base_vertices[0] = center;
-    polygon->uvs[0] = HMM_V2(0.5f, 0.5f);
+    polygon->uvs[0] = BLB_V2(0.5f, 0.5f);
 
     for (size_t i = 0; i <= segments; i++) {
 
@@ -103,7 +102,7 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
       const float x = radius * cosf(angle);
       const float y = radius * sinf(angle);
       const size_t vertex_index = 1 + i;
-      const HMM_Vec2 vertex = HMM_V2(x, y);
+      const BLB_Vec2 vertex = BLB_V2(x, y);
 
       polygon->vertices[vertex_index] = vertex;
 
@@ -111,9 +110,9 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
 
       const float u = 0.5f + x / (radius * 2.0f);
 
-      const float v = 0.5f - y / (radius * 2.0f);
+      const float v = 0.5f + y / (radius * 2.0f);
 
-      polygon->uvs[vertex_index] = HMM_V2(u, v);
+      polygon->uvs[vertex_index] = BLB_V2(u, v);
     }
 
     size_t index = 0;
@@ -143,9 +142,6 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
   if (object->polygon == NULL)
     object->polygon = polygon;
 
-  if (object->delta_time == NULL || object->polygon == NULL)
-    goto fail;
-
   object->polygon = polygon;
 
   object->id->id++;
@@ -156,7 +152,7 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
 
   object->render_mode = BLB_RENDER_OPAQUE;
 
-  object->color = HMM_V4(255.0f, 255.0f, 255.0f, 255.0f);
+  object->color = BLB_V4(255.0f, 255.0f, 255.0f, 255.0f);
   object->visible = true;
   object->camera_attached = camera_attached;
 
@@ -168,12 +164,18 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
 
   if (object->material == NULL) {
     BLB_DestroyCircle2D(object);
+
     return NULL;
   }
 
+  for (size_t i = 0; i < BLB_TRANSFORM_TYPE_COUNT; ++i)
+    object->physics_sync_mode[i] = BLB_PHYSICS_SYNC_BIDIRECTIONAL;
+
   object->animation = calloc(1, sizeof(*object->animation));
+
   if (object->animation == NULL) {
     BLB_DestroyCircle2D(object);
+
     return NULL;
   }
 
@@ -185,12 +187,10 @@ BLB_Object2D *BLB_CreateCircle2D(HMM_Vec2 scale, HMM_Vec2 position, int level_of
     object->texture = NULL;
 
   return object;
-
 fail:
   if (polygon_created)
     BLB_CircleFreePolygon();
 
-  free(object->delta_time);
   free(object);
 
   return NULL;
@@ -199,6 +199,9 @@ fail:
 void BLB_DestroyCircle2D(BLB_Object2D *object) {
   if (object == NULL)
     return;
+
+  if (object->rigid_body)
+    BLB_Physics2D_BodyDestroy(object->rigid_body->world, object);
 
   BLB_Object2D_ClearLODs(object);
 
@@ -216,8 +219,8 @@ void BLB_DestroyCircle2D(BLB_Object2D *object) {
       BLB_CircleFreePolygon();
   }
 
+  BLB_ClearAnimation(object);
   free(object->animation);
   free(object->handler);
-  free(object->delta_time);
   free(object);
 }

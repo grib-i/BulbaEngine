@@ -1,58 +1,76 @@
-#include "bulba/core/utils/config.h"
+#include "bulba/bulba.h"
+
+#include "bulba/core/objects2d/objects2d.h"
 #include "tests.h"
-#include <bulba/bulba.h>
-#include <debug.h>
-
-#ifdef DEBUG
-#include <tests.h>
-#endif
-
-#include <stdio.h>
 
 int main(void) {
-  BLB_DEBUG = true;
+  int result = -1;
+  BLB_DEBUG = false;
 
-  DEBUG_InitStdIO();
-  BLB_Init();
-  int result = 0;
+  /*  Uncomment one return below to launch directly without command-line
+   * arguments. */
 
-  // int result = 0;
-  // result = BLB_TestMaterial();
+  // Demo_Settings demo = Demo_DefaultSettings();
+  // demo.object_count = 20;
+  // demo.camera_mode = DEMO_CAMERA_ORBIT;
+  // demo.transforms = false;
+  // demo.camera_distance = 1;
 
-  // result = BLB_TestObjects();
+  // result = Demo_ObjectCount3d(&demo);
+  // result = Demo_ObjectCount2d(&demo);
 
-  // BLB_TestSuperNova();
+  // result = Demo_ModelObj(NULL);
+  // result = Demo_ModelGlb(NULL);
+  // result = Demo_ModelFbx(NULL);
+  // result = Demo_ModelGltf(NULL);
 
-  // result = BLB_TestTexture();
+  // result = Demo_Primitives2d(NULL);
+  // result = Demo_Primitives3d(NULL);
+  // result = Demo_Textures2d(NULL);
+  // result = Demo_SpriteAnimation(NULL);
+  // result = Demo_Text2d(NULL);
+  // result = Demo_Particles2d(NULL);
+  // result = Demo_Particles3d(NULL);
+  // result = Demo_Textures3d(NULL);
+  // result = Demo_Materials3d(NULL);
+  // result = Demo_Lights3d(NULL);
+  // result = Demo_Physics2d(NULL);
+  // result = Demo_Physics3d(NULL);
 
-  // result = BLB_TestSpriteSheet();
-  // result = BLB_AnimationTest();
+  // result = Demo_Skybox(NULL);
+  // result = Demo_SolarSystem(NULL);
 
-  // BLB_OBJECT_AGGREGATION = true;
-  // BLB_OBJECT_INSTANCING = true;
-  // BLB_HSA_LEVELS = 1;
+  // result = Demo_ObjectCount2d(NULL);
+  // result = Demo_ObjectCount3d(NULL);
+  // result = Demo_Transparency(NULL);
+  // result = Demo_Lod(NULL);
+  result = Demo_Input(NULL);
+  // result = Demo_Lights2d(NULL);
+  // result = Demo_Audio(NULL);
+  // result = Demo_Transparency3d(NULL);
 
-  // result = BLB_TestObjectCount(10000, BLB_TEST_OBJECT_CUBE, false);
+  // Test_Settings checks = Test_DefaultSettings();
+  // checks.cycles = 500;
+  // result = Test_Lifecycle(&checks);
 
-  // result = BLB_TestObjectCount(1488, BLB_TEST_OBJECT_TEAPOT, false);
-  // result = BLB_TestObjectCount2D(16384, BLB_TEST_OBJECT2D_SQUARE, false);
-  // result = BLB_TestObjectCount2D(10000, BLB_TEST_OBJECT2D_CIRCLE, false);
+  // result = Test_Run("all");
+  // result = Test_Run("io");
+  // result = Test_Run("shaders");
+  // result = Test_Run("audio");
+  // result = Test_Run("core");
+  // result = Test_Run("resources");
+  // result = Test_Run("physics2d");
+  // result = Test_Run("physics3d");
+  // result = Test_Run("particles2d");
+  // result = Test_Run("particles3d");
+  // result = Test_Run("handlers");
+  // result = Test_Run("assets");
+  // result = Test_Run("spatial");
+  // result = Test_Run("renderer");
+  // result = Test_Benchmarks(NULL);
+  // result = Test_Lifecycle(NULL);
 
-  // result = BLB_TestPhysicsObjectCount(1000, BLB_TEST_OBJECT_CUBE);
-  // result = BLB_TestPhysicsObjectCount2D(300, BLB_TEST_OBJECT2D_SQUARE);
-  // result = BLB_TestPhysicsObjectCount2D(100, BLB_TEST_OBJECT2D_CIRCLE);
-  // result = BLB_Test_ph3d();
-  // result = BLB_Test_ph2d();
-  // result = BLB_TestParticles3D();
-  // result = BLB_TestParticles2D();
+  // result = Tests_Main(argc, argv);
 
-  // result = BLB_TestHandlers();
-
-  // result = BLB_TestSound();
-
-  if (result != 0) {
-    return 1;
-  }
-
-  return 0;
+  return result;
 }

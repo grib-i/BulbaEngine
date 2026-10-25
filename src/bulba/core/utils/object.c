@@ -10,6 +10,7 @@ void BLB_Object_Init(void) {
 
   if (BLB_OBJECTS_ID == NULL) {
     BLB_OBJECTS_ID_COUNT = 0;
+
     return;
   }
 

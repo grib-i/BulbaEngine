@@ -1,5 +1,6 @@
 #include "bulba/core/window.h"
 #include "bulba/core/platform.h"
+#include "bulba/core/utils/delta_time.h"
 #include "bulba/handlers/keyboard.h"
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
@@ -12,14 +13,18 @@ static void framebuffer_resize_cb(GLFWwindow *window, int width, int height) {
 BLB_Window *BLB_CreateWindow(int width, int height, const char *title) {
   if (!glfwInit())
     return NULL;
+
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
   glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_FALSE);
   BLB_Window *w = calloc(1, sizeof(*w));
+
   if (!w) {
     glfwTerminate();
+
     return NULL;
   }
+
   w->width = width;
   w->height = height;
   w->windowed_width = width;
@@ -27,33 +32,41 @@ BLB_Window *BLB_CreateWindow(int width, int height, const char *title) {
   w->resize_time = glfwGetTime();
   w->title = BLB_Platform_DuplicateString(title ? title : "BulbaEngine");
   w->handle = glfwCreateWindow(width, height, w->title, NULL, NULL);
+
   if (!w->handle) {
     free(w->title);
     free(w);
     glfwTerminate();
+
     return NULL;
   }
+
   if (BLB_HandlersInit(&w->handlers, w->handle) != 0) {
     glfwDestroyWindow(w->handle);
     free(w->title);
     free(w);
     glfwTerminate();
+
     return NULL;
   }
-  
+
   w->handlers.owner = w;
+
   glfwSetFramebufferSizeCallback(w->handle, framebuffer_resize_cb);
   glfwGetWindowPos(w->handle, &w->windowed_x, &w->windowed_y);
+
   return w;
 }
 
 void BLB_DestroyWindow(BLB_Window *w) {
   if (!w)
     return;
+
   if (w->handle) {
     BLB_HandlersShutdown(&w->handlers);
     glfwDestroyWindow(w->handle);
   }
+
   free(w->title);
   free(w);
   glfwTerminate();
@@ -69,6 +82,7 @@ void BLB_WindowSetFullscreen(BLB_Window *w, bool fullscreen) {
 
     GLFWmonitor *monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode *mode = monitor ? glfwGetVideoMode(monitor) : NULL;
+
     if (!monitor || !mode)
       return;
 
@@ -80,13 +94,16 @@ void BLB_WindowSetFullscreen(BLB_Window *w, bool fullscreen) {
     w->fullscreen = false;
     glfwSetWindowMonitor(w->handle, NULL, w->windowed_x, w->windowed_y, width, height, 0);
   }
+
   w->resized = true;
   w->resize_time = glfwGetTime();
+  w->resize_serial++;
 }
 
 void BLB_WindowToggleFullscreen(BLB_Window *w) {
   if (!w)
     return;
+
   BLB_WindowSetFullscreen(w, !w->fullscreen);
 }
 
@@ -98,6 +115,7 @@ bool BLB_WindowResizeStable(const BLB_Window *w, double quiet_seconds) {
     quiet_seconds = 0.0;
 
   double elapsed = glfwGetTime() - w->resize_time;
+
   return elapsed >= quiet_seconds;
 }
 
@@ -105,12 +123,15 @@ void BLB_WindowPollEvents(BLB_Window *w) {
   if (!w)
     return;
 
+  BLB_DeltaTime_Update();
   BLB_HandlersBeginFrame(&w->handlers);
   BLB_HandlersPoll(&w->handlers);
 
   int f11 = BLB_KeyboardDown(&w->handlers, GLFW_KEY_F11);
+
   if (f11 && !w->f11_down)
     BLB_WindowToggleFullscreen(w);
+
   w->f11_down = f11;
 
   w->should_close = w->handlers.should_close || glfwWindowShouldClose(w->handle);
@@ -119,6 +140,7 @@ void BLB_WindowPollEvents(BLB_Window *w) {
 void BLB_WindowProcessHandlers(BLB_Window *w, BLB_Scene *scene) {
   if (!w)
     return;
+
   BLB_HandlersProcess(&w->handlers);
   BLB_HandlersProcessObjects(&w->handlers, scene);
 }
@@ -126,6 +148,7 @@ void BLB_WindowProcessHandlers(BLB_Window *w, BLB_Scene *scene) {
 void BLB_WindowSetHandlerMode(BLB_Window *w, BLB_HandlerMode mode) {
   if (!w)
     return;
+
   BLB_HandlersSetMode(&w->handlers, mode);
 }
 
@@ -140,3 +163,5 @@ uint64_t BLB_WindowDroppedEvents(const BLB_Window *w) { return w ? BLB_HandlersD
 void BLB_WindowPresent(BLB_Window *w) { (void)w; }
 
 bool BLB_WindowShouldClose(const BLB_Window *w) { return w ? w->should_close : true; }
+
+void BLB_WindowSetCursorMode(BLB_Window *window, BLB_CursorMode mode) { glfwSetInputMode(window->handle, GLFW_CURSOR, mode); }

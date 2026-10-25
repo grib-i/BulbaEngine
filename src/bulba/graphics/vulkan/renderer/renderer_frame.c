@@ -90,6 +90,7 @@ int create_depth_resources(VULKAN *vulkan) {
   return 0;
 fail:
   destroy_depth_resources(vulkan);
+
   return -1;
 }
 
@@ -141,7 +142,7 @@ int create_framebuffers(VULKAN *vulkan) {
       goto fail;
 
     VkImageView attachments[] = {
-        vulkan->swapchain_image_views[i],
+        VULKAN_PostprocessView(vulkan, i),
         vulkan->depth_image_views[i],
     };
 
@@ -266,6 +267,7 @@ int create_sync(VULKAN *vulkan) {
   return 0;
 fail:
   destroy_sync_internal(vulkan);
+
   return -1;
 }
 
@@ -289,6 +291,8 @@ int VULKAN_RendererBeginFrame(VULKAN *vulkan) {
   if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
     return -1;
 
+  vulkan->swapchain_suboptimal = result == VK_SUBOPTIMAL_KHR;
+
   if (vulkan->current_image >= vulkan->swapchain_image_count)
     return -1;
 
@@ -309,9 +313,6 @@ int VULKAN_RendererBeginFrame(VULKAN *vulkan) {
   };
 
   if (vkBeginCommandBuffer(vulkan->command_buffers[frame], &begin) != VK_SUCCESS)
-    return -1;
-
-  if (vkResetFences(vulkan->device, 1, &vulkan->in_flight[frame]) != VK_SUCCESS)
     return -1;
 
   vulkan->vertex_cursor = 0;
@@ -444,7 +445,7 @@ void VULKAN_RendererSetShadow(VULKAN *vulkan, const float *shadow_mvp, bool enab
   vulkan->shadow_light3d = NULL;
 }
 
-void VULKAN_RendererSetPointShadow(VULKAN *vulkan, const HMM_Mat4 *shadow_mvp, bool enabled, float bias) {
+void VULKAN_RendererSetPointShadow(VULKAN *vulkan, const BLB_Mat4 *shadow_mvp, bool enabled, float bias) {
   if (!vulkan || !shadow_mvp)
     return;
 
@@ -557,6 +558,7 @@ int VULKAN_RendererEndFrame(VULKAN *vulkan) {
   if (vulkan->main_render_pass_begun) {
     vkCmdEndRenderPass(command);
     vulkan->main_render_pass_begun = false;
+    VULKAN_PostprocessDraw(vulkan);
   }
 
   if (vkEndCommandBuffer(command) != VK_SUCCESS)
@@ -575,6 +577,9 @@ int VULKAN_RendererEndFrame(VULKAN *vulkan) {
       .pSignalSemaphores = &vulkan->render_finished[frame],
   };
 
+  if (vkResetFences(vulkan->device, 1, &vulkan->in_flight[frame]) != VK_SUCCESS)
+    return -1;
+
   if (vkQueueSubmit(vulkan->graphics_queue, 1, &submit, vulkan->in_flight[frame]) != VK_SUCCESS)
     return -1;
 
@@ -588,14 +593,13 @@ int VULKAN_RendererEndFrame(VULKAN *vulkan) {
   };
 
   VkResult result = vkQueuePresentKHR(vulkan->present_queue, &present);
+  bool recreate_swapchain = result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || vulkan->swapchain_suboptimal;
 
   vulkan->current_frame = (vulkan->current_frame + 1) % VULKAN_MAX_FRAMES_IN_FLIGHT;
+  vulkan->swapchain_suboptimal = false;
 
-  if (result == VK_ERROR_OUT_OF_DATE_KHR)
+  if (recreate_swapchain)
     return -2;
-
-  if (result == VK_SUBOPTIMAL_KHR)
-    return 0;
 
   return result == VK_SUCCESS ? 0 : -1;
 }
@@ -666,6 +670,8 @@ int VULKAN_RendererRecreateSwapchain(VULKAN *vulkan, bool vsync) {
     vulkan->framebuffers = NULL;
   }
 
+  bool had_postprocess = vulkan->postprocess != NULL;
+  VULKAN_PostprocessDestroy(vulkan);
   destroy_depth_resources(vulkan);
 
   VULKAN_DestroySwapchain(vulkan);
@@ -673,14 +679,21 @@ int VULKAN_RendererRecreateSwapchain(VULKAN *vulkan, bool vsync) {
   if (VULKAN_CreateSwapchain(vulkan, vsync) != 0)
     return -1;
 
+  if (had_postprocess && VULKAN_PostprocessCreate(vulkan) != 0)
+    return -1;
+
   if (create_depth_resources(vulkan) != 0) {
+    VULKAN_PostprocessDestroy(vulkan);
     VULKAN_DestroySwapchain(vulkan);
+
     return -1;
   }
 
   if (create_framebuffers(vulkan) != 0) {
     destroy_depth_resources(vulkan);
+    VULKAN_PostprocessDestroy(vulkan);
     VULKAN_DestroySwapchain(vulkan);
+
     return -1;
   }
 
@@ -702,6 +715,7 @@ int VULKAN_RendererRecreateSwapchain(VULKAN *vulkan, bool vsync) {
     vulkan->framebuffers = NULL;
 
     destroy_depth_resources(vulkan);
+    VULKAN_PostprocessDestroy(vulkan);
     VULKAN_DestroySwapchain(vulkan);
 
     return -1;
@@ -709,6 +723,7 @@ int VULKAN_RendererRecreateSwapchain(VULKAN *vulkan, bool vsync) {
 
   vulkan->current_image = 0;
   vulkan->current_frame = 0;
+  vulkan->swapchain_suboptimal = false;
 
   vulkan->main_render_pass_begun = false;
   vulkan->shadow_pass_begun = false;

@@ -15,11 +15,11 @@ typedef struct BLB_Text2D {
   BLB_ComponentMask component_mask;
   BLB_Material *material;
 
-  HMM_Vec2 position;
-  HMM_Vec2 scale;
+  BLB_Vec2 position;
+  BLB_Vec2 scale;
   float rotation;
 
-  float *delta_time;
+  float delta_time;
 
   unsigned char color[4];
 
@@ -31,7 +31,7 @@ typedef struct BLB_Text2D {
   BLB_RenderMode render_mode;
 
   bool visible;
-  bool screen_space;
+  bool camera_attached;
 
   char *text;
   size_t text_capacity;
@@ -43,10 +43,13 @@ typedef struct BLB_Text2D {
   bool font_loaded;
 } BLB_Text2D;
 
-BLB_Text2D *BLB_CreateText2D(const char *text, const char *font_path, HMM_Vec2 position, float size, bool screen_space);
+BLB_Text2D *BLB_CreateText2D(const char *text, const char *font_path, BLB_Vec2 position, float size, bool camera_attached);
 
 void BLB_DestroyText2D(BLB_Text2D *text);
 
 void BLB_SetText2D(BLB_Text2D *text, const char *value);
+
+void BLB_Text2D_SetCameraAttached(BLB_Text2D *text, bool attached);
+bool BLB_Text2D_IsCameraAttached(const BLB_Text2D *text);
 
 #endif

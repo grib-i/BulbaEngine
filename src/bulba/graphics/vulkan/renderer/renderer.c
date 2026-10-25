@@ -113,12 +113,15 @@ static void destroy_sync_renderer(VULKAN *vulkan) {
 int VULKAN_RendererEnsureInstanceCapacity(VULKAN *vulkan, size_t required_instances) {
   if (!vulkan || required_instances == 0)
     return 0;
+
   if (required_instances <= vulkan->instance_capacity)
     return 0;
+
   if (required_instances > SIZE_MAX / sizeof(VulkanInstanceData))
     return -1;
 
   size_t capacity = vulkan->instance_capacity ? vulkan->instance_capacity : 8u;
+
   while (capacity < required_instances) {
     if (capacity > SIZE_MAX / 2u) {
       capacity = required_instances;
@@ -129,14 +132,17 @@ int VULKAN_RendererEnsureInstanceCapacity(VULKAN *vulkan, size_t required_instan
 
   if (vulkan->device == VK_NULL_HANDLE)
     return -1;
+
   if (vkDeviceWaitIdle(vulkan->device) != VK_SUCCESS)
     return -1;
 
   VULKAN_Buffer replacement[VULKAN_MAX_FRAMES_IN_FLIGHT] = {0};
+
   for (uint32_t i = 0; i < VULKAN_MAX_FRAMES_IN_FLIGHT; ++i) {
     if (create_buffer(vulkan, capacity * sizeof(VulkanInstanceData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &replacement[i]) != 0) {
       for (uint32_t j = 0; j < i; ++j)
         destroy_buffer(vulkan, &replacement[j]);
+
       return -1;
     }
   }
@@ -151,6 +157,7 @@ int VULKAN_RendererEnsureInstanceCapacity(VULKAN *vulkan, size_t required_instan
 
   if (VULKAN_UpdateInstanceDescriptorBindings(vulkan) != 0)
     return -1;
+
   return 0;
 }
 
@@ -183,6 +190,9 @@ int VULKAN_CreateRenderer(VULKAN *vulkan) {
   vulkan->clear_color[1] = 0.0f;
   vulkan->clear_color[2] = 0.0f;
   vulkan->clear_color[3] = 1.0f;
+
+  if (BLB_POSTPROCESS && VULKAN_PostprocessCreate(vulkan) != 0)
+    goto fail;
 
   if (create_render_pass(vulkan) != 0)
     goto fail;
@@ -256,6 +266,7 @@ int VULKAN_CreateRenderer(VULKAN *vulkan) {
 
 fail:
   VULKAN_DestroyRenderer(vulkan);
+
   return -1;
 }
 
@@ -289,6 +300,7 @@ void VULKAN_DestroyRenderer(VULKAN *vulkan) {
     BLB_Texture_Release(vulkan->default_texture);
     vulkan->default_texture = NULL;
   }
+
   if (vulkan->default_texture_3d) {
     BLB_Texture_Release(vulkan->default_texture_3d);
     vulkan->default_texture_3d = NULL;
@@ -323,6 +335,8 @@ void VULKAN_DestroyRenderer(VULKAN *vulkan) {
   }
 
   destroy_framebuffers_internal(vulkan);
+
+  VULKAN_PostprocessDestroy(vulkan);
 
   destroy_depth_resources(vulkan);
 

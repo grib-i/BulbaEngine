@@ -1,6 +1,8 @@
 #include "bulba/core/objects2d/text2d.h"
 #include "bulba/core/render/material.h"
+#include "bulba/core/utils/delta_time.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,9 +69,12 @@ static int load_text_font(BLB_Text2D *text, const char *path) {
   if (!text->font_path)
     return -1;
 
-  if (BLB_FontLoad(&text->font, text->font_path, (unsigned int)text->size) != 0) {
+  float raster_size = text->camera_attached ? fminf(fmaxf(text->size, 1.0f), 512.0f) : 64.0f;
+
+  if (BLB_FontLoad(&text->font, text->font_path, (unsigned int)raster_size) != 0) {
     free(text->font_path);
     text->font_path = NULL;
+
     return -1;
   }
 
@@ -78,7 +83,7 @@ static int load_text_font(BLB_Text2D *text, const char *path) {
   return 0;
 }
 
-BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, float size, bool screen_space) {
+BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, BLB_Vec2 pos, float size, bool camera_attached) {
   BLB_Text2D *t = calloc(1, sizeof(*t));
 
   if (!t)
@@ -91,6 +96,7 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, floa
 
   if (!t->text) {
     free(t);
+
     return NULL;
   }
 
@@ -98,10 +104,10 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, floa
   t->text_capacity = text_length;
 
   t->position = pos;
-  t->scale = HMM_V2(1.0f, 1.0f);
+  t->scale = BLB_V2(1.0f, 1.0f);
   t->rotation = 0.0f;
 
-  t->size = size > 0.0f ? size : 16.0f;
+  t->size = isfinite(size) && size > 0.0f ? size : 16.0f;
 
   t->color[0] = 255;
   t->color[1] = 255;
@@ -115,7 +121,7 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, floa
   t->layer = 0;
   t->render_mode = BLB_RENDER_OPAQUE;
   t->visible = true;
-  t->screen_space = screen_space;
+  t->camera_attached = camera_attached;
   t->entity_id = BLB_INVALID_ENTITY_ID;
   t->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;
 
@@ -123,18 +129,15 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, HMM_Vec2 pos, floa
 
   if (!t->material) {
     BLB_DestroyText2D(t);
+
     return NULL;
   }
 
-  t->delta_time = calloc(1, sizeof(float));
-
-  if (!t->delta_time) {
-    BLB_DestroyText2D(t);
-    return NULL;
-  }
+  t->delta_time = BLB_DeltaTime_Get();
 
   if (load_text_font(t, font) != 0) {
     BLB_DestroyText2D(t);
+
     return NULL;
   }
 
@@ -153,7 +156,6 @@ void BLB_DestroyText2D(BLB_Text2D *t) {
 
   free(t->text);
   free(t->font_path);
-  free(t->delta_time);
 
   free(t);
 }
@@ -209,3 +211,10 @@ void BLB_SetText2D(BLB_Text2D *t, const char *s) {
 
   memcpy(t->text, s, length);
 }
+
+void BLB_Text2D_SetCameraAttached(BLB_Text2D *text, bool attached) {
+  if (text)
+    text->camera_attached = attached;
+}
+
+bool BLB_Text2D_IsCameraAttached(const BLB_Text2D *text) { return text && text->camera_attached; }

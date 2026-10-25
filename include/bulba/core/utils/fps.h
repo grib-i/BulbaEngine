@@ -4,20 +4,12 @@
 #include "bulba/graphics/renderer.h"
 #include <stdbool.h>
 
-typedef struct BLB_FPS {
-  double last_time;
-  float value;
-  float delta_time;
-  float limit;
-} BLB_FPS;
+void BLB_UpdateFPS(void);
 
-int BLB_InitFPS(BLB_FPS *f, BLB_Renderer *renderer, int limit, bool vsync);
-void BLB_UpdateFPS(BLB_FPS *fps);
-
-void BLB_FPS_SetLimit(BLB_FPS *f, int limit);
+void BLB_FPS_SetLimit(int limit);
 int BLB_FPS_SetVSync(BLB_Renderer *renderer, bool vsync);
 
-float BLB_GetFPS(const BLB_FPS *fps);
-float BLB_GetDeltaTime(const BLB_FPS *fps);
+float BLB_FPS_GetValue(void);
+int BLB_FPS_GetLimit(void);
 
 #endif

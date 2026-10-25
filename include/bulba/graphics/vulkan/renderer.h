@@ -1,8 +1,8 @@
 #ifndef BULBA_GRAPHICS_VULKAN_RENDERER_H
 #define BULBA_GRAPHICS_VULKAN_RENDERER_H
 
-#include "bulba/graphics/vulkan/vulkan.h"
 #include "bulba/graphics/renderer.h"
+#include "bulba/graphics/vulkan/vulkan.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -40,6 +40,11 @@ typedef struct {
   float shadow_params[4];
   float view_projection[16];
 } VulkanLightBufferData;
+
+_Static_assert(sizeof(VulkanGPULight) == 80, "GPULight must match GLSL std430");
+_Static_assert(VULKAN_MAX_LIGHTS == 64 && VULKAN_SHADOW_MAP_COUNT == 7, "Update common/lights.glsl when changing GPU light limits");
+_Static_assert(offsetof(VulkanLightBufferData, lights) == 32, "LightBuffer prefix must match GLSL std430");
+_Static_assert(offsetof(VulkanLightBufferData, shadow_params) == 5600, "LightBuffer shadow parameters must match GLSL std430");
 
 typedef struct {
   float mvp[16];
@@ -79,7 +84,7 @@ typedef struct {
 } Vulkan2DPushConstants;
 
 typedef struct {
-  float viewport[4];
+  float mvp[16];
   float material[4];
 } VulkanTextPushConstants;
 
@@ -116,7 +121,7 @@ typedef struct {
 
 typedef struct {
   VULKAN *renderer;
-  const Mesh *mesh;
+  Mesh mesh;
   VULKAN_CachedMesh cached;
 } VULKAN_MeshCacheEntry;
 
@@ -128,56 +133,68 @@ void VULKAN_RendererClear(VULKAN *vulkan, float r, float g, float b, float a);
 void VULKAN_RendererBeginMainPass(VULKAN *vulkan);
 void VULKAN_RendererSetClearColor(VULKAN *vulkan, float r, float g, float b, float a);
 void VULKAN_RendererSetShadow(VULKAN *vulkan, const float *shadow_mvp, bool enabled, float bias);
-void VULKAN_RendererSetPointShadow(VULKAN *vulkan, const HMM_Mat4 *shadow_mvp, bool enabled, float bias);
+void VULKAN_RendererSetPointShadow(VULKAN *vulkan, const BLB_Mat4 *shadow_mvp, bool enabled, float bias);
 void VULKAN_RendererBeginShadowPass(VULKAN *vulkan, uint32_t shadow_map_index);
 void VULKAN_RendererEndShadowPass(VULKAN *vulkan);
 void VULKAN_RendererDrawShadowPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float *model_mvp);
 void VULKAN_RendererDrawCachedShadowMesh(VULKAN *vulkan, const Mesh *mesh, const float *model_mvp);
-void VULKAN_RendererDrawInstancedShadowMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, const VulkanInstanceData *instances, size_t instance_count);
-void VULKAN_RendererDrawInstancedShadowPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float *mvp, const VulkanInstanceData *instances, size_t instance_count);
-void VULKAN_RendererSetCameraPosition(VULKAN *vulkan, HMM_Vec3 position);
+void VULKAN_RendererDrawInstancedShadowMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, const VulkanInstanceData *instances,
+                                            size_t instance_count);
+void VULKAN_RendererDrawInstancedShadowPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float *mvp, const VulkanInstanceData *instances,
+                                                 size_t instance_count);
+void VULKAN_RendererSetCameraPosition(VULKAN *vulkan, BLB_Vec3 position);
 void VULKAN_RendererSetLights3D(VULKAN *vulkan, BLB_Light3D **lights, size_t light_count);
 void VULKAN_RendererClearLights3D(VULKAN *vulkan);
 void VULKAN_RendererSetLights2D(VULKAN *vulkan, BLB_Light2D **lights, size_t light_count);
 void VULKAN_RendererClearLights2D(VULKAN *vulkan);
 void VULKAN_RendererSetLightingObjects3D(VULKAN *vulkan, BLB_Object3D **objects, size_t object_count);
 void VULKAN_RendererSetLightingObjects2D(VULKAN *vulkan, BLB_Object2D **objects, size_t object_count);
-void VULKAN_RendererDrawTriangle(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec3 c, const float *mvp, float r, float g, float b_color, float a_color,
-                                 HMM_Vec3 camera_position);
-void VULKAN_RendererDrawTriangle2D(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec3 c, const float *mvp, float r, float g, float b_color,
-                                   float a_color, HMM_Vec3 camera_position, int lighting_enabled);
-void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, HMM_Vec3 camera_position);
-void VULKAN_RendererDrawCachedMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, HMM_Vec3 camera_position);
-void VULKAN_RendererDrawCachedMeshMaterial(VULKAN *vulkan, const Mesh *mesh, const float *mvp, const float *model_rows, float r, float g, float b, float a,
-                                           const VulkanMaterial *material, BLB_Texture *texture, HMM_Vec3 camera_position);
+void VULKAN_RendererDrawTriangle(VULKAN *vulkan, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r, float g, float b_color, float a_color,
+                                 BLB_Vec3 camera_position);
+void VULKAN_RendererDrawTriangle2D(VULKAN *vulkan, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r, float g, float b_color,
+                                   float a_color, BLB_Vec3 camera_position, int lighting_enabled);
+void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, BLB_Vec3 camera_position);
+void VULKAN_RendererDrawCachedMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, BLB_Vec3 camera_position);
+void VULKAN_RendererDrawCachedMeshMaterial(VULKAN *vulkan, const Mesh *mesh, const float *mvp, const float *model_rows, float r, float g, float b,
+                                           float a, const VulkanMaterial *material, BLB_Texture *texture, BLB_Vec3 camera_position);
 void VULKAN_RendererDrawInstancedMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, const VulkanMaterial *material, BLB_Texture *texture,
-                                      const VulkanInstanceData *instances, size_t instance_count, HMM_Vec3 camera_position);
-void VULKAN_RendererDrawInstancedPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float *mvp, const VulkanMaterial *material, BLB_Texture *texture,
-                                           const VulkanInstanceData *instances, size_t instance_count, HMM_Vec3 camera_position);
+                                      const VulkanInstanceData *instances, size_t instance_count, BLB_Vec3 camera_position);
+void VULKAN_RendererDrawInstancedPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float *mvp, const VulkanMaterial *material,
+                                           BLB_Texture *texture, const VulkanInstanceData *instances, size_t instance_count,
+                                           BLB_Vec3 camera_position);
 int VULKAN_RendererEnsureInstanceCapacity(VULKAN *vulkan, size_t required_instances);
 void VULKAN_RendererInvalidateCachedMesh(VULKAN *vulkan, const Mesh *mesh);
 void VULKAN_RendererClearCachedMeshes(VULKAN *vulkan);
 void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float *mvp, const float *model_rows, float r, float g, float b,
                                   float a, const VulkanMaterial *material, BLB_Texture *texture);
-void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, const HMM_Vec2 *world_positions, float viewport_width,
+void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, const BLB_Vec2 *world_positions, float viewport_width,
                                   float viewport_height, float r, float g, float b, float a, const VulkanMaterial *material, BLB_Texture *texture);
 void VULKAN_RendererDrawBatchedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, float viewport_width, float viewport_height,
                                          const VulkanMaterial *material, BLB_Texture *texture, const VulkanInstanceData *instances,
-                                         size_t instance_count, bool screen_space);
+                                         size_t instance_count, bool camera_attached);
 void VULKAN_RendererDrawInstancedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, float viewport_width, float viewport_height,
                                            const VulkanMaterial *material, BLB_Texture *texture, const VulkanInstanceData *instances,
-                                           size_t instance_count, bool screen_space);
+                                           size_t instance_count, bool camera_attached);
 int VULKAN_RendererLoadFont(VULKAN *vulkan, const Font *font);
 void VULKAN_RendererUnloadFont(VULKAN *vulkan);
-void VULKAN_RendererDrawText(VULKAN *vulkan, const Font *font, const char *text, float x, float y, float glyph_scale, HMM_Vec2 transform_scale,
+void VULKAN_RendererDrawText(VULKAN *vulkan, const Font *font, const char *text, float x, float y, float glyph_scale, BLB_Vec2 transform_scale,
                              float rotation, float r, float g, float b, float a, float emission, float glow, float roundness,
                              BLB_RenderMode render_mode);
+void VULKAN_RendererDrawTextTransformed(VULKAN *vulkan, const Font *font, const char *text, float x, float y, float glyph_scale,
+                                        BLB_Vec2 transform_scale, float rotation, float r, float g, float b, float a, float emission, float glow,
+                                        float roundness, BLB_RenderMode render_mode, const float *mvp);
 int VULKAN_RendererRecreateSwapchain(VULKAN *vulkan, bool vsync);
 uint32_t find_memory_type(VULKAN *vulkan, uint32_t type_filter, VkMemoryPropertyFlags properties);
 int create_buffer(VULKAN *vulkan, VkDeviceSize size, VkBufferUsageFlags usage, VULKAN_Buffer *buffer);
 void destroy_buffer(VULKAN *vulkan, VULKAN_Buffer *buffer);
+int VULKAN_PostprocessCreate(VULKAN *vulkan);
+void VULKAN_PostprocessDestroy(VULKAN *vulkan);
+VkImageView VULKAN_PostprocessView(VULKAN *vulkan, uint32_t image);
+void VULKAN_PostprocessDraw(VULKAN *vulkan);
+
 int create_image(VULKAN *vulkan, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkImage *image, VkDeviceMemory *memory);
-int create_image_3d(VULKAN *vulkan, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageUsageFlags usage, VkImage *image, VkDeviceMemory *memory);
+int create_image_3d(VULKAN *vulkan, uint32_t width, uint32_t height, uint32_t depth, VkFormat format, VkImageUsageFlags usage, VkImage *image,
+                    VkDeviceMemory *memory);
 int create_render_pass(VULKAN *vulkan);
 int create_depth_resources(VULKAN *vulkan);
 void destroy_depth_resources(VULKAN *vulkan);
@@ -206,7 +223,7 @@ int VULKAN_GetOrCreateCustomPipeline(VULKAN *vulkan, const BLB_ShaderProgram *sh
                                      VkPipeline *pipeline, VkPipelineLayout *layout);
 void VULKAN_DestroyCustomPipelines(VULKAN *vulkan);
 void VULKAN_RendererBindTexture(VULKAN *vulkan, VkPipelineLayout layout, BLB_Texture *texture);
-void VULKAN_RendererBindMaterial(VULKAN *vulkan, VkPipelineLayout layout, const VulkanMaterial *material);
+bool VULKAN_RendererBindMaterial(VULKAN *vulkan, VkPipelineLayout layout, const VulkanMaterial *material);
 void VULKAN_RendererInvalidateMaterialCache(VULKAN *vulkan, BLB_Material *material);
 void VULKAN_TextureDestroyBackend(void *backend_data);
 char *read_binary(const char *path, size_t *size);

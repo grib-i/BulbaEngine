@@ -32,6 +32,7 @@ int BLB_FontLoad(Font *font, const char *path, unsigned int size) {
 
   if (FT_New_Face(ft, path, 0, &face) != 0) {
     FT_Done_FreeType(ft);
+
     return -1;
   }
 

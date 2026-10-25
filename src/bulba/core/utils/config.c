@@ -12,6 +12,19 @@
  * Debug mode on viseble ligt, camera and audio
  */
 bool BLB_DEBUG = false;
+bool BLB_POSTPROCESS = false;
+bool BLB_POSTPROCESS_COLOR_CORRECTION = true;
+float BLB_POSTPROCESS_EXPOSURE = 0.0f;
+float BLB_POSTPROCESS_CONTRAST = 1.0f;
+float BLB_POSTPROCESS_SATURATION = 1.0f;
+float BLB_POSTPROCESS_GAMMA = 1.0f;
+int BLB_POSTPROCESS_TONEMAP = 2;
+bool BLB_POSTPROCESS_BLOOM = false;
+float BLB_POSTPROCESS_BLOOM_STRENGTH = 0.15f;
+float BLB_POSTPROCESS_BLOOM_THRESHOLD = 1.0f;
+float BLB_POSTPROCESS_BLOOM_RADIUS = 2.0f;
+bool BLB_POSTPROCESS_FXAA = false;
+float BLB_POSTPROCESS_VIGNETTE = 0.0f;
 
 /*
  * 3d object aggregation and smart path selection. Static compatible objects
@@ -61,6 +74,8 @@ float BLB_OBJECT_LOD_REDUCTION = 0.5f;
 float BLB_OBJECT_LOD_FALLBACK_ERROR = 0.08f;
 int BLB_OBJECT_LOD_DEFAULT_LEVEL = 0;
 bool BLB_OBJECT_LOD_DISTANCE_OPTIMIZATION = true;
+bool BLB_OBJECT_LOD_SCREEN_SIZE = true;
+float BLB_OBJECT_LOD_SCREEN_SIZE_START = 96.0f;
 float BLB_OBJECT_LOD_DISTANCE_START = 100.0f;
 float BLB_OBJECT_LOD_DISTANCE_STEP = 90.0f;
 int BLB_OBJECT_LOD_MIN_LEVEL = 0;
@@ -73,16 +88,17 @@ bool BLB_OBJECT_LOD_PRESERVE_BOUNDARIES = true;
 bool BLB_OBJECT_LOD_PRESERVE_NORMALS = true;
 
 /*
- * Visibility cache is intentionally disabled by default. Camera movement
- * invalidates its entries; enable it after profiling mostly-static-camera scenes.
+ * Visibility cache is enabled by default. Camera changes invalidate results;
+ * LOD geometry caches are independent and remain reusable while moving.
  */
-bool BLB_OBJECT_VISIBILITY_CACHE = false;
+bool BLB_OBJECT_VISIBILITY_CACHE = true;
 int BLB_OBJECT_VISIBILITY_CACHE_MAX_ENTRIES = 65536;
 int BLB_OBJECT_VISIBILITY_CACHE_MAX_AGE = 1;
 float BLB_OBJECT_VISIBILITY_CACHE_FAR_DISTANCE = 100.0f;
 int BLB_OBJECT_VISIBILITY_CACHE_FAR_MAX_AGE = 3;
 
 bool BLB_OBJECT_CULLING = true;
+bool BLB_OBJECT_BLOCK_CULLING = true;
 bool BLB_OBJECT_FRUSTUM_CULLING = true;
 bool BLB_OBJECT_DISTANCE_CULLING = true;
 float BLB_OBJECT_MAX_RENDER_DISTANCE = 1000000.0f;
@@ -90,17 +106,26 @@ float BLB_OBJECT_CULLING_MARGIN = 0.05f;
 bool BLB_OBJECT_SHADOW_CULL_BY_CAMERA = true;
 float BLB_OBJECT_MAX_SHADOW_RENDER_DISTANCE = 180.0f;
 
-/* HSA currently does not build cluster LODs in object_aggregation.c;
+/*
+ * HSA currently does not build cluster LODs in object_aggregation.c;
  * leave disabled until that path is implemented and benchmarked.
  */
-bool BLB_HSA = false;
+bool BLB_HSA = true;
 int BLB_HSA_LEVELS = 1;
 float BLB_HSA_ERROR = 0.01f;
 float BLB_HSA_REDUCTION_FACTOR = 0.5f;
 int BLB_HSA_MAX_TRIANGLES = 40096;
 
 /*
- * defoult cache path
+ * A variable for adjusting FPS smoothing.
+ * The higher the value, the stronger the smoothing.
+ *
+ * the default value is 0.5f
+ */
+float BLB_FPS_SMOOTHING_TIME = 0.5f;
+
+/*
+ * default cache path
  * linux home/user/.local/share/bulba/cache/
  * windows C:\Users\user\AppData\Local/cache
  */
@@ -122,6 +147,7 @@ static void blb_make_directory(const char *path) {
 void BLB_InitConfig(void) {
 #ifdef _WIN32
   const char *local = getenv("LOCALAPPDATA");
+
   if (!local || !local[0])
     local = ".";
 
@@ -137,6 +163,7 @@ void BLB_InitConfig(void) {
   snprintf(BLB_DEFAULT_CACHE_PATH, sizeof(BLB_DEFAULT_CACHE_PATH), "%s", cache);
 #else
   const char *home = getenv("HOME");
+
   if (!home || !home[0])
     home = ".";
 
@@ -147,10 +174,13 @@ void BLB_InitConfig(void) {
 
   if (snprintf(local_dir, sizeof(local_dir), "%s/.local", home) >= (int)sizeof(local_dir))
     return;
+
   if (snprintf(share_dir, sizeof(share_dir), "%s/share", local_dir) >= (int)sizeof(share_dir))
     return;
+
   if (snprintf(root, sizeof(root), "%s/bulba", share_dir) >= (int)sizeof(root))
     return;
+
   if (snprintf(cache, sizeof(cache), "%s/cache", root) >= (int)sizeof(cache))
     return;
 

@@ -70,6 +70,7 @@ typedef struct {
 #define VULKAN_MAX_CUSTOM_PIPELINES 128
 
 typedef struct {
+  float color[4];
   const BLB_Polygon3D *polygon;
   size_t vertex_start;
   size_t index_start;
@@ -97,12 +98,14 @@ typedef struct VULKAN {
   VkQueue present_queue;
   VkSwapchainKHR swapchain;
   bool vsync_enabled;
+  bool swapchain_suboptimal;
   VkFormat swapchain_format;
   VkExtent2D swapchain_extent;
   uint32_t swapchain_image_count;
   VkImage *swapchain_images;
   VkImageView *swapchain_image_views;
   VkRenderPass render_pass;
+  void *postprocess;
   VkFramebuffer *framebuffers;
   VkImage *depth_images;
   VkDeviceMemory *depth_memories;
@@ -139,7 +142,7 @@ typedef struct VULKAN {
   size_t light2d_count;
   size_t lighting_object3d_count;
   size_t lighting_object2d_count;
-  HMM_Vec3 camera_position;
+  BLB_Vec3 camera_position;
   float view_projection[16];
   float clear_color[4];
   bool light_buffer_dirty_3d;
@@ -168,6 +171,10 @@ typedef struct VULKAN {
   VULKAN_Buffer material_params_buffer;
   VkDeviceSize material_params_stride;
   bool material_slot_used[VULKAN_MAX_MATERIALS];
+  void *material_backends;
+  void *texture_backends;
+  void *material_pages;
+  BLB_Material *fallback_material;
   BLB_Texture *default_texture;
   BLB_Texture *default_texture_3d;
   VULKAN_Buffer vertex_buffers[VULKAN_MAX_FRAMES_IN_FLIGHT];
@@ -192,7 +199,7 @@ typedef struct VULKAN {
   VkSampler shadow_sampler;
   VkPipeline shadow_pipeline;
   VkPipelineLayout shadow_pipeline_layout;
-  HMM_Mat4 shadow_mvp[VULKAN_SHADOW_MAP_COUNT];
+  BLB_Mat4 shadow_mvp[VULKAN_SHADOW_MAP_COUNT];
   bool shadow_enabled;
   uint32_t shadow_mode;
   float shadow_bias;

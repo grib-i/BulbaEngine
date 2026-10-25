@@ -4,7 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
+typedef struct VulkanTextureBackend {
+  struct VulkanTextureBackend *next;
+  BLB_Texture *owner;
   VULKAN *vulkan;
   VkImage image;
   VkDeviceMemory memory;
@@ -13,11 +15,23 @@ typedef struct {
   VkDescriptorSet descriptor_set;
 } VulkanTextureBackend;
 
-typedef struct {
+typedef struct VulkanMaterialPage {
+  struct VulkanMaterialPage *next;
+  VkDescriptorPool pool;
+  VULKAN_Buffer params;
+  bool slots[VULKAN_MAX_MATERIALS];
+} VulkanMaterialPage;
+
+typedef struct VulkanMaterialBackend {
+  struct VulkanMaterialBackend *next;
+  struct VulkanMaterialBackend *renderer_next;
+  uint32_t frame;
+  uint64_t last_used_serial;
   VULKAN *vulkan;
   VkDescriptorSet descriptor_set;
   VkDescriptorSetLayout layout;
   uint32_t slot_index;
+  VulkanMaterialPage *page;
   uint64_t revision;
   uint64_t texture_revision;
   BLB_Texture *base_override;
@@ -37,22 +51,27 @@ static uint16_t float_to_half(float value) {
       return (uint16_t)sign;
     mantissa |= 0x00800000u;
     uint32_t shifted = mantissa >> (1 - exponent);
+
     if (shifted & 0x00001000u)
       shifted += 0x00002000u;
+
     return (uint16_t)(sign | (shifted >> 13));
   }
 
   if (exponent >= 31) {
     if (mantissa == 0)
       return (uint16_t)(sign | 0x7c00u);
+
     return (uint16_t)(sign | 0x7c00u | (mantissa >> 13));
   }
 
   if (mantissa & 0x00001000u)
     mantissa += 0x00002000u;
+
   if (mantissa & 0x00800000u) {
     mantissa = 0;
     exponent++;
+
     if (exponent >= 31)
       return (uint16_t)(sign | 0x7c00u);
   }
@@ -64,11 +83,14 @@ static uint32_t pack_half2(float x, float y) { return (uint32_t)float_to_half(x)
 
 static uint32_t pack_rotation_uv_set_projection(float rotation, int uv_set, BLB_TextureProjection projection) {
   uint32_t uv = (uint32_t)(uv_set < 0 ? 0 : uv_set);
+
   if (uv > 255u)
     uv = 255u;
   uint32_t proj = (uint32_t)projection;
+
   if (proj > 255u)
     proj = 0u;
+
   return (uint32_t)float_to_half(rotation) | (uv << 16u) | (proj << 24u);
 }
 
@@ -77,6 +99,7 @@ static uint32_t material_sampler_index(BLB_TextureWrap wrap_u, BLB_TextureWrap w
   uint32_t wv = (uint32_t)wrap_v % 3u;
   uint32_t mi = (uint32_t)min_filter % 2u;
   uint32_t ma = (uint32_t)mag_filter % 2u;
+
   return (((wu * 3u + wv) * 2u + mi) * 2u + ma);
 }
 
@@ -90,6 +113,7 @@ static int begin_single_time_commands(VULKAN *vulkan, VkCommandBuffer *command) 
     return -1;
 
   VkCommandBufferBeginInfo begin_info = {.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
+
   if (vkBeginCommandBuffer(*command, &begin_info) != VK_SUCCESS) {
     vkFreeCommandBuffers(vulkan->device, vulkan->command_pool, 1, command);
 
@@ -109,6 +133,7 @@ static int end_single_time_commands(VULKAN *vulkan, VkCommandBuffer command) {
   VkSubmitInfo submit_info = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO, .commandBufferCount = 1, .pCommandBuffers = &command};
 
   VkResult result = vkQueueSubmit(vulkan->graphics_queue, 1, &submit_info, VK_NULL_HANDLE);
+
   if (result == VK_SUCCESS)
     result = vkQueueWaitIdle(vulkan->graphics_queue);
 
@@ -152,15 +177,18 @@ static int transition_image(VULKAN *vulkan, VkImage image, VkImageLayout old_lay
   } else {
     vkEndCommandBuffer(command);
     vkFreeCommandBuffers(vulkan->device, vulkan->command_pool, 1, &command);
+
     return -1;
   }
 
   vkCmdPipelineBarrier(command, source_stage, destination_stage, 0, 0, NULL, 0, NULL, 1, &barrier);
+
   return end_single_time_commands(vulkan, command);
 }
 
 static int copy_buffer_to_image(VULKAN *vulkan, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
   VkCommandBuffer command = VK_NULL_HANDLE;
+
   if (begin_single_time_commands(vulkan, &command) != 0)
     return -1;
 
@@ -178,6 +206,7 @@ static int copy_buffer_to_image(VULKAN *vulkan, VkBuffer buffer, VkImage image, 
 
 static int copy_buffer_to_image_3d(VULKAN *vulkan, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth) {
   VkCommandBuffer command = VK_NULL_HANDLE;
+
   if (begin_single_time_commands(vulkan, &command) != 0)
     return -1;
   VkBufferImageCopy region = {.bufferOffset = 0,
@@ -187,6 +216,7 @@ static int copy_buffer_to_image_3d(VULKAN *vulkan, VkBuffer buffer, VkImage imag
                               .imageOffset = {0, 0, 0},
                               .imageExtent = {width, height, depth}};
   vkCmdCopyBufferToImage(command, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
   return end_single_time_commands(vulkan, command);
 }
 
@@ -196,8 +226,26 @@ static void destroy_texture_backend(VulkanTextureBackend *backend) {
 
   VULKAN *vulkan = backend->vulkan;
 
+  if (backend->owner) {
+    if (vulkan) {
+      VulkanTextureBackend **link = (VulkanTextureBackend **)&vulkan->texture_backends;
+
+      while (*link && *link != backend)
+        link = &(*link)->next;
+
+      if (*link)
+        *link = backend->next;
+    }
+
+    if (backend->owner->backend_data == backend) {
+      backend->owner->backend_data = NULL;
+      backend->owner->backend_destroy = NULL;
+    }
+  }
+
   if (!vulkan || vulkan->device == VK_NULL_HANDLE) {
     free(backend);
+
     return;
   }
 
@@ -261,6 +309,9 @@ void destroy_texture_descriptor_resources(VULKAN *vulkan) {
   if (!vulkan || vulkan->device == VK_NULL_HANDLE)
     return;
 
+  while (vulkan->texture_backends)
+    destroy_texture_backend(vulkan->texture_backends);
+
   if (vulkan->texture_descriptor_pool != VK_NULL_HANDLE) {
     vkDestroyDescriptorPool(vulkan->device, vulkan->texture_descriptor_pool, NULL);
 
@@ -311,6 +362,7 @@ int create_material_descriptor_resources(VULKAN *vulkan) {
   VkPhysicalDeviceProperties properties;
   vkGetPhysicalDeviceProperties(vulkan->physical_device, &properties);
   VkDeviceSize alignment = properties.limits.minStorageBufferOffsetAlignment;
+
   if (alignment == 0)
     alignment = 1;
 
@@ -318,14 +370,17 @@ int create_material_descriptor_resources(VULKAN *vulkan) {
   vulkan->material_params_stride = (record_size + alignment - 1) / alignment * alignment;
 
   VkDeviceSize buffer_size = vulkan->material_params_stride * VULKAN_MAX_MATERIALS;
+
   if (create_buffer(vulkan, buffer_size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &vulkan->material_params_buffer) != 0) {
     vkDestroyDescriptorSetLayout(vulkan->device, vulkan->material_descriptor_set_layout, NULL);
     vulkan->material_descriptor_set_layout = VK_NULL_HANDLE;
+
     return -1;
   }
 
   memset(vulkan->material_params_buffer.mapped, 0, (size_t)buffer_size);
   VulkanMaterialGPURecord *default_record = (VulkanMaterialGPURecord *)vulkan->material_params_buffer.mapped;
+
   for (uint32_t i = 0; i < VULKAN_MATERIAL_TEXTURE_SLOTS; ++i) {
     default_record->slots[i].packed[0] = pack_half2(0.0f, 0.0f);
     default_record->slots[i].packed[1] = pack_half2(1.0f, 1.0f);
@@ -372,6 +427,7 @@ int create_material_descriptor_resources(VULKAN *vulkan) {
       destroy_buffer(vulkan, &vulkan->material_params_buffer);
       vkDestroyDescriptorSetLayout(vulkan->device, vulkan->material_descriptor_set_layout, NULL);
       vulkan->material_descriptor_set_layout = VK_NULL_HANDLE;
+
       return -1;
     }
   }
@@ -397,6 +453,7 @@ int create_material_descriptor_resources(VULKAN *vulkan) {
     vulkan->material_params_stride = 0;
     vkDestroyDescriptorSetLayout(vulkan->device, vulkan->material_descriptor_set_layout, NULL);
     vulkan->material_descriptor_set_layout = VK_NULL_HANDLE;
+
     return -1;
   }
 
@@ -408,8 +465,42 @@ int create_material_descriptor_resources(VULKAN *vulkan) {
 }
 
 void destroy_material_descriptor_resources(VULKAN *vulkan) {
-  if (!vulkan || vulkan->device == VK_NULL_HANDLE)
+  if (!vulkan)
     return;
+
+  if (vulkan->device != VK_NULL_HANDLE)
+    vkDeviceWaitIdle(vulkan->device);
+
+  if (vulkan->fallback_material) {
+    BLB_Material_Release(vulkan->fallback_material);
+    vulkan->fallback_material = NULL;
+  }
+  VulkanMaterialBackend *node = vulkan->material_backends;
+
+  while (node) {
+    VulkanMaterialBackend *next = node->renderer_next;
+    node->vulkan = NULL;
+    node->descriptor_set = VK_NULL_HANDLE;
+    node->slot_index = UINT32_MAX;
+    node->page = NULL;
+    node->renderer_next = NULL;
+    node = next;
+  }
+  vulkan->material_backends = NULL;
+
+  if (vulkan->device == VK_NULL_HANDLE)
+    return;
+
+  VulkanMaterialPage *page = vulkan->material_pages;
+
+  while (page) {
+    VulkanMaterialPage *next = page->next;
+    vkDestroyDescriptorPool(vulkan->device, page->pool, NULL);
+    destroy_buffer(vulkan, &page->params);
+    free(page);
+    page = next;
+  }
+  vulkan->material_pages = NULL;
 
   if (vulkan->material_descriptor_pool != VK_NULL_HANDLE) {
     vkDestroyDescriptorPool(vulkan->device, vulkan->material_descriptor_pool, NULL);
@@ -447,16 +538,22 @@ int VULKAN_TextureEnsureUploaded(VULKAN *vulkan, BLB_Texture *texture) {
   if ((size_t)texture->width > SIZE_MAX / (size_t)texture->height)
     return -1;
   size_t texels = (size_t)texture->width * (size_t)texture->height;
+
   if (texture->type == BLB_TEXTURE_3D) {
     if ((size_t)texture->depth > SIZE_MAX / texels)
       return -1;
     texels *= (size_t)texture->depth;
   }
+
   if (texels > SIZE_MAX / 4u || texture->pixel_size != texels * 4u)
     return -1;
 
-  if (texture->backend_data)
-    return 0;
+  if (texture->backend_data) {
+    if (texture->backend_destroy != VULKAN_TextureDestroyBackend)
+      return -1;
+
+    return ((VulkanTextureBackend *)texture->backend_data)->vulkan == vulkan ? 0 : -1;
+  }
 
   VulkanTextureBackend *backend = calloc(1, sizeof(*backend));
 
@@ -471,6 +568,7 @@ int VULKAN_TextureEnsureUploaded(VULKAN *vulkan, BLB_Texture *texture) {
 
   if (create_buffer(vulkan, image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, &staging) != 0) {
     free(backend);
+
     return -1;
   }
 
@@ -481,10 +579,12 @@ int VULKAN_TextureEnsureUploaded(VULKAN *vulkan, BLB_Texture *texture) {
                                            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &backend->image, &backend->memory)
                          : create_image(vulkan, texture->width, texture->height, VK_FORMAT_R8G8B8A8_SRGB,
                                         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &backend->image, &backend->memory);
+
   if (image_result != 0) {
     destroy_buffer(vulkan, &staging);
 
     free(backend);
+
     return -1;
   }
 
@@ -551,8 +651,12 @@ int VULKAN_TextureEnsureUploaded(VULKAN *vulkan, BLB_Texture *texture) {
   }
 
   if (texture->type == BLB_TEXTURE_3D) {
+    backend->owner = texture;
+    backend->next = vulkan->texture_backends;
+    vulkan->texture_backends = backend;
     texture->backend_data = backend;
     texture->backend_destroy = VULKAN_TextureDestroyBackend;
+
     return 0;
   }
 
@@ -580,6 +684,9 @@ int VULKAN_TextureEnsureUploaded(VULKAN *vulkan, BLB_Texture *texture) {
 
   vkUpdateDescriptorSets(vulkan->device, 1, &write, 0, NULL);
 
+  backend->owner = texture;
+  backend->next = vulkan->texture_backends;
+  vulkan->texture_backends = backend;
   texture->backend_data = backend;
 
   texture->backend_destroy = VULKAN_TextureDestroyBackend;
@@ -589,31 +696,45 @@ int VULKAN_TextureEnsureUploaded(VULKAN *vulkan, BLB_Texture *texture) {
 
 static BLB_Texture *create_default_texture(void) {
   const unsigned char pixel[4] = {255, 255, 255, 255};
+
   return BLB_Texture_Create2D(1, 1, pixel, sizeof(pixel));
 }
 
 static BLB_Texture *create_default_texture_3d(void) {
   const unsigned char pixels[4] = {255, 255, 255, 255};
+
   return BLB_Texture_Create3D(1, 1, 1, pixels, sizeof(pixels));
 }
 
 static void destroy_material_backend(void *backend_data) {
-  VulkanMaterialBackend *backend = (VulkanMaterialBackend *)backend_data;
-  if (!backend)
-    return;
+  VulkanMaterialBackend *backend = backend_data;
 
-  VULKAN *vulkan = backend->vulkan;
-  if (vulkan) {
-    if (backend->slot_index < VULKAN_MAX_MATERIALS && backend->slot_index != 0)
-      vulkan->material_slot_used[backend->slot_index] = false;
+  while (backend) {
+    VulkanMaterialBackend *next = backend->next;
+    VULKAN *vulkan = backend->vulkan;
 
-    if (vulkan->device != VK_NULL_HANDLE && vulkan->material_descriptor_pool != VK_NULL_HANDLE && backend->descriptor_set != VK_NULL_HANDLE &&
-        backend->layout == vulkan->material_descriptor_set_layout) {
-      vkFreeDescriptorSets(vulkan->device, vulkan->material_descriptor_pool, 1, &backend->descriptor_set);
+    if (vulkan && vulkan->device != VK_NULL_HANDLE) {
+      vkDeviceWaitIdle(vulkan->device);
+      VkDescriptorPool pool = backend->page ? backend->page->pool : vulkan->material_descriptor_pool;
+
+      if (backend->descriptor_set != VK_NULL_HANDLE && pool != VK_NULL_HANDLE)
+        vkFreeDescriptorSets(vulkan->device, pool, 1, &backend->descriptor_set);
+
+      if (backend->slot_index < VULKAN_MAX_MATERIALS) {
+        bool *slots = backend->page ? backend->page->slots : vulkan->material_slot_used;
+        slots[backend->slot_index] = false;
+      }
+      VulkanMaterialBackend **link = (VulkanMaterialBackend **)&vulkan->material_backends;
+
+      while (*link && *link != backend)
+        link = &(*link)->renderer_next;
+
+      if (*link)
+        *link = backend->renderer_next;
     }
+    free(backend);
+    backend = next;
   }
-
-  free(backend);
 }
 
 static BLB_MaterialTexture *material_slot(BLB_Material *material, uint32_t slot) {
@@ -648,27 +769,77 @@ static const BLB_MaterialTexture *material_slot_const(const BLB_Material *materi
 }
 
 static BLB_Texture *material_slot_texture(const BLB_Material *material, uint32_t slot, BLB_Texture *base_override) {
+  if (slot == 0u && base_override)
+    return base_override;
   const BLB_MaterialTexture *slot_data = material_slot_const(material, slot);
-  if (slot_data && slot_data->texture)
-    return slot_data->texture;
-  return slot == 0u ? base_override : NULL;
+
+  return slot_data ? slot_data->texture : NULL;
 }
 
-static uint32_t find_material_slot(VULKAN *vulkan) {
+static uint32_t find_material_slot(VULKAN *vulkan, VulkanMaterialPage **out_page) {
+  *out_page = NULL;
   for (uint32_t i = 1; i < VULKAN_MAX_MATERIALS; ++i) {
     if (!vulkan->material_slot_used[i]) {
       vulkan->material_slot_used[i] = true;
+
       return i;
     }
   }
-  return UINT32_MAX;
+
+  for (VulkanMaterialPage *page = vulkan->material_pages; page; page = page->next) {
+    for (uint32_t i = 0; i < VULKAN_MAX_MATERIALS; ++i) {
+      if (!page->slots[i]) {
+        page->slots[i] = true;
+        *out_page = page;
+        return i;
+      }
+    }
+  }
+  VulkanMaterialPage *page = calloc(1, sizeof(*page));
+
+  if (!page)
+    return UINT32_MAX;
+
+  if (create_buffer(vulkan, vulkan->material_params_stride * VULKAN_MAX_MATERIALS, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &page->params) != 0) {
+    free(page);
+
+    return UINT32_MAX;
+  }
+  VkDescriptorPoolSize sizes[] = {
+      {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = VULKAN_MAX_MATERIALS * (VULKAN_MATERIAL_TEXTURE_SLOTS + 1u)},
+      {.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, .descriptorCount = VULKAN_MAX_MATERIALS},
+  };
+  VkDescriptorPoolCreateInfo info = {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+      .maxSets = VULKAN_MAX_MATERIALS,
+      .poolSizeCount = 2,
+      .pPoolSizes = sizes,
+  };
+
+  if (vkCreateDescriptorPool(vulkan->device, &info, NULL, &page->pool) != VK_SUCCESS) {
+    destroy_buffer(vulkan, &page->params);
+    free(page);
+
+    return UINT32_MAX;
+  }
+  page->next = vulkan->material_pages;
+  vulkan->material_pages = page;
+  page->slots[0] = true;
+  *out_page = page;
+  return 0;
 }
 
-static void write_material_transforms(VULKAN *vulkan, uint32_t slot_index, const BLB_Material *material) {
-  if (!vulkan || !material || !vulkan->material_params_buffer.mapped || slot_index >= VULKAN_MAX_MATERIALS)
+static void write_material_transforms(VULKAN *vulkan, VulkanMaterialBackend *backend, const BLB_Material *material) {
+  if (!vulkan || !backend || !material)
+    return;
+  uint32_t slot_index = backend->slot_index;
+  VULKAN_Buffer *buffer = backend->page ? &backend->page->params : &vulkan->material_params_buffer;
+
+  if (!buffer->mapped || slot_index >= VULKAN_MAX_MATERIALS)
     return;
 
-  unsigned char *base = (unsigned char *)vulkan->material_params_buffer.mapped + vulkan->material_params_stride * slot_index;
+  unsigned char *base = (unsigned char *)buffer->mapped + vulkan->material_params_stride * slot_index;
   VulkanMaterialGPURecord *record = (VulkanMaterialGPURecord *)base;
 
   for (uint32_t i = 0; i < VULKAN_MATERIAL_TEXTURE_SLOTS; ++i) {
@@ -679,6 +850,7 @@ static void write_material_transforms(VULKAN *vulkan, uint32_t slot_index, const
 
   for (uint32_t i = 0; i < VULKAN_MATERIAL_TEXTURE_SLOTS; ++i) {
     const BLB_MaterialTexture *texture = material_slot_const(material, i);
+
     if (!texture)
       continue;
 
@@ -700,12 +872,14 @@ static int ensure_default_material_set(VULKAN *vulkan, BLB_Texture *default_text
       .descriptorSetCount = 1,
       .pSetLayouts = &vulkan->material_descriptor_set_layout,
   };
+
   if (vkAllocateDescriptorSets(vulkan->device, &allocate_info, &vulkan->default_material_descriptor_set) != VK_SUCCESS)
     return -1;
 
   VulkanTextureBackend *tb = (VulkanTextureBackend *)default_texture->backend_data;
   VulkanTextureBackend *tb3d = (VulkanTextureBackend *)default_texture_3d->backend_data;
   VkDescriptorImageInfo infos[VULKAN_MATERIAL_TEXTURE_SLOTS];
+
   for (uint32_t i = 0; i < VULKAN_MATERIAL_TEXTURE_SLOTS; ++i) {
     infos[i] = (VkDescriptorImageInfo){.sampler = vulkan->material_samplers[material_sampler_index(
                                            BLB_TEXTURE_WRAP_REPEAT, BLB_TEXTURE_WRAP_REPEAT, BLB_TEXTURE_FILTER_LINEAR, BLB_TEXTURE_FILTER_LINEAR)],
@@ -743,29 +917,98 @@ static int ensure_default_material_set(VULKAN *vulkan, BLB_Texture *default_text
   return 0;
 }
 
+/* A descriptor/parameter slot belongs to one in-flight frame and one draw variant.
+ * Never rewrite a set used by an earlier draw or by another frame on the GPU. */
+static VulkanMaterialBackend *select_material_backend(VULKAN *vulkan, BLB_Material *source, BLB_Texture *base_override, uint64_t texture_revision) {
+  VulkanMaterialBackend *head = source->backend_data;
+  VulkanMaterialBackend *reusable = NULL;
+
+  for (VulkanMaterialBackend *node = head; node; node = node->next) {
+    if (node->vulkan != vulkan || node->layout != vulkan->material_descriptor_set_layout || node->frame != vulkan->current_frame)
+      continue;
+
+    if (node->revision == source->revision && node->texture_revision == texture_revision && node->base_override == base_override &&
+        node->descriptor_set != VK_NULL_HANDLE) {
+      node->last_used_serial = vulkan->frame_serial;
+
+      return node;
+    }
+
+    if (node->last_used_serial != vulkan->frame_serial)
+      reusable = node;
+  }
+
+  if (!reusable) {
+    VulkanMaterialPage *page = NULL;
+    uint32_t slot = find_material_slot(vulkan, &page);
+
+    if (slot == UINT32_MAX)
+      return NULL;
+    reusable = calloc(1, sizeof(*reusable));
+
+    if (!reusable) {
+      bool *slots = page ? page->slots : vulkan->material_slot_used;
+      slots[slot] = false;
+
+      return NULL;
+    }
+    reusable->slot_index = slot;
+    reusable->page = page;
+    reusable->vulkan = vulkan;
+    reusable->layout = vulkan->material_descriptor_set_layout;
+    reusable->frame = vulkan->current_frame;
+    reusable->next = head;
+    source->backend_data = reusable;
+    source->backend_destroy = destroy_material_backend;
+    reusable->renderer_next = vulkan->material_backends;
+    vulkan->material_backends = reusable;
+  }
+  reusable->last_used_serial = vulkan->frame_serial;
+  /* Force a write even when a new material has revision zero. */
+  reusable->revision = ~source->revision;
+
+  return reusable;
+}
+
 static int ensure_material_descriptor_set(VULKAN *vulkan, const VulkanMaterial *material, VkDescriptorSet *out_set, uint32_t *out_dynamic_offset) {
   if (!vulkan || !material || !out_set || !out_dynamic_offset || vulkan->device == VK_NULL_HANDLE ||
       vulkan->material_descriptor_set_layout == VK_NULL_HANDLE || vulkan->material_descriptor_pool == VK_NULL_HANDLE)
     return -1;
 
   BLB_Texture *default_texture = vulkan->default_texture;
+
   if (!default_texture) {
     default_texture = create_default_texture();
+
     if (!default_texture)
       return -1;
     vulkan->default_texture = default_texture;
   }
+
   if (VULKAN_TextureEnsureUploaded(vulkan, default_texture) != 0)
     return -1;
+
   if (!vulkan->default_texture_3d) {
     vulkan->default_texture_3d = create_default_texture_3d();
+
     if (!vulkan->default_texture_3d)
       return -1;
   }
+
   if (VULKAN_TextureEnsureUploaded(vulkan, vulkan->default_texture_3d) != 0)
     return -1;
 
   const BLB_Material *source = material->source_material;
+
+  if (!source && material->base_texture_override) {
+    if (!vulkan->fallback_material)
+      vulkan->fallback_material = BLB_Material_Build(BLB_MATERIAL_3D, NULL);
+    source = vulkan->fallback_material;
+
+    if (!source)
+      return -1;
+  }
+
   if (!source) {
     if (ensure_default_material_set(vulkan, default_texture, vulkan->default_texture_3d, out_set) != 0)
       return -1;
@@ -773,67 +1016,44 @@ static int ensure_material_descriptor_set(VULKAN *vulkan, const VulkanMaterial *
     return 0;
   }
 
-  VulkanMaterialBackend *backend = (VulkanMaterialBackend *)source->backend_data;
-  bool stale_layout = backend && backend->layout != vulkan->material_descriptor_set_layout;
-  if (stale_layout) {
-    backend->descriptor_set = VK_NULL_HANDLE;
-    backend->layout = vulkan->material_descriptor_set_layout;
-    backend->vulkan = vulkan;
-    backend->revision = 0;
-    backend->texture_revision = 0;
-    backend->base_override = NULL;
-    if (backend->slot_index < VULKAN_MAX_MATERIALS)
-      vulkan->material_slot_used[backend->slot_index] = false;
-    backend->slot_index = UINT32_MAX;
-  }
+  BLB_Texture *base_override = material->base_texture_override;
+  uint64_t texture_revision = BLB_Material_TextureStateRevision();
+  VulkanMaterialBackend *backend = select_material_backend(vulkan, (BLB_Material *)source, base_override, texture_revision);
 
-  if (!backend) {
-    backend = calloc(1, sizeof(*backend));
-    if (!backend)
-      return -1;
-    backend->vulkan = vulkan;
-    backend->layout = vulkan->material_descriptor_set_layout;
-    backend->slot_index = find_material_slot(vulkan);
-    if (backend->slot_index == UINT32_MAX) {
-      free(backend);
-      return -1;
-    }
-    ((BLB_Material *)source)->backend_data = backend;
-    ((BLB_Material *)source)->backend_destroy = destroy_material_backend;
-  }
-
-  if (backend->slot_index == UINT32_MAX) {
-    backend->slot_index = find_material_slot(vulkan);
-    if (backend->slot_index == UINT32_MAX)
-      return -1;
-  }
+  if (!backend)
+    return -1;
 
   if (backend->descriptor_set == VK_NULL_HANDLE) {
     VkDescriptorSetAllocateInfo allocate_info = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .descriptorPool = vulkan->material_descriptor_pool,
+        .descriptorPool = backend->page ? backend->page->pool : vulkan->material_descriptor_pool,
         .descriptorSetCount = 1,
         .pSetLayouts = &vulkan->material_descriptor_set_layout,
     };
+
     if (vkAllocateDescriptorSets(vulkan->device, &allocate_info, &backend->descriptor_set) != VK_SUCCESS)
       return -1;
   }
 
-  BLB_Texture *base_override = material->base_texture_override;
-  uint64_t texture_revision = BLB_Material_TextureStateRevision();
   if (backend->revision != source->revision || backend->texture_revision != texture_revision || backend->base_override != base_override) {
     VkDescriptorImageInfo infos[VULKAN_MATERIAL_TEXTURE_SLOTS];
+
     for (uint32_t i = 0; i < VULKAN_MATERIAL_TEXTURE_SLOTS; ++i) {
       BLB_Texture *texture = material_slot_texture(source, i, base_override);
+
       if (!texture)
         texture = default_texture;
+
       if (texture->type == BLB_TEXTURE_3D && i != 0)
         return -1;
+
       if (VULKAN_TextureEnsureUploaded(vulkan, texture) != 0)
         return -1;
+
       if (texture->type == BLB_TEXTURE_3D)
         texture = default_texture;
       VulkanTextureBackend *tb = (VulkanTextureBackend *)texture->backend_data;
+
       if (!tb || tb->view == VK_NULL_HANDLE)
         return -1;
 
@@ -842,6 +1062,7 @@ static int ensure_material_descriptor_set(VULKAN *vulkan, const VulkanMaterial *
       BLB_TextureWrap wrap_v = slot ? slot->wrap_v : BLB_TEXTURE_WRAP_REPEAT;
       BLB_TextureFilter min_filter = slot ? slot->min_filter : BLB_TEXTURE_FILTER_LINEAR;
       BLB_TextureFilter mag_filter = slot ? slot->mag_filter : BLB_TEXTURE_FILTER_LINEAR;
+
       if (texture->clamp_to_edge) {
         wrap_u = BLB_TEXTURE_WRAP_CLAMP_TO_EDGE;
         wrap_v = BLB_TEXTURE_WRAP_CLAMP_TO_EDGE;
@@ -858,8 +1079,10 @@ static int ensure_material_descriptor_set(VULKAN *vulkan, const VulkanMaterial *
                                        .imageView = ((VulkanTextureBackend *)vulkan->default_texture_3d->backend_data)->view,
                                        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
     VkDescriptorImageInfo info3d = default3d;
+
     if (base_is_3d) {
       VulkanTextureBackend *tb3d = (VulkanTextureBackend *)base_texture->backend_data;
+
       if (!tb3d || tb3d->view == VK_NULL_HANDLE)
         return -1;
       info3d = (VkDescriptorImageInfo){.sampler = vulkan->material_samplers[material_sampler_index(
@@ -867,7 +1090,9 @@ static int ensure_material_descriptor_set(VULKAN *vulkan, const VulkanMaterial *
                                        .imageView = tb3d->view,
                                        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
     }
-    VkDescriptorBufferInfo params = {.buffer = vulkan->material_params_buffer.buffer, .offset = 0, .range = sizeof(VulkanMaterialGPURecord)};
+    VkDescriptorBufferInfo params = {.buffer = backend->page ? backend->page->params.buffer : vulkan->material_params_buffer.buffer,
+                                     .offset = 0,
+                                     .range = sizeof(VulkanMaterialGPURecord)};
     VkWriteDescriptorSet writes[3] = {
         {.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
          .dstSet = backend->descriptor_set,
@@ -889,7 +1114,7 @@ static int ensure_material_descriptor_set(VULKAN *vulkan, const VulkanMaterial *
          .pImageInfo = &info3d},
     };
     vkUpdateDescriptorSets(vulkan->device, 3, writes, 0, NULL);
-    write_material_transforms(vulkan, backend->slot_index, source);
+    write_material_transforms(vulkan, backend, source);
     backend->revision = source->revision;
     backend->texture_revision = texture_revision;
     backend->base_override = base_override;
@@ -900,23 +1125,26 @@ static int ensure_material_descriptor_set(VULKAN *vulkan, const VulkanMaterial *
   return 0;
 }
 
-void VULKAN_RendererBindMaterial(VULKAN *vulkan, VkPipelineLayout layout, const VulkanMaterial *material) {
+bool VULKAN_RendererBindMaterial(VULKAN *vulkan, VkPipelineLayout layout, const VulkanMaterial *material) {
   if (!vulkan || !layout || !material || vulkan->current_frame >= VULKAN_MAX_FRAMES_IN_FLIGHT)
-    return;
+    return false;
 
   VkDescriptorSet set = VK_NULL_HANDLE;
   uint32_t dynamic_offset = 0;
+
   if (ensure_material_descriptor_set(vulkan, material, &set, &dynamic_offset) != 0 || set == VK_NULL_HANDLE)
-    return;
+    return false;
 
   if (vulkan->bound_material_set == set && vulkan->bound_material_layout == layout && vulkan->bound_material_offset == dynamic_offset)
-    return;
+    return true;
 
   VkCommandBuffer command = vulkan->command_buffers[vulkan->current_frame];
   vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 1, 1, &set, 1, &dynamic_offset);
   vulkan->bound_material_set = set;
   vulkan->bound_material_layout = layout;
   vulkan->bound_material_offset = dynamic_offset;
+
+  return true;
 }
 
 void VULKAN_RendererInvalidateMaterialCache(VULKAN *vulkan, BLB_Material *material) {

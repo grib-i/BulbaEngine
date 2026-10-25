@@ -29,6 +29,7 @@ int create_buffer(VULKAN *vulkan, VkDeviceSize size, VkBufferUsageFlags usage, V
   if (memory_type == UINT32_MAX) {
     vkDestroyBuffer(vulkan->device, buffer->buffer, NULL);
     buffer->buffer = VK_NULL_HANDLE;
+
     return -1;
   }
 
@@ -37,6 +38,7 @@ int create_buffer(VULKAN *vulkan, VkDeviceSize size, VkBufferUsageFlags usage, V
   if (vkAllocateMemory(vulkan->device, &alloc, NULL, &buffer->memory) != VK_SUCCESS) {
     vkDestroyBuffer(vulkan->device, buffer->buffer, NULL);
     buffer->buffer = VK_NULL_HANDLE;
+
     return -1;
   }
 
@@ -142,22 +144,26 @@ int create_image_3d(VULKAN *vulkan, uint32_t width, uint32_t height, uint32_t de
                             .usage = usage,
                             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
+
   if (vkCreateImage(vulkan->device, &info, NULL, image) != VK_SUCCESS)
     return -1;
   VkMemoryRequirements requirements;
   vkGetImageMemoryRequirements(vulkan->device, *image, &requirements);
   uint32_t memory_type = find_memory_type(vulkan, requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
   if (memory_type == UINT32_MAX) {
     vkDestroyImage(vulkan->device, *image, NULL);
     *image = VK_NULL_HANDLE;
     return -1;
   }
   VkMemoryAllocateInfo alloc = {.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, .allocationSize = requirements.size, .memoryTypeIndex = memory_type};
+
   if (vkAllocateMemory(vulkan->device, &alloc, NULL, memory) != VK_SUCCESS) {
     vkDestroyImage(vulkan->device, *image, NULL);
     *image = VK_NULL_HANDLE;
     return -1;
   }
+
   if (vkBindImageMemory(vulkan->device, *image, *memory, 0) != VK_SUCCESS) {
     vkFreeMemory(vulkan->device, *memory, NULL);
     vkDestroyImage(vulkan->device, *image, NULL);
@@ -165,5 +171,6 @@ int create_image_3d(VULKAN *vulkan, uint32_t width, uint32_t height, uint32_t de
     *image = VK_NULL_HANDLE;
     return -1;
   }
+
   return 0;
 }

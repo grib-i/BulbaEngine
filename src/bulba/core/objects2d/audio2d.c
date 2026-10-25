@@ -44,24 +44,29 @@ BLB_Audio2D *BLB_CreateAudio2D(BLB_IO_Audio *io_audio, bool loop, bool stream, f
   return NULL;
 }
 
-BLB_Audio2D *BLB_LoadAudio2D(BLB_IO_Audio *io_audio, const char *path, bool play, bool surround, bool loop, HMM_Vec2 position) {
+BLB_Audio2D *BLB_LoadAudio2D(BLB_IO_Audio *io_audio, const char *path, bool play, bool surround, bool loop, BLB_Vec2 position) {
   if (!io_audio || !path)
     return NULL;
 
   BLB_Audio2D *audio = calloc(1, sizeof(BLB_Audio2D));
+
   if (!audio)
     return NULL;
 
   audio->sound = malloc(sizeof(ma_sound));
+
   if (!audio->sound) {
     free(audio);
+
     return NULL;
   }
 
   audio->result = malloc(sizeof(*audio->result));
+
   if (!audio->result) {
     free(audio->sound);
     free(audio);
+
     return NULL;
   }
 
@@ -69,10 +74,12 @@ BLB_Audio2D *BLB_LoadAudio2D(BLB_IO_Audio *io_audio, const char *path, bool play
   audio->io_audio = io_audio;
 
   audio->path = BLB_Platform_DuplicateString(path);
+
   if (!audio->path) {
     free(audio->result);
     free(audio->sound);
     free(audio);
+
     return NULL;
   }
 
@@ -92,16 +99,19 @@ BLB_Audio2D *BLB_LoadAudio2D(BLB_IO_Audio *io_audio, const char *path, bool play
     free(audio->result);
     free(audio->sound);
     free(audio);
+
     return NULL;
   }
 
-  audio->obj = BLB_CreateSquare2D(HMM_V2(1.0f, 1.0f), position, NULL, false);
+  audio->obj = BLB_CreateSquare2D(BLB_V2(1.0f, 1.0f), position, NULL, false);
+
   if (!audio->obj) {
     ma_sound_uninit(audio->sound);
     free(audio->path);
     free(audio->result);
     free(audio->sound);
     free(audio);
+
     return NULL;
   }
 
@@ -134,10 +144,13 @@ void BLB_DestroyAudio2D(BLB_IO_Audio *io_audio, BLB_Audio2D *audio) {
     ma_sound_uninit(audio->sound);
     free(audio->sound);
   }
+
   if (audio->obj)
     BLB_DestroySquare2D(audio->obj);
+
   if (audio->audio_debug_texture)
     BLB_Texture_Release(audio->audio_debug_texture);
+
   if (audio->audio_off_debug_texture)
     BLB_Texture_Release(audio->audio_off_debug_texture);
 
@@ -172,7 +185,7 @@ void BLB_StopAudio2D(BLB_Audio2D *audio) {
     audio->play = false;
 }
 
-void BLB_SetPosition_Audio2D(BLB_Audio2D *audio, HMM_Vec2 position) {
+void BLB_SetPosition_Audio2D(BLB_Audio2D *audio, BLB_Vec2 position) {
   if (!audio)
     return;
 
@@ -181,14 +194,14 @@ void BLB_SetPosition_Audio2D(BLB_Audio2D *audio, HMM_Vec2 position) {
   ma_sound_set_position(audio->sound, position.x, position.y, 0.0f);
 }
 
-void BLB_SetVelocity_Audio2D(BLB_Audio2D *audio, HMM_Vec2 velocity) {
+void BLB_SetVelocity_Audio2D(BLB_Audio2D *audio, BLB_Vec2 velocity) {
   if (!audio)
     return;
 
   ma_sound_set_velocity(audio->sound, velocity.x, velocity.y, 0.0f);
 }
 
-void BLB_SetRotation_Audio2D(BLB_Audio2D *audio, HMM_Vec2 rotation) {
+void BLB_SetRotation_Audio2D(BLB_Audio2D *audio, BLB_Vec2 rotation) {
   if (!audio)
     return;
 
@@ -229,4 +242,13 @@ void BLB_SetAudio2DSeek(BLB_Audio2D *audio, float seconds, int frame) {
     ma_sound_seek_to_second(audio->sound, seconds);
   else if (frame != 0)
     ma_sound_seek_to_pcm_frame(audio->sound, frame);
+}
+
+/* Keep the public header names compatible with the existing short symbols. */
+void BLB_PlayAudio_Audio2D(BLB_Audio2D *audio) {
+  BLB_PlayAudio2D(audio);
+}
+
+void BLB_StopAudio_Audio2D(BLB_Audio2D *audio) {
+  BLB_StopAudio2D(audio);
 }

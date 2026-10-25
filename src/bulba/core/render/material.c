@@ -22,34 +22,41 @@ static char *material_strdup(const char *text) {
     return NULL;
   size_t n = strlen(text) + 1u;
   char *copy = malloc(n);
+
   if (!copy)
     return NULL;
   memcpy(copy, text, n);
+
   return copy;
 }
 
 static BLB_Material *material_cache_find(const char *path) {
   if (!path)
     return NULL;
+
   for (size_t i = 0; i < material_cache_count; ++i) {
     if (material_cache[i].material && strcmp(material_cache[i].path, path) == 0)
       return material_cache[i].material;
   }
+
   return NULL;
 }
 
 static void material_cache_insert(BLB_Material *material, const char *path) {
   if (!material || !path)
     return;
+
   if (material_cache_count == material_cache_capacity) {
     size_t new_capacity = material_cache_capacity ? material_cache_capacity * 2u : 16u;
     BLB_MaterialCacheEntry *next = realloc(material_cache, new_capacity * sizeof(*next));
+
     if (!next)
       return;
     material_cache = next;
     material_cache_capacity = new_capacity;
   }
   char *copy = material_strdup(path);
+
   if (!copy)
     return;
   material_cache[material_cache_count++] = (BLB_MaterialCacheEntry){.material = material, .path = copy};
@@ -58,12 +65,14 @@ static void material_cache_insert(BLB_Material *material, const char *path) {
 static void material_cache_remove(BLB_Material *material) {
   if (!material)
     return;
+
   for (size_t i = 0; i < material_cache_count; ++i) {
     if (material_cache[i].material != material)
       continue;
     free(material_cache[i].path);
     material_cache[i] = material_cache[material_cache_count - 1u];
     --material_cache_count;
+
     return;
   }
 }
@@ -98,6 +107,7 @@ static uint64_t texture_state_revision = 1;
 
 static void texture_state_touch(void) {
   texture_state_revision++;
+
   if (texture_state_revision == 0)
     texture_state_revision = 1;
 }
@@ -107,6 +117,7 @@ static void material_touch(BLB_Material *material) {
     return;
 
   material->revision++;
+
   if (material->revision == 0)
     material->revision = 1;
 }
@@ -246,6 +257,7 @@ BLB_Material *BLB_Material_Create3D(void) { return BLB_Material_Create(BLB_MATER
 
 BLB_Material *BLB_Material_Build(BLB_MaterialDomain domain, BLB_MaterialConfigureFn configure) {
   BLB_Material *material = BLB_Material_Create(domain);
+
   if (!material)
     return NULL;
 
@@ -266,6 +278,7 @@ void BLB_Material_Release(BLB_Material *material) {
 
   if (material->ref_count > 1) {
     material->ref_count--;
+
     return;
   }
 
@@ -363,12 +376,15 @@ void BLB_Material_SetName(BLB_Material *material, const char *name) {
 int BLB_Material_SetDomain(BLB_Material *material, BLB_MaterialDomain domain) {
   if (!material || (domain != BLB_MATERIAL_2D && domain != BLB_MATERIAL_3D))
     return -1;
+
   if (domain == BLB_MATERIAL_2D && material->base_color_texture.texture && material->base_color_texture.texture->type == BLB_TEXTURE_3D)
     return -1;
+
   if (material->domain == domain)
     return 0;
   material->domain = domain;
   material_touch(material);
+
   return 0;
 }
 
@@ -603,6 +619,7 @@ int BLB_MaterialTexture_SetTexture(BLB_Material *material, BLB_MaterialTexture *
   slot->texture = texture;
   slot->owned = false;
   material_touch(material);
+
   return 0;
 }
 
@@ -670,9 +687,11 @@ typedef enum {
 static char *trim_ws(char *text) {
   if (!text)
     return text;
+
   while (*text == ' ' || *text == '\t' || *text == '\r' || *text == '\n')
     text++;
   char *end = text + strlen(text);
+
   while (end > text && (end[-1] == ' ' || end[-1] == '\t' || end[-1] == '\r' || end[-1] == '\n'))
     --end;
   *end = '\0';
@@ -682,22 +701,28 @@ static char *trim_ws(char *text) {
 static bool parse_bool_value(const char *text, bool fallback) {
   if (!text)
     return fallback;
+
   if (strcmp(text, "true") == 0 || strcmp(text, "1") == 0)
     return true;
+
   if (strcmp(text, "false") == 0 || strcmp(text, "0") == 0)
     return false;
+
   return fallback;
 }
 
 static float parse_float_value(const char *text, float fallback) {
   if (!text)
     return fallback;
+
   if (strcmp(text, "inf") == 0 || strcmp(text, "infinity") == 0)
     return INFINITY;
   char *end = NULL;
   float value = strtof(text, &end);
+
   if (end == text)
     return fallback;
+
   return value;
 }
 
@@ -706,6 +731,7 @@ static int parse_float_list(const char *text, float *values, size_t count) {
     return 0;
 
   const char *p = strchr(text, '[');
+
   if (!p)
     p = text;
   else
@@ -716,11 +742,13 @@ static int parse_float_list(const char *text, float *values, size_t count) {
       ++p;
     char *end = NULL;
     float value = strtof(p, &end);
+
     if (end == p)
       return 0;
     values[i] = value;
     p = end;
   }
+
   return 1;
 }
 
@@ -728,11 +756,13 @@ static void parse_string_value(const char *text, char *out, size_t out_size) {
   if (!out || out_size == 0)
     return;
   out[0] = '\0';
+
   if (!text)
     return;
 
   const char *start = strchr(text, '"');
   char quote = '"';
+
   if (!start) {
     start = strchr(text, '\'');
     quote = '\'';
@@ -741,13 +771,16 @@ static void parse_string_value(const char *text, char *out, size_t out_size) {
   if (start) {
     ++start;
     const char *end = strchr(start, quote);
+
     if (!end)
       return;
     size_t n = (size_t)(end - start);
+
     if (n >= out_size)
       n = out_size - 1;
     memcpy(out, start, n);
     out[n] = '\0';
+
     return;
   }
 
@@ -758,20 +791,26 @@ static void parse_string_value(const char *text, char *out, size_t out_size) {
 static BLB_RenderMode parse_render_mode(const char *text) {
   if (!text)
     return BLB_RENDER_OPAQUE;
+
   if (strcmp(text, "transparent") == 0)
     return BLB_RENDER_TRANSPARENT;
+
   if (strcmp(text, "additive") == 0)
     return BLB_RENDER_ADDITIVE;
+
   return BLB_RENDER_OPAQUE;
 }
 
 static BLB_AlphaMode parse_alpha_mode(const char *text) {
   if (!text)
     return BLB_ALPHA_OPAQUE;
+
   if (strcmp(text, "mask") == 0)
     return BLB_ALPHA_MASK;
+
   if (strcmp(text, "blend") == 0)
     return BLB_ALPHA_BLEND;
+
   return BLB_ALPHA_OPAQUE;
 }
 
@@ -784,6 +823,7 @@ static int texture_slot_index(const char *name) {
   for (int i = 0; i < BLB_MATERIAL_TEXTURE_SLOT_COUNT; ++i)
     if (strcmp(name, names[i]) == 0)
       return i;
+
   return -1;
 }
 
@@ -807,6 +847,7 @@ static BLB_MaterialTexture *material_texture_slot(BLB_Material *material, int in
                                   &material->iridescence_texture,
                                   &material->iridescence_thickness_texture,
                                   &material->anisotropy_texture};
+
   return slots[index];
 }
 
@@ -814,28 +855,35 @@ static char *material_dir(const char *path) {
   if (!path)
     return NULL;
   const char *slash = strrchr(path, '/');
+
   if (!slash) {
     char *dir = malloc(2);
+
     if (dir) {
       dir[0] = '.';
       dir[1] = '\0';
     }
+
     return dir;
   }
   size_t length = (size_t)(slash - path);
   char *dir = malloc(length + 1);
+
   if (!dir)
     return NULL;
   memcpy(dir, path, length);
   dir[length] = '\0';
+
   return dir;
 }
 
 static int file_exists(const char *path) {
   FILE *file = fopen(path, "rb");
+
   if (!file)
     return 0;
   fclose(file);
+
   return 1;
 }
 
@@ -843,20 +891,25 @@ static void resolve_asset_path(const char *material_path, const char *value, cha
   if (!out || out_size == 0)
     return;
   out[0] = '\0';
+
   if (!value || !value[0])
     return;
 
   if (file_exists(value)) {
     strncpy(out, value, out_size - 1);
     out[out_size - 1] = '\0';
+
     return;
   }
 
   char *dir = material_dir(material_path);
+
   if (dir) {
     snprintf(out, out_size, "%s/%s", dir, value);
+
     if (file_exists(out)) {
       free(dir);
+
       return;
     }
     out[0] = '\0';
@@ -867,32 +920,48 @@ static void resolve_asset_path(const char *material_path, const char *value, cha
   out[out_size - 1] = '\0';
 }
 
+static void retain_loaded_texture(BLB_Texture *texture, void *user_data) {
+  (void)user_data;
+  BLB_Texture_Retain(texture);
+}
+
+static void release_loaded_texture(BLB_Texture *texture, void *user_data) {
+  (void)user_data;
+  BLB_Texture_Release(texture);
+}
+
 BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn texture_load, BLB_MaterialTextureRetainFn texture_retain,
                                 BLB_MaterialTextureReleaseFn texture_release, void *user_data) {
   if (!path)
     return NULL;
 
   const bool use_cache = !texture_load && !texture_retain && !texture_release && !user_data;
+
   if (use_cache) {
     BLB_Material *cached = material_cache_find(path);
+
     if (cached) {
       BLB_Material_Retain(cached);
+
       return cached;
     }
   }
 
   FILE *file = fopen(path, "rb");
+
   if (!file)
     return NULL;
 
   BLB_Material *material = BLB_Material_Create3D();
+
   if (!material) {
     fclose(file);
+
     return NULL;
   }
 
-  material->texture_retain = texture_retain ? texture_retain : (BLB_MaterialTextureRetainFn)BLB_Texture_Retain;
-  material->texture_release = texture_release ? texture_release : (BLB_MaterialTextureReleaseFn)BLB_Texture_Release;
+  material->texture_retain = texture_retain ? texture_retain : retain_loaded_texture;
+  material->texture_release = texture_release ? texture_release : release_loaded_texture;
   material->texture_user_data = user_data;
 
   BLB_MaterialParseSection section = BLB_MAT_SEC_NONE;
@@ -906,13 +975,16 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
 
   while (fgets(line, sizeof(line), file)) {
     char *comment = strstr(line, "//");
+
     if (comment)
       *comment = '\0';
     comment = strchr(line, '#');
+
     if (comment && (comment == line || comment[-1] == ' ' || comment[-1] == '\t'))
       *comment = '\0';
 
     char *text = trim_ws(line);
+
     if (!*text)
       continue;
 
@@ -942,6 +1014,7 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
         texture_slot = texture_slot_index(name);
         continue;
       }
+
       if (strcmp(name, "render") == 0)
         section = BLB_MAT_SEC_RENDER;
       else if (strcmp(name, "base") == 0)
@@ -975,10 +1048,12 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
     if (strchr(text, '{') && !strchr(text, '=')) {
       char name[64] = {0};
       sscanf(text, "%63s", name);
+
       if (section == BLB_MAT_SEC_TEXTURES) {
         texture_slot = texture_slot_index(name);
         continue;
       }
+
       if (strcmp(name, "render") == 0)
         section = BLB_MAT_SEC_RENDER;
       else if (strcmp(name, "base") == 0)
@@ -1018,9 +1093,11 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
     char key[64] = {0};
     char value[896] = {0};
     const char *equals = strchr(text, '=');
+
     if (!equals)
       continue;
     size_t key_len = (size_t)(equals - text);
+
     if (key_len >= sizeof(key))
       key_len = sizeof(key) - 1;
     memcpy(key, text, key_len);
@@ -1030,15 +1107,19 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
 
     if (texture_slot >= 0) {
       BLB_MaterialTexture *slot = material_texture_slot(material, texture_slot);
+
       if (!slot)
         continue;
+
       if (strcmp(clean_key, "path") == 0) {
         char asset_path[BLB_SHADER_PATH_MAX] = {0};
         parse_string_value(value, asset_path, sizeof(asset_path));
+
         if (asset_path[0]) {
           char resolved[BLB_SHADER_PATH_MAX] = {0};
           resolve_asset_path(path, asset_path, resolved, sizeof(resolved));
           BLB_Texture *texture = texture_load ? texture_load(resolved, user_data) : BLB_Texture_Load2D(resolved);
+
           if (texture)
             BLB_MaterialTexture_AdoptTexture(slot, texture);
         }
@@ -1046,6 +1127,7 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
         slot->uv_set = (int)parse_float_value(value, 0.0f);
       } else if (strcmp(clean_key, "projection") == 0) {
         int projection = (int)parse_float_value(value, (float)BLB_TEXMAP_STRETCH);
+
         if (projection >= (int)BLB_TEXMAP_STRETCH && projection <= (int)BLB_TEXMAP_UV)
           slot->projection = (BLB_TextureProjection)projection;
       } else if (strcmp(clean_key, "offset") == 0) {
@@ -1238,6 +1320,7 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
 
   if (have_shader_vertex && have_shader_fragment) {
     BLB_ShaderProgram *shader = BLB_Shader_LoadSPIRV(shader_vertex_path, shader_fragment_path, material->domain == BLB_MATERIAL_2D);
+
     if (shader) {
       BLB_Material_SetShader(material, shader);
       BLB_Shader_Release(shader);

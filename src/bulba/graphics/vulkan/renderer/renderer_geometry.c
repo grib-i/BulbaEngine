@@ -8,22 +8,22 @@
 static void pack_material_payload(float material_out[4], float pbr_out[4], float emission_out[4], uint32_t material_ext_out[4],
                                   uint32_t surface_out[8], uint32_t meta_out[4], const VulkanMaterial *material);
 
-static HMM_Vec3 calculate_face_normal(HMM_Vec3 a, HMM_Vec3 b, HMM_Vec3 c) { return HMM_Cross(HMM_SubV3(b, a), HMM_SubV3(c, a)); }
+static BLB_Vec3 calculate_face_normal(BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c) { return BLB_Cross(BLB_SubV3(b, a), BLB_SubV3(c, a)); }
 
-static HMM_Vec3 safe_normalize(HMM_Vec3 value, HMM_Vec3 fallback) {
-  float length = HMM_LenV3(value);
+static BLB_Vec3 safe_normalize(BLB_Vec3 value, BLB_Vec3 fallback) {
+  float length = BLB_LenV3(value);
 
   if (length <= 0.000001f)
     return fallback;
 
-  return HMM_MulV3F(value, 1.0f / length);
+  return BLB_MulV3F(value, 1.0f / length);
 }
 
-static HMM_Vec3 calculate_normal(HMM_Vec3 a, HMM_Vec3 b, HMM_Vec3 c) {
-  return safe_normalize(calculate_face_normal(a, b, c), HMM_V3(0.0f, 1.0f, 0.0f));
+static BLB_Vec3 calculate_normal(BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c) {
+  return safe_normalize(calculate_face_normal(a, b, c), BLB_V3(0.0f, 1.0f, 0.0f));
 }
 
-static void upload_vertex(VulkanVertex *vertices, size_t index, HMM_Vec3 position, HMM_Vec3 normal, float r, float g, float b, float a, HMM_Vec2 uv) {
+static void upload_vertex(VulkanVertex *vertices, size_t index, BLB_Vec3 position, BLB_Vec3 normal, float r, float g, float b, float a, BLB_Vec2 uv) {
   vertices[index] = (VulkanVertex){
       .position =
           {
@@ -55,10 +55,13 @@ static void upload_vertex(VulkanVertex *vertices, size_t index, HMM_Vec3 positio
 static uint32_t depth_variant(bool enabled, bool write) {
   if (enabled && write)
     return 3u;
+
   if (enabled)
     return 1u;
+
   if (write)
     return 2u;
+
   return 0u;
 }
 
@@ -98,28 +101,32 @@ static void identity_rows(float rows[12]) {
   memcpy(rows, value, sizeof(value));
 }
 
-static bool find_cached_geometry_3d(VULKAN *vulkan, const BLB_Polygon3D *polygon, size_t *vertex_start, size_t *index_start) {
+static bool find_cached_geometry_3d(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float color[4], size_t *vertex_start, size_t *index_start) {
   if (!vulkan || !polygon || !vertex_start || !index_start || polygon->dynamic_vertices)
     return false;
 
   for (size_t i = 0; i < vulkan->geometry_cache_count; ++i) {
     const VULKAN_GeometryCacheEntry *entry = &vulkan->geometry_cache[i];
-    if (entry->polygon != polygon)
+
+    if (entry->polygon != polygon || memcmp(entry->color, color, sizeof(entry->color)) != 0)
       continue;
+
     if (entry->vertex_count != polygon->vertex_count || entry->index_count != polygon->index_count)
       continue;
     *vertex_start = entry->vertex_start;
     *index_start = entry->index_start;
     return true;
   }
+
   return false;
 }
 
-static void cache_geometry_3d(VULKAN *vulkan, const BLB_Polygon3D *polygon, size_t vertex_start, size_t index_start) {
+static void cache_geometry_3d(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float color[4], size_t vertex_start, size_t index_start) {
   if (!vulkan || !polygon || polygon->dynamic_vertices || vulkan->geometry_cache_count >= VULKAN_MAX_GEOMETRY_CACHE_ENTRIES)
     return;
 
   vulkan->geometry_cache[vulkan->geometry_cache_count++] = (VULKAN_GeometryCacheEntry){
+      .color = {color[0], color[1], color[2], color[3]},
       .polygon = polygon,
       .vertex_start = vertex_start,
       .index_start = index_start,
@@ -135,7 +142,7 @@ static bool ensure_polygon_normals(BLB_Polygon3D *polygon) {
   if (polygon->normals)
     return true;
 
-  HMM_Vec3 *normals = calloc(polygon->vertex_count, sizeof(*normals));
+  BLB_Vec3 *normals = calloc(polygon->vertex_count, sizeof(*normals));
 
   if (!normals)
     return false;
@@ -147,21 +154,22 @@ static bool ensure_polygon_normals(BLB_Polygon3D *polygon) {
 
     if (ia >= polygon->vertex_count || ib >= polygon->vertex_count || ic >= polygon->vertex_count) {
       free(normals);
+
       return false;
     }
 
-    HMM_Vec3 face_normal = calculate_face_normal(polygon->vertices[ia], polygon->vertices[ib], polygon->vertices[ic]);
+    BLB_Vec3 face_normal = calculate_face_normal(polygon->vertices[ia], polygon->vertices[ib], polygon->vertices[ic]);
 
-    if (HMM_LenV3(face_normal) <= 0.000001f)
+    if (BLB_LenV3(face_normal) <= 0.000001f)
       continue;
 
-    normals[ia] = HMM_AddV3(normals[ia], face_normal);
-    normals[ib] = HMM_AddV3(normals[ib], face_normal);
-    normals[ic] = HMM_AddV3(normals[ic], face_normal);
+    normals[ia] = BLB_AddV3(normals[ia], face_normal);
+    normals[ib] = BLB_AddV3(normals[ib], face_normal);
+    normals[ic] = BLB_AddV3(normals[ic], face_normal);
   }
 
   for (size_t i = 0; i < polygon->vertex_count; i++) {
-    normals[i] = safe_normalize(normals[i], HMM_V3(0.0f, 1.0f, 0.0f));
+    normals[i] = safe_normalize(normals[i], BLB_V3(0.0f, 1.0f, 0.0f));
   }
 
   polygon->normals = normals;
@@ -169,11 +177,11 @@ static bool ensure_polygon_normals(BLB_Polygon3D *polygon) {
   return true;
 }
 
-static bool build_mesh_normals(const Mesh *mesh, HMM_Vec3 **output) {
+static bool build_mesh_normals(const Mesh *mesh, BLB_Vec3 **output) {
   if (!mesh || !output || !mesh->vertices || !mesh->indices || mesh->vertex_count == 0 || mesh->index_count < 3 || mesh->index_count % 3 != 0)
     return false;
 
-  HMM_Vec3 *normals = calloc(mesh->vertex_count, sizeof(*normals));
+  BLB_Vec3 *normals = calloc(mesh->vertex_count, sizeof(*normals));
 
   if (!normals)
     return false;
@@ -185,21 +193,22 @@ static bool build_mesh_normals(const Mesh *mesh, HMM_Vec3 **output) {
 
     if (ia >= mesh->vertex_count || ib >= mesh->vertex_count || ic >= mesh->vertex_count) {
       free(normals);
+
       return false;
     }
 
-    HMM_Vec3 face_normal = calculate_face_normal(mesh->vertices[ia], mesh->vertices[ib], mesh->vertices[ic]);
+    BLB_Vec3 face_normal = calculate_face_normal(mesh->vertices[ia], mesh->vertices[ib], mesh->vertices[ic]);
 
-    if (HMM_LenV3(face_normal) <= 0.000001f)
+    if (BLB_LenV3(face_normal) <= 0.000001f)
       continue;
 
-    normals[ia] = HMM_AddV3(normals[ia], face_normal);
-    normals[ib] = HMM_AddV3(normals[ib], face_normal);
-    normals[ic] = HMM_AddV3(normals[ic], face_normal);
+    normals[ia] = BLB_AddV3(normals[ia], face_normal);
+    normals[ib] = BLB_AddV3(normals[ib], face_normal);
+    normals[ic] = BLB_AddV3(normals[ic], face_normal);
   }
 
   for (size_t i = 0; i < mesh->vertex_count; i++) {
-    normals[i] = safe_normalize(normals[i], HMM_V3(0.0f, 1.0f, 0.0f));
+    normals[i] = safe_normalize(normals[i], BLB_V3(0.0f, 1.0f, 0.0f));
   }
 
   *output = normals;
@@ -207,8 +216,8 @@ static bool build_mesh_normals(const Mesh *mesh, HMM_Vec3 **output) {
   return true;
 }
 
-void VULKAN_RendererDrawTriangle(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec3 c, const float *mvp, float r, float g, float b_color, float a_color,
-                                 HMM_Vec3 camera_position) {
+void VULKAN_RendererDrawTriangle(VULKAN *vulkan, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r, float g, float b_color, float a_color,
+                                 BLB_Vec3 camera_position) {
   if (!vulkan || !mvp)
     return;
 
@@ -227,11 +236,11 @@ void VULKAN_RendererDrawTriangle(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec
 
   size_t start = vulkan->vertex_cursor;
 
-  HMM_Vec3 normal = calculate_normal(a, b, c);
+  BLB_Vec3 normal = calculate_normal(a, b, c);
 
-  upload_vertex(vertices, start, a, normal, r, g, b_color, a_color, HMM_V2(0.0f, 0.0f));
-  upload_vertex(vertices, start + 1, b, normal, r, g, b_color, a_color, HMM_V2(1.0f, 0.0f));
-  upload_vertex(vertices, start + 2, c, normal, r, g, b_color, a_color, HMM_V2(0.5f, 1.0f));
+  upload_vertex(vertices, start, a, normal, r, g, b_color, a_color, BLB_V2(0.0f, 0.0f));
+  upload_vertex(vertices, start + 1, b, normal, r, g, b_color, a_color, BLB_V2(1.0f, 0.0f));
+  upload_vertex(vertices, start + 2, c, normal, r, g, b_color, a_color, BLB_V2(0.5f, 1.0f));
 
   float rows[12];
   identity_rows(rows);
@@ -275,28 +284,30 @@ void VULKAN_RendererDrawTriangle(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
   vkCmdBindVertexBuffers(command, 0, 1, &buffer, &offset);
-  VULKAN_RendererBindMaterial(vulkan, layout, &material);
+
+  if (!VULKAN_RendererBindMaterial(vulkan, layout, &material))
+    return;
   push_lighting(vulkan, layout, mvp, rows, &material, 0);
   vkCmdDraw(command, 3, 1, 0, 0);
 
   vulkan->vertex_cursor += 3;
 }
 
-void VULKAN_RendererDrawTriangle2D(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_Vec3 c, const float *mvp, float r, float g, float b_color,
-                                   float a_color, HMM_Vec3 camera_position, int lighting_enabled) {
+void VULKAN_RendererDrawTriangle2D(VULKAN *vulkan, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r, float g, float b_color,
+                                   float a_color, BLB_Vec3 camera_position, int lighting_enabled) {
   if (!vulkan)
     return;
 
-  HMM_Vec2 vertices[3] = {
-      HMM_V2(a.x, a.y),
-      HMM_V2(b.x, b.y),
-      HMM_V2(c.x, c.y),
+  BLB_Vec2 vertices[3] = {
+      BLB_V2(a.x, a.y),
+      BLB_V2(b.x, b.y),
+      BLB_V2(c.x, c.y),
   };
 
-  HMM_Vec2 uvs[3] = {
-      HMM_V2(0.0f, 0.0f),
-      HMM_V2(1.0f, 0.0f),
-      HMM_V2(0.5f, 1.0f),
+  BLB_Vec2 uvs[3] = {
+      BLB_V2(0.0f, 0.0f),
+      BLB_V2(1.0f, 0.0f),
+      BLB_V2(0.5f, 1.0f),
   };
 
   unsigned int indices[3] = {
@@ -340,7 +351,7 @@ void VULKAN_RendererDrawTriangle2D(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_V
   (void)mvp;
   (void)camera_position;
 
-  HMM_Vec2 world_positions[3] = {
+  BLB_Vec2 world_positions[3] = {
       vertices[0],
       vertices[1],
       vertices[2],
@@ -350,7 +361,7 @@ void VULKAN_RendererDrawTriangle2D(VULKAN *vulkan, HMM_Vec3 a, HMM_Vec3 b, HMM_V
                                b_color, a_color, &material, NULL);
 }
 
-void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, HMM_Vec3 camera_position) {
+void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, BLB_Vec3 camera_position) {
   if (!vulkan || !mesh || !mesh->vertices || !mesh->indices || !mvp)
     return;
 
@@ -365,7 +376,7 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
       return;
   }
 
-  HMM_Vec3 *computed_normals = NULL;
+  BLB_Vec3 *computed_normals = NULL;
 
   if (!mesh->normals && !build_mesh_normals(mesh, &computed_normals))
     return;
@@ -374,6 +385,7 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
 
   if (!vulkan->main_render_pass_begun) {
     free(computed_normals);
+
     return;
   }
 
@@ -383,6 +395,7 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
 
   if (!vertices || !indices) {
     free(computed_normals);
+
     return;
   }
 
@@ -390,8 +403,8 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
   size_t index_start = vulkan->index_cursor;
 
   for (size_t i = 0; i < mesh->vertex_count; i++) {
-    HMM_Vec3 normal = mesh->normals ? safe_normalize(mesh->normals[i], HMM_V3(0.0f, 1.0f, 0.0f)) : computed_normals[i];
-    HMM_Vec2 uv = mesh->uvs ? mesh->uvs[i] : HMM_V2(0.0f, 0.0f);
+    BLB_Vec3 normal = mesh->normals ? safe_normalize(mesh->normals[i], BLB_V3(0.0f, 1.0f, 0.0f)) : computed_normals[i];
+    BLB_Vec2 uv = mesh->uvs ? mesh->uvs[i] : BLB_V2(0.0f, 0.0f);
 
     upload_vertex(vertices, vertex_start + i, mesh->vertices[i], normal, r, g, b, a, uv);
   }
@@ -454,12 +467,14 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
   }
 
   VkBuffer index_buffer = vulkan->index_buffers[vulkan->current_frame].buffer;
+
   if (vulkan->bound_index_buffer != index_buffer) {
     vkCmdBindIndexBuffer(command, index_buffer, 0, VK_INDEX_TYPE_UINT32);
     vulkan->bound_index_buffer = index_buffer;
   }
 
-  VULKAN_RendererBindMaterial(vulkan, layout, &material);
+  if (!VULKAN_RendererBindMaterial(vulkan, layout, &material))
+    return;
 
   push_lighting(vulkan, layout, mvp, rows, &material, 0);
 
@@ -490,7 +505,8 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
 
   size_t vertex_start = 0;
   size_t index_start = 0;
-  bool cached_geometry = find_cached_geometry_3d(vulkan, polygon, &vertex_start, &index_start);
+  const float color[4] = {r, g, b, a};
+  bool cached_geometry = find_cached_geometry_3d(vulkan, polygon, color, &vertex_start, &index_start);
 
   if (!cached_geometry) {
     /* Stop early if this frame has no room; no need to scan an oversized
@@ -513,15 +529,15 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
     index_start = vulkan->index_cursor;
 
     for (size_t i = 0; i < polygon->vertex_count; i++) {
-      HMM_Vec3 normal = safe_normalize(polygon->normals[i], HMM_V3(0.0f, 1.0f, 0.0f));
-      HMM_Vec2 uv = polygon->uvs ? polygon->uvs[i] : HMM_V2(0.0f, 0.0f);
+      BLB_Vec3 normal = safe_normalize(polygon->normals[i], BLB_V3(0.0f, 1.0f, 0.0f));
+      BLB_Vec2 uv = polygon->uvs ? polygon->uvs[i] : BLB_V2(0.0f, 0.0f);
       upload_vertex(vertices, vertex_start + i, polygon->vertices[i], normal, r, g, b, a, uv);
     }
 
     for (size_t i = 0; i < polygon->index_count; i++)
       indices[index_start + i] = (uint32_t)polygon->indices[i];
 
-    cache_geometry_3d(vulkan, polygon, vertex_start, index_start);
+    cache_geometry_3d(vulkan, polygon, color, vertex_start, index_start);
 
     vulkan->vertex_cursor += polygon->vertex_count;
     vulkan->index_cursor += polygon->index_count;
@@ -554,6 +570,7 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
   }
 
   VkBuffer index_buffer = vulkan->index_buffers[vulkan->current_frame].buffer;
+
   if (vulkan->bound_index_buffer != index_buffer) {
     vkCmdBindIndexBuffer(command, index_buffer, 0, VK_INDEX_TYPE_UINT32);
     vulkan->bound_index_buffer = index_buffer;
@@ -561,7 +578,9 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
 
   VulkanMaterial bound_material = *material;
   bound_material.base_texture_override = texture;
-  VULKAN_RendererBindMaterial(vulkan, layout, &bound_material);
+
+  if (!VULKAN_RendererBindMaterial(vulkan, layout, &bound_material))
+    return;
 
   /* Push constants must describe the same material/texture that was bound.
    * In particular, material_texture_mask() reads this struct to tell the
@@ -571,7 +590,7 @@ void VULKAN_RendererDrawPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
   vkCmdDrawIndexed(command, (uint32_t)polygon->index_count, 1, (uint32_t)index_start, 0, 0);
 }
 
-void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, const HMM_Vec2 *world_positions, float viewport_width,
+void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, const BLB_Vec2 *world_positions, float viewport_width,
                                   float viewport_height, float r, float g, float b, float a, const VulkanMaterial *material, BLB_Texture *texture) {
   if (!vulkan || !polygon || !material || !polygon->vertices || !polygon->indices)
     return;
@@ -602,7 +621,7 @@ void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, 
   size_t index_start = vulkan->index_cursor;
 
   for (size_t i = 0; i < polygon->vertex_count; i++) {
-    HMM_Vec2 uv = polygon->uvs ? polygon->uvs[i] : HMM_V2(0.0f, 0.0f);
+    BLB_Vec2 uv = polygon->uvs ? polygon->uvs[i] : BLB_V2(0.0f, 0.0f);
 
     vertices[vertex_start + i] = (VulkanVertex){
         .position =
@@ -661,6 +680,7 @@ void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, 
   }
 
   VkDeviceSize offset = vertex_start * sizeof(VulkanVertex);
+
   if (vulkan->bound_vertex_buffer != vulkan->vertex_buffers[vulkan->current_frame].buffer || vulkan->bound_vertex_offset != offset) {
     VkBuffer vertex_buffer = vulkan->vertex_buffers[vulkan->current_frame].buffer;
     vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &offset);
@@ -675,7 +695,8 @@ void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, 
     vulkan->bound_index_buffer = index_buffer;
   }
 
-  VULKAN_RendererBindMaterial(vulkan, layout, &bound_material);
+  if (!VULKAN_RendererBindMaterial(vulkan, layout, &bound_material))
+    return;
 
   VkDescriptorSet light_set = vulkan->light_descriptor_sets_2d[vulkan->current_frame];
 
@@ -694,25 +715,30 @@ void VULKAN_RendererDrawPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, 
 
 void VULKAN_RendererDrawInstancedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, float viewport_width, float viewport_height,
                                            const VulkanMaterial *material, BLB_Texture *texture, const VulkanInstanceData *instances,
-                                           size_t instance_count, bool screen_space) {
+                                           size_t instance_count, bool camera_attached) {
   if (!vulkan || !polygon || !material || !instances || instance_count == 0 || instance_count > UINT32_MAX || !polygon->vertices ||
       !polygon->indices || polygon->vertex_count == 0 || polygon->index_count < 3 || polygon->index_count % 3 != 0)
     return;
+
   if (vulkan->instance_cursor + instance_count > vulkan->instance_capacity)
     return;
+
   if (vulkan->vertex_cursor + polygon->vertex_count > VULKAN_MAX_VERTICES || vulkan->index_cursor + polygon->index_count > VULKAN_MAX_INDICES)
     return;
+
   for (size_t i = 0; i < polygon->index_count; ++i)
     if (polygon->indices[i] >= polygon->vertex_count)
       return;
 
   VULKAN_RendererBeginMainPass(vulkan);
+
   if (!vulkan->main_render_pass_begun)
     return;
 
   VulkanVertex *vertices = (VulkanVertex *)vulkan->vertex_buffers[vulkan->current_frame].mapped;
   uint32_t *indices = (uint32_t *)vulkan->index_buffers[vulkan->current_frame].mapped;
   VulkanInstanceData *mapped = (VulkanInstanceData *)vulkan->instance_buffers[vulkan->current_frame].mapped;
+
   if (!vertices || !indices || !mapped)
     return;
 
@@ -722,8 +748,9 @@ void VULKAN_RendererDrawInstancedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *
   const float g = 1.0f;
   const float b = 1.0f;
   const float a = 1.0f;
+
   for (size_t i = 0; i < polygon->vertex_count; ++i) {
-    HMM_Vec2 uv = polygon->uvs ? polygon->uvs[i] : HMM_V2(0.0f, 0.0f);
+    BLB_Vec2 uv = polygon->uvs ? polygon->uvs[i] : BLB_V2(0.0f, 0.0f);
     vertices[vertex_start + i] = (VulkanVertex){
         .position = {polygon->vertices[i].x, polygon->vertices[i].y, 0.0f},
         .color = {r, g, b, a},
@@ -731,6 +758,7 @@ void VULKAN_RendererDrawInstancedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *
         .uv = {uv.x, uv.y},
     };
   }
+
   for (size_t i = 0; i < polygon->index_count; ++i)
     indices[index_start + i] = polygon->indices[i];
 
@@ -744,11 +772,17 @@ void VULKAN_RendererDrawInstancedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *
   VkPipeline pipeline = select_2d_pipeline(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
   VkPipelineLayout layout = select_2d_layout(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
 
+  if (material->source_material && material->source_material->shader_program && material->source_material->shader_program->asset.is_2d) {
+    uint32_t variant = depth_variant(material->depth_enabled, material->depth_write);
+    VULKAN_GetOrCreateCustomPipeline(vulkan, material->source_material->shader_program, true, material->render_mode, variant, &pipeline, &layout);
+  }
+
   if (vulkan->bound_pipeline != pipeline) {
     vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     vulkan->bound_pipeline = pipeline;
   }
   VkDeviceSize offset = vertex_start * sizeof(VulkanVertex);
+
   if (vulkan->bound_vertex_buffer != vulkan->vertex_buffers[vulkan->current_frame].buffer || vulkan->bound_vertex_offset != offset) {
     VkBuffer vertex_buffer = vulkan->vertex_buffers[vulkan->current_frame].buffer;
     vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &offset);
@@ -756,15 +790,19 @@ void VULKAN_RendererDrawInstancedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *
     vulkan->bound_vertex_offset = offset;
   }
   VkBuffer index_buffer = vulkan->index_buffers[vulkan->current_frame].buffer;
+
   if (vulkan->bound_index_buffer != index_buffer) {
     vkCmdBindIndexBuffer(command, index_buffer, 0, VK_INDEX_TYPE_UINT32);
     vulkan->bound_index_buffer = index_buffer;
   }
   VulkanMaterial bound_material = *material;
   bound_material.base_texture_override = texture;
-  VULKAN_RendererBindMaterial(vulkan, layout, &bound_material);
+
+  if (!VULKAN_RendererBindMaterial(vulkan, layout, &bound_material))
+    return;
 
   VkDescriptorSet light_set = vulkan->light_descriptor_sets_2d[vulkan->current_frame];
+
   if (vulkan->bound_light_set != light_set || vulkan->bound_light_layout != layout) {
     vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &light_set, 0, NULL);
     vulkan->bound_light_set = light_set;
@@ -775,7 +813,7 @@ void VULKAN_RendererDrawInstancedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *
   push.viewport[0] = viewport_width;
   push.viewport[1] = viewport_height;
   pack_material_payload(push.material, push.pbr, push.emission, push.material_ext, push.surface, push.meta, &bound_material);
-  push.meta[2] |= 1u | (screen_space ? 2u : 0u);
+  push.meta[2] |= 1u | (camera_attached ? 2u : 0u);
   push.meta[3] = instance_base;
   vkCmdPushConstants(command, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
   vkCmdDrawIndexed(command, (uint32_t)polygon->index_count, (uint32_t)instance_count, (uint32_t)index_start, 0, 0);
@@ -784,13 +822,16 @@ void VULKAN_RendererDrawInstancedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *
 static bool find_cached_shadow_geometry(VULKAN *vulkan, const BLB_Polygon3D *polygon, size_t *vertex_start) {
   if (!vulkan || !polygon || !vertex_start)
     return false;
+
   for (size_t i = 0; i < vulkan->shadow_geometry_cache_count; ++i) {
     const VULKAN_ShadowGeometryCacheEntry *entry = &vulkan->shadow_geometry_cache[i];
+
     if (entry->polygon == polygon && entry->vertex_count == polygon->index_count) {
       *vertex_start = entry->vertex_start;
       return true;
     }
   }
+
   return false;
 }
 
@@ -806,15 +847,17 @@ static void cache_shadow_geometry(VULKAN *vulkan, const BLB_Polygon3D *polygon, 
 
 void VULKAN_RendererDrawBatchedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *polygon, float viewport_width, float viewport_height,
                                          const VulkanMaterial *material, BLB_Texture *texture, const VulkanInstanceData *instances,
-                                         size_t instance_count, bool screen_space) {
+                                         size_t instance_count, bool camera_attached) {
   if (!vulkan || !polygon || !material || !instances || instance_count == 0 || !polygon->vertices || !polygon->indices ||
       polygon->vertex_count == 0 || polygon->index_count < 3 || polygon->index_count % 3 != 0)
     return;
+
   if (instance_count > VULKAN_MAX_VERTICES / polygon->vertex_count || instance_count > VULKAN_MAX_INDICES / polygon->index_count)
     return;
 
   const size_t total_vertices = polygon->vertex_count * instance_count;
   const size_t total_indices = polygon->index_count * instance_count;
+
   if (vulkan->vertex_cursor > VULKAN_MAX_VERTICES - total_vertices || vulkan->index_cursor > VULKAN_MAX_INDICES - total_indices ||
       total_indices > UINT32_MAX)
     return;
@@ -824,11 +867,13 @@ void VULKAN_RendererDrawBatchedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *po
       return;
 
   VULKAN_RendererBeginMainPass(vulkan);
+
   if (!vulkan->main_render_pass_begun)
     return;
 
   VulkanVertex *vertices = (VulkanVertex *)vulkan->vertex_buffers[vulkan->current_frame].mapped;
   uint32_t *indices = (uint32_t *)vulkan->index_buffers[vulkan->current_frame].mapped;
+
   if (!vertices || !indices)
     return;
 
@@ -841,8 +886,8 @@ void VULKAN_RendererDrawBatchedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *po
     const size_t base_vertex = instance_index * polygon->vertex_count;
 
     for (size_t vertex_index = 0; vertex_index < polygon->vertex_count; ++vertex_index) {
-      const HMM_Vec2 local = polygon->vertices[vertex_index];
-      const HMM_Vec2 uv = polygon->uvs ? polygon->uvs[vertex_index] : HMM_V2(0.0f, 0.0f);
+      const BLB_Vec2 local = polygon->vertices[vertex_index];
+      const BLB_Vec2 uv = polygon->uvs ? polygon->uvs[vertex_index] : BLB_V2(0.0f, 0.0f);
       const float x = m[0] * local.x + m[4] * local.y + m[12];
       const float y = m[1] * local.x + m[5] * local.y + m[13];
       const float z = m[2] * local.x + m[6] * local.y + m[14];
@@ -871,6 +916,7 @@ void VULKAN_RendererDrawBatchedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *po
   }
 
   VkDeviceSize vertex_offset = vertex_start * sizeof(VulkanVertex);
+
   if (vulkan->bound_vertex_buffer != vulkan->vertex_buffers[vulkan->current_frame].buffer || vulkan->bound_vertex_offset != vertex_offset) {
     VkBuffer vertex_buffer = vulkan->vertex_buffers[vulkan->current_frame].buffer;
     vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &vertex_offset);
@@ -879,6 +925,7 @@ void VULKAN_RendererDrawBatchedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *po
   }
 
   VkBuffer index_buffer = vulkan->index_buffers[vulkan->current_frame].buffer;
+
   if (vulkan->bound_index_buffer != index_buffer) {
     vkCmdBindIndexBuffer(command, index_buffer, 0, VK_INDEX_TYPE_UINT32);
     vulkan->bound_index_buffer = index_buffer;
@@ -886,9 +933,12 @@ void VULKAN_RendererDrawBatchedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *po
 
   VulkanMaterial bound_material = *material;
   bound_material.base_texture_override = texture;
-  VULKAN_RendererBindMaterial(vulkan, layout, &bound_material);
+
+  if (!VULKAN_RendererBindMaterial(vulkan, layout, &bound_material))
+    return;
 
   VkDescriptorSet light_set = vulkan->light_descriptor_sets_2d[vulkan->current_frame];
+
   if (vulkan->bound_light_set != light_set || vulkan->bound_light_layout != layout) {
     vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &light_set, 0, NULL);
     vulkan->bound_light_set = light_set;
@@ -899,7 +949,7 @@ void VULKAN_RendererDrawBatchedPolygon2D(VULKAN *vulkan, const BLB_Polygon2D *po
   push.viewport[0] = viewport_width;
   push.viewport[1] = viewport_height;
   pack_material_payload(push.material, push.pbr, push.emission, push.material_ext, push.surface, push.meta, &bound_material);
-  push.meta[2] |= 8u | (screen_space ? 2u : 0u);
+  push.meta[2] |= 8u | (camera_attached ? 2u : 0u);
   vkCmdPushConstants(command, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
   vkCmdDrawIndexed(command, (uint32_t)total_indices, 1, (uint32_t)index_start, 0, 0);
 }
@@ -920,18 +970,21 @@ void VULKAN_RendererDrawShadowPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *pol
   }
 
   size_t vertex_start = 0;
+
   if (!find_cached_shadow_geometry(vulkan, polygon, &vertex_start)) {
     if (vulkan->shadow_vertex_cursor + polygon->index_count > VULKAN_MAX_INDICES)
       return;
 
     VulkanShadowVertex *vertices = (VulkanShadowVertex *)vulkan->shadow_vertex_buffers[vulkan->current_frame].mapped;
+
     if (!vertices)
       return;
 
     vertex_start = vulkan->shadow_vertex_cursor;
+
     for (size_t i = 0; i < polygon->index_count; i++) {
       uint32_t index = polygon->indices[i];
-      HMM_Vec3 p = polygon->vertices[index];
+      BLB_Vec3 p = polygon->vertices[index];
       vertices[vertex_start + i] = (VulkanShadowVertex){{p.x, p.y, p.z}};
     }
     vulkan->shadow_vertex_cursor += polygon->index_count;
@@ -957,12 +1010,14 @@ static uint16_t pack_unorm16(float value, float min_value, float max_value) {
 
   float t = (value - min_value) / (max_value - min_value);
   t = fminf(fmaxf(t, 0.0f), 1.0f);
+
   return (uint16_t)lroundf(t * 65535.0f);
 }
 
 static uint32_t pack_pair16(float a, float a_min, float a_max, float b, float b_min, float b_max) {
   uint32_t pa = pack_unorm16(a, a_min, a_max);
   uint32_t pb = pack_unorm16(b, b_min, b_max);
+
   return pa | (pb << 16u);
 }
 
@@ -970,6 +1025,7 @@ static uint32_t pack_rgb10(const float color[3]) {
   uint32_t r = (uint32_t)lroundf(fminf(fmaxf(color[0], 0.0f), 1.0f) * 1023.0f);
   uint32_t g = (uint32_t)lroundf(fminf(fmaxf(color[1], 0.0f), 1.0f) * 1023.0f);
   uint32_t b = (uint32_t)lroundf(fminf(fmaxf(color[2], 0.0f), 1.0f) * 1023.0f);
+
   return r | (g << 10u) | (b << 20u);
 }
 
@@ -978,9 +1034,11 @@ static uint32_t material_texture_mask(const VulkanMaterial *material) {
     return 0;
 
   const BLB_Material *m = material->source_material;
+
   if (!m) {
     if (!material->base_texture_override)
       return 0;
+
     return material->base_texture_override->type == BLB_TEXTURE_3D ? (1u << 31u) : 1u;
   }
   uint32_t mask = 0;
@@ -1030,13 +1088,17 @@ static void pack_material_payload(float material_out[4], float pbr_out[4], float
     return;
 
   uint32_t flags = 0;
+
   if (material->double_sided)
     flags |= 1u << 0u;
+
   if (material->unlit)
     flags |= 1u << 1u;
   flags |= ((uint32_t)material->alpha_mode & 0x3u) << 2u;
+
   if (material->depth_enabled)
     flags |= 1u << 4u;
+
   if (material->depth_write)
     flags |= 1u << 5u;
   uint32_t cutoff = (uint32_t)lroundf(fminf(fmaxf(material->alpha_cutoff, 0.0f), 1.0f) * 1023.0f);
@@ -1078,8 +1140,10 @@ static void pack_material_payload(float material_out[4], float pbr_out[4], float
   memset(meta_out, 0, sizeof(uint32_t) * 4u);
   meta_out[0] = material_texture_mask(material);
   meta_out[1] = flags;
+
   if (material->particle)
     meta_out[2] |= 1u << 2u;
+
   if (material->skybox)
     meta_out[2] |= 1u << 3u;
 }
@@ -1095,6 +1159,7 @@ static void push_lighting_ex(VULKAN *vulkan, VkPipelineLayout layout, const floa
   pack_material_payload(data.material, data.pbr, data.emission, data.material_ext, data.surface, data.meta, material);
   data.meta[2] |= instanced ? 1u : 0u;
   data.meta[3] = instance_base;
+
   for (int i = 0; i < 3; ++i) {
     data.uv_bounds_min[i] = material->uv_bounds_min[i];
     data.uv_bounds_max[i] = material->uv_bounds_max[i];
@@ -1119,6 +1184,8 @@ void push_lighting(VULKAN *vulkan, VkPipelineLayout layout, const float *mvp, co
 static VULKAN_MeshCacheEntry *mesh_cache = NULL;
 static size_t mesh_cache_count = 0;
 static size_t mesh_cache_capacity = 0;
+static size_t *mesh_cache_slots = NULL;
+static size_t mesh_cache_slot_capacity = 0;
 
 static VulkanMaterial create_cached_mesh_material(void) {
   VulkanMaterial material = {
@@ -1147,31 +1214,80 @@ static VulkanMaterial create_cached_mesh_material(void) {
   return material;
 }
 
-static VULKAN_MeshCacheEntry *find_mesh_cache_entry(VULKAN *vulkan, const Mesh *mesh) {
-  if (!vulkan || !mesh)
-    return NULL;
+static uint64_t mesh_cache_hash(VULKAN *vulkan, const Mesh *mesh) {
+  uint64_t hash = UINT64_C(1469598103934665603);
+  uintptr_t values[] = {(uintptr_t)vulkan,    (uintptr_t)mesh->vertices, (uintptr_t)mesh->indices, (uintptr_t)mesh->normals,
+                        (uintptr_t)mesh->uvs, mesh->vertex_count,        mesh->index_count};
 
-  for (size_t i = 0; i < mesh_cache_count; i++) {
-    if (mesh_cache[i].renderer == vulkan && mesh_cache[i].mesh == mesh)
-      return &mesh_cache[i];
+  for (size_t i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
+    uint64_t value = (uint64_t)values[i];
+    value ^= value >> 30u;
+    value *= UINT64_C(0xbf58476d1ce4e5b9);
+    value ^= value >> 27u;
+    value *= UINT64_C(0x94d049bb133111eb);
+    hash ^= value ^ (value >> 31u);
+    hash *= UINT64_C(1099511628211);
+  }
+
+  return hash;
+}
+
+static bool mesh_cache_equal(const Mesh *a, const Mesh *b) {
+  return a->vertices == b->vertices && a->indices == b->indices && a->normals == b->normals && a->uvs == b->uvs &&
+         a->vertex_count == b->vertex_count && a->index_count == b->index_count;
+}
+
+static void rebuild_mesh_cache_slots(void) {
+  if (!mesh_cache_slots)
+    return;
+  memset(mesh_cache_slots, 0, mesh_cache_slot_capacity * sizeof(*mesh_cache_slots));
+
+  for (size_t i = 0; i < mesh_cache_count; ++i) {
+    size_t slot = mesh_cache_hash(mesh_cache[i].renderer, &mesh_cache[i].mesh) & (mesh_cache_slot_capacity - 1u);
+
+    while (mesh_cache_slots[slot])
+      slot = (slot + 1u) & (mesh_cache_slot_capacity - 1u);
+    mesh_cache_slots[slot] = i + 1u;
+  }
+}
+
+static VULKAN_MeshCacheEntry *find_mesh_cache_entry(VULKAN *vulkan, const Mesh *mesh) {
+  if (!vulkan || !mesh || !mesh_cache_slot_capacity)
+    return NULL;
+  size_t slot = mesh_cache_hash(vulkan, mesh) & (mesh_cache_slot_capacity - 1u);
+
+  while (mesh_cache_slots[slot]) {
+    VULKAN_MeshCacheEntry *entry = &mesh_cache[mesh_cache_slots[slot] - 1u];
+
+    if (entry->renderer == vulkan && mesh_cache_equal(&entry->mesh, mesh))
+      return entry;
+    slot = (slot + 1u) & (mesh_cache_slot_capacity - 1u);
   }
 
   return NULL;
 }
 
 static bool ensure_mesh_cache_capacity(void) {
-  if (mesh_cache_count < mesh_cache_capacity)
+  if (mesh_cache_count < mesh_cache_capacity && mesh_cache_slot_capacity)
     return true;
+  size_t new_capacity = mesh_cache_capacity ? mesh_cache_capacity * 2u : 64u;
+  size_t *slots = calloc(new_capacity * 2u, sizeof(*slots));
 
-  size_t new_capacity = mesh_cache_capacity ? mesh_cache_capacity * 2 : 64;
-
+  if (!slots)
+    return false;
   VULKAN_MeshCacheEntry *entries = realloc(mesh_cache, new_capacity * sizeof(*entries));
 
-  if (!entries)
-    return false;
+  if (!entries) {
+    free(slots);
 
+    return false;
+  }
   mesh_cache = entries;
   mesh_cache_capacity = new_capacity;
+  free(mesh_cache_slots);
+  mesh_cache_slots = slots;
+  mesh_cache_slot_capacity = new_capacity * 2u;
+  rebuild_mesh_cache_slots();
 
   return true;
 }
@@ -1202,7 +1318,7 @@ static bool upload_cached_mesh_main(VULKAN *vulkan, const Mesh *mesh, float r, f
       return false;
   }
 
-  HMM_Vec3 *computed_normals = NULL;
+  BLB_Vec3 *computed_normals = NULL;
 
   if (!mesh->normals && !build_mesh_normals(mesh, &computed_normals))
     return false;
@@ -1224,9 +1340,9 @@ static bool upload_cached_mesh_main(VULKAN *vulkan, const Mesh *mesh, float r, f
   uint32_t *indices = (uint32_t *)cached->index.mapped;
 
   for (size_t i = 0; i < mesh->vertex_count; i++) {
-    HMM_Vec3 normal = mesh->normals ? safe_normalize(mesh->normals[i], HMM_V3(0.0f, 1.0f, 0.0f)) : computed_normals[i];
+    BLB_Vec3 normal = mesh->normals ? safe_normalize(mesh->normals[i], BLB_V3(0.0f, 1.0f, 0.0f)) : computed_normals[i];
 
-    HMM_Vec2 uv = mesh->uvs ? mesh->uvs[i] : HMM_V2(0.0f, 0.0f);
+    BLB_Vec2 uv = mesh->uvs ? mesh->uvs[i] : BLB_V2(0.0f, 0.0f);
 
     upload_vertex(vertices, i, mesh->vertices[i], normal, r, g, b, a, uv);
   }
@@ -1251,6 +1367,7 @@ fail:
   free(computed_normals);
   destroy_buffer(vulkan, &cached->vertex);
   destroy_buffer(vulkan, &cached->index);
+
   return false;
 }
 
@@ -1273,6 +1390,7 @@ static bool upload_cached_mesh_shadow(VULKAN *vulkan, const Mesh *mesh, VULKAN_C
 
   if (!cached->shadow.mapped) {
     destroy_buffer(vulkan, &cached->shadow);
+
     return false;
   }
 
@@ -1281,7 +1399,7 @@ static bool upload_cached_mesh_shadow(VULKAN *vulkan, const Mesh *mesh, VULKAN_C
   for (size_t i = 0; i < mesh->index_count; i++) {
     uint32_t index = mesh->indices[i];
 
-    HMM_Vec3 position = mesh->vertices[index];
+    BLB_Vec3 position = mesh->vertices[index];
 
     vertices[i] = (VulkanShadowVertex){
         .position =
@@ -1317,9 +1435,13 @@ static bool ensure_cached_mesh_entry(VULKAN *vulkan, const Mesh *mesh, VULKAN_Me
   memset(entry, 0, sizeof(*entry));
 
   entry->renderer = vulkan;
-  entry->mesh = mesh;
+  entry->mesh = *mesh;
 
-  mesh_cache_count++;
+  size_t slot = mesh_cache_hash(vulkan, mesh) & (mesh_cache_slot_capacity - 1u);
+
+  while (mesh_cache_slots[slot])
+    slot = (slot + 1u) & (mesh_cache_slot_capacity - 1u);
+  mesh_cache_slots[slot] = ++mesh_cache_count;
 
   *entry_out = entry;
 
@@ -1336,15 +1458,8 @@ static bool ensure_cached_mesh_main(VULKAN *vulkan, const Mesh *mesh, float r, f
     if (entry->cached.color[0] == r && entry->cached.color[1] == g && entry->cached.color[2] == b && entry->cached.color[3] == a)
       return true;
 
-    vkDeviceWaitIdle(vulkan->device);
-
-    destroy_buffer(vulkan, &entry->cached.vertex);
-
-    destroy_buffer(vulkan, &entry->cached.index);
-
-    entry->cached.vertex_count = 0;
-    entry->cached.index_count = 0;
-    entry->cached.main_valid = false;
+    /* A different tint is streamed by the caller, never overwriting in-flight geometry. */
+    return false;
   }
 
   return upload_cached_mesh_main(vulkan, mesh, r, g, b, a, &entry->cached);
@@ -1362,7 +1477,7 @@ static bool ensure_cached_mesh_shadow(VULKAN *vulkan, const Mesh *mesh, VULKAN_M
   return upload_cached_mesh_shadow(vulkan, mesh, &entry->cached);
 }
 
-void VULKAN_RendererDrawCachedMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, HMM_Vec3 camera_position) {
+void VULKAN_RendererDrawCachedMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, BLB_Vec3 camera_position) {
   if (!vulkan || !mesh || !mvp)
     return;
 
@@ -1370,13 +1485,30 @@ void VULKAN_RendererDrawCachedMesh(VULKAN *vulkan, const Mesh *mesh, const float
     return;
 
   VULKAN_RendererBeginMainPass(vulkan);
+
   if (!vulkan->main_render_pass_begun)
     return;
 
   VULKAN_MeshCacheEntry *entry = NULL;
 
-  if (!ensure_cached_mesh_main(vulkan, mesh, r, g, b, a, &entry))
+  if (!ensure_cached_mesh_main(vulkan, mesh, r, g, b, a, &entry)) {
+    BLB_Polygon3D polygon = {.vertices = mesh->vertices,
+                             .normals = mesh->normals,
+                             .uvs = mesh->uvs,
+                             .indices = mesh->indices,
+                             .vertex_count = mesh->vertex_count,
+                             .index_count = mesh->index_count,
+                             .dynamic_vertices = true};
+    float fallback_rows[12];
+    identity_rows(fallback_rows);
+    VulkanMaterial fallback_material = create_cached_mesh_material();
+    VULKAN_RendererDrawPolygon3D(vulkan, &polygon, mvp, fallback_rows, r, g, b, a, &fallback_material, NULL);
+
+    if (!mesh->normals)
+      free(polygon.normals);
+
     return;
+  }
 
   if (!entry || !entry->cached.main_valid || entry->cached.vertex.buffer == VK_NULL_HANDLE || entry->cached.index.buffer == VK_NULL_HANDLE)
     return;
@@ -1413,29 +1545,50 @@ void VULKAN_RendererDrawCachedMesh(VULKAN *vulkan, const Mesh *mesh, const float
     vulkan->bound_index_buffer = entry->cached.index.buffer;
   }
 
-  VULKAN_RendererBindMaterial(vulkan, layout, &material);
+  if (!VULKAN_RendererBindMaterial(vulkan, layout, &material))
+    return;
   push_lighting(vulkan, layout, mvp, rows, &material, 0);
   vkCmdDrawIndexed(command, entry->cached.index_count, 1, 0, 0, 0);
 }
 
 void VULKAN_RendererDrawCachedMeshMaterial(VULKAN *vulkan, const Mesh *mesh, const float *mvp, const float *model_rows, float r, float g, float b,
-                                           float a, const VulkanMaterial *material, BLB_Texture *texture, HMM_Vec3 camera_position) {
+                                           float a, const VulkanMaterial *material, BLB_Texture *texture, BLB_Vec3 camera_position) {
   if (!vulkan || !mesh || !mvp || !material)
     return;
+
   if (mesh->vertex_count == 0 || mesh->index_count < 3 || mesh->index_count % 3 != 0)
     return;
 
   VULKAN_RendererBeginMainPass(vulkan);
+
   if (!vulkan->main_render_pass_begun)
     return;
 
   VULKAN_MeshCacheEntry *entry = NULL;
-  if (!ensure_cached_mesh_main(vulkan, mesh, r, g, b, a, &entry))
+
+  if (!ensure_cached_mesh_main(vulkan, mesh, r, g, b, a, &entry)) {
+    BLB_Polygon3D polygon = {.vertices = mesh->vertices,
+                             .normals = mesh->normals,
+                             .uvs = mesh->uvs,
+                             .indices = mesh->indices,
+                             .vertex_count = mesh->vertex_count,
+                             .index_count = mesh->index_count,
+                             .dynamic_vertices = true};
+    float fallback_rows[12];
+    identity_rows(fallback_rows);
+    VULKAN_RendererDrawPolygon3D(vulkan, &polygon, mvp, model_rows ? model_rows : fallback_rows, r, g, b, a, material, texture);
+
+    if (!mesh->normals)
+      free(polygon.normals);
+
     return;
+  }
+
   if (!entry || !entry->cached.main_valid || entry->cached.vertex.buffer == VK_NULL_HANDLE || entry->cached.index.buffer == VK_NULL_HANDLE)
     return;
 
   float rows[12];
+
   if (model_rows)
     memcpy(rows, model_rows, sizeof(rows));
   else
@@ -1452,6 +1605,7 @@ void VULKAN_RendererDrawCachedMeshMaterial(VULKAN *vulkan, const Mesh *mesh, con
   }
 
   VkDeviceSize vertex_offset = 0;
+
   if (vulkan->bound_vertex_buffer != entry->cached.vertex.buffer || vulkan->bound_vertex_offset != vertex_offset) {
     vkCmdBindVertexBuffers(command, 0, 1, &entry->cached.vertex.buffer, &vertex_offset);
     vulkan->bound_vertex_buffer = entry->cached.vertex.buffer;
@@ -1465,56 +1619,70 @@ void VULKAN_RendererDrawCachedMeshMaterial(VULKAN *vulkan, const Mesh *mesh, con
 
   VulkanMaterial bound_material = *material;
   bound_material.base_texture_override = texture;
-  VULKAN_RendererBindMaterial(vulkan, layout, &bound_material);
+
+  if (!VULKAN_RendererBindMaterial(vulkan, layout, &bound_material))
+    return;
   push_lighting(vulkan, layout, mvp, rows, &bound_material, 0);
   vkCmdDrawIndexed(command, entry->cached.index_count, 1, 0, 0, 0);
 }
 
 void VULKAN_RendererDrawInstancedPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *polygon, const float *mvp, const VulkanMaterial *material,
                                            BLB_Texture *texture, const VulkanInstanceData *instances, size_t instance_count,
-                                           HMM_Vec3 camera_position) {
+                                           BLB_Vec3 camera_position) {
   if (!vulkan || !polygon || !mvp || !material || !instances || instance_count == 0 || instance_count > UINT32_MAX)
     return;
+
   if (!polygon->vertices || !polygon->indices || polygon->vertex_count == 0 || polygon->index_count < 3 || polygon->index_count % 3 != 0)
     return;
+
   if (vulkan->vertex_cursor + polygon->vertex_count > VULKAN_MAX_VERTICES || vulkan->index_cursor + polygon->index_count > VULKAN_MAX_INDICES)
     return;
+
   if (vulkan->instance_cursor + instance_count > vulkan->instance_capacity)
     return;
+
   for (size_t i = 0; i < polygon->index_count; ++i)
     if (polygon->indices[i] >= polygon->vertex_count)
       return;
+
   if (!ensure_polygon_normals((BLB_Polygon3D *)polygon))
     return;
 
   VULKAN_RendererBeginMainPass(vulkan);
+
   if (!vulkan->main_render_pass_begun)
     return;
 
   VulkanVertex *vertices = (VulkanVertex *)vulkan->vertex_buffers[vulkan->current_frame].mapped;
   uint32_t *indices = (uint32_t *)vulkan->index_buffers[vulkan->current_frame].mapped;
+
   if (!vertices || !indices)
     return;
 
   size_t vertex_start = 0;
   size_t index_start = 0;
-  bool cached_geometry = find_cached_geometry_3d(vulkan, polygon, &vertex_start, &index_start);
+  const float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  bool cached_geometry = find_cached_geometry_3d(vulkan, polygon, color, &vertex_start, &index_start);
+
   if (!cached_geometry) {
     vertex_start = vulkan->vertex_cursor;
     index_start = vulkan->index_cursor;
+
     for (size_t i = 0; i < polygon->vertex_count; ++i) {
-      HMM_Vec3 normal = safe_normalize(polygon->normals[i], HMM_V3(0.0f, 1.0f, 0.0f));
-      HMM_Vec2 uv = polygon->uvs ? polygon->uvs[i] : HMM_V2(0.0f, 0.0f);
+      BLB_Vec3 normal = safe_normalize(polygon->normals[i], BLB_V3(0.0f, 1.0f, 0.0f));
+      BLB_Vec2 uv = polygon->uvs ? polygon->uvs[i] : BLB_V2(0.0f, 0.0f);
       upload_vertex(vertices, vertex_start + i, polygon->vertices[i], normal, 1.0f, 1.0f, 1.0f, 1.0f, uv);
     }
+
     for (size_t i = 0; i < polygon->index_count; ++i)
       indices[index_start + i] = polygon->indices[i];
-    cache_geometry_3d(vulkan, polygon, vertex_start, index_start);
+    cache_geometry_3d(vulkan, polygon, color, vertex_start, index_start);
     vulkan->vertex_cursor += polygon->vertex_count;
     vulkan->index_cursor += polygon->index_count;
   }
 
   VulkanInstanceData *mapped = (VulkanInstanceData *)vulkan->instance_buffers[vulkan->current_frame].mapped;
+
   if (!mapped)
     return;
   uint32_t first_instance = (uint32_t)vulkan->instance_cursor;
@@ -1527,25 +1695,30 @@ void VULKAN_RendererDrawInstancedPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *
   VkPipelineLayout layout = select_3d_layout(vulkan, material->render_mode, material->depth_enabled, material->depth_write);
   vulkan->camera_position = camera_position;
   update_light_buffer_3d(vulkan);
+
   if (vulkan->bound_pipeline != pipeline) {
     vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     vulkan->bound_pipeline = pipeline;
   }
   VkBuffer vertex_buffer = vulkan->vertex_buffers[vulkan->current_frame].buffer;
   VkDeviceSize vertex_offset = vertex_start * sizeof(VulkanVertex);
+
   if (vulkan->bound_vertex_buffer != vertex_buffer || vulkan->bound_vertex_offset != vertex_offset) {
     vkCmdBindVertexBuffers(command, 0, 1, &vertex_buffer, &vertex_offset);
     vulkan->bound_vertex_buffer = vertex_buffer;
     vulkan->bound_vertex_offset = vertex_offset;
   }
   VkBuffer index_buffer = vulkan->index_buffers[vulkan->current_frame].buffer;
+
   if (vulkan->bound_index_buffer != index_buffer) {
     vkCmdBindIndexBuffer(command, index_buffer, 0, VK_INDEX_TYPE_UINT32);
     vulkan->bound_index_buffer = index_buffer;
   }
   VulkanMaterial bound_material = *material;
   bound_material.base_texture_override = texture;
-  VULKAN_RendererBindMaterial(vulkan, layout, &bound_material);
+
+  if (!VULKAN_RendererBindMaterial(vulkan, layout, &bound_material))
+    return;
   float rows[12];
   identity_rows(rows);
   push_lighting_ex(vulkan, layout, mvp, rows, &bound_material, 0, true, first_instance);
@@ -1554,7 +1727,7 @@ void VULKAN_RendererDrawInstancedPolygon3D(VULKAN *vulkan, const BLB_Polygon3D *
 }
 
 void VULKAN_RendererDrawInstancedMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp, const VulkanMaterial *material, BLB_Texture *texture,
-                                      const VulkanInstanceData *instances, size_t instance_count, HMM_Vec3 camera_position) {
+                                      const VulkanInstanceData *instances, size_t instance_count, BLB_Vec3 camera_position) {
   if (!vulkan || !mesh || !mvp || !material || !instances || instance_count == 0 || instance_count > UINT32_MAX)
     return;
 
@@ -1562,6 +1735,7 @@ void VULKAN_RendererDrawInstancedMesh(VULKAN *vulkan, const Mesh *mesh, const fl
     return;
 
   VULKAN_RendererBeginMainPass(vulkan);
+
   if (!vulkan->main_render_pass_begun)
     return;
 
@@ -1569,12 +1743,15 @@ void VULKAN_RendererDrawInstancedMesh(VULKAN *vulkan, const Mesh *mesh, const fl
     return;
 
   VULKAN_MeshCacheEntry *entry = NULL;
+
   if (!ensure_cached_mesh_main(vulkan, mesh, 1.0f, 1.0f, 1.0f, 1.0f, &entry))
     return;
+
   if (!entry || !entry->cached.main_valid || entry->cached.vertex.buffer == VK_NULL_HANDLE || entry->cached.index.buffer == VK_NULL_HANDLE)
     return;
 
   VulkanInstanceData *mapped = (VulkanInstanceData *)vulkan->instance_buffers[vulkan->current_frame].mapped;
+
   if (!mapped)
     return;
 
@@ -1594,6 +1771,7 @@ void VULKAN_RendererDrawInstancedMesh(VULKAN *vulkan, const Mesh *mesh, const fl
   }
 
   VkDeviceSize vertex_offset = 0;
+
   if (vulkan->bound_vertex_buffer != entry->cached.vertex.buffer || vulkan->bound_vertex_offset != vertex_offset) {
     vkCmdBindVertexBuffers(command, 0, 1, &entry->cached.vertex.buffer, &vertex_offset);
     vulkan->bound_vertex_buffer = entry->cached.vertex.buffer;
@@ -1607,7 +1785,9 @@ void VULKAN_RendererDrawInstancedMesh(VULKAN *vulkan, const Mesh *mesh, const fl
 
   VulkanMaterial bound_material = *material;
   bound_material.base_texture_override = texture;
-  VULKAN_RendererBindMaterial(vulkan, layout, &bound_material);
+
+  if (!VULKAN_RendererBindMaterial(vulkan, layout, &bound_material))
+    return;
 
   float rows[12];
   identity_rows(rows);
@@ -1620,16 +1800,20 @@ void VULKAN_RendererDrawInstancedShadowMesh(VULKAN *vulkan, const Mesh *mesh, co
                                             size_t instance_count) {
   if (!vulkan || !mesh || !mvp || !instances || instance_count == 0 || instance_count > UINT32_MAX || !vulkan->shadow_pipeline)
     return;
+
   if (vulkan->instance_cursor + instance_count > vulkan->instance_capacity)
     return;
 
   VULKAN_MeshCacheEntry *entry = NULL;
+
   if (!ensure_cached_mesh_shadow(vulkan, mesh, &entry))
     return;
+
   if (!entry || !entry->cached.shadow_valid || entry->cached.shadow.buffer == VK_NULL_HANDLE)
     return;
 
   VulkanInstanceData *mapped = (VulkanInstanceData *)vulkan->instance_buffers[vulkan->current_frame].mapped;
+
   if (!mapped)
     return;
 
@@ -1656,27 +1840,35 @@ void VULKAN_RendererDrawInstancedShadowPolygon3D(VULKAN *vulkan, const BLB_Polyg
                                                  size_t instance_count) {
   if (!vulkan || !polygon || !mvp || !instances || instance_count == 0 || instance_count > UINT32_MAX || !vulkan->shadow_pipeline)
     return;
+
   if (vulkan->current_frame >= VULKAN_MAX_FRAMES_IN_FLIGHT)
     return;
+
   if (!polygon->vertices || !polygon->indices || polygon->vertex_count == 0 || polygon->index_count < 3 || polygon->index_count % 3 != 0)
     return;
+
   if (vulkan->instance_cursor + instance_count > vulkan->instance_capacity)
     return;
+
   if (polygon->index_count > VULKAN_MAX_INDICES || vulkan->shadow_vertex_cursor + polygon->index_count > VULKAN_MAX_INDICES)
     return;
+
   for (size_t i = 0; i < polygon->index_count; ++i)
     if (polygon->indices[i] >= polygon->vertex_count)
       return;
 
   size_t vertex_start = 0;
+
   if (!find_cached_shadow_geometry(vulkan, polygon, &vertex_start)) {
     VulkanShadowVertex *vertices = (VulkanShadowVertex *)vulkan->shadow_vertex_buffers[vulkan->current_frame].mapped;
+
     if (!vertices)
       return;
     vertex_start = vulkan->shadow_vertex_cursor;
+
     for (size_t i = 0; i < polygon->index_count; ++i) {
       uint32_t index = polygon->indices[i];
-      HMM_Vec3 p = polygon->vertices[index];
+      BLB_Vec3 p = polygon->vertices[index];
       vertices[vertex_start + i] = (VulkanShadowVertex){{p.x, p.y, p.z}};
     }
     vulkan->shadow_vertex_cursor += polygon->index_count;
@@ -1684,6 +1876,7 @@ void VULKAN_RendererDrawInstancedShadowPolygon3D(VULKAN *vulkan, const BLB_Polyg
   }
 
   VulkanInstanceData *mapped = (VulkanInstanceData *)vulkan->instance_buffers[vulkan->current_frame].mapped;
+
   if (!mapped)
     return;
   uint32_t first_instance = (uint32_t)vulkan->instance_cursor;
@@ -1744,7 +1937,7 @@ void VULKAN_RendererInvalidateCachedMesh(VULKAN *vulkan, const Mesh *mesh) {
 
   for (size_t i = 0; i < mesh_cache_count; i++) {
 
-    if (mesh_cache[i].renderer != vulkan || mesh_cache[i].mesh != mesh)
+    if (mesh_cache[i].renderer != vulkan || !mesh_cache_equal(&mesh_cache[i].mesh, mesh))
       continue;
 
     vkDeviceWaitIdle(vulkan->device);
@@ -1755,6 +1948,7 @@ void VULKAN_RendererInvalidateCachedMesh(VULKAN *vulkan, const Mesh *mesh) {
     }
 
     mesh_cache_count--;
+    rebuild_mesh_cache_slots();
 
     return;
   }
@@ -1783,9 +1977,14 @@ void VULKAN_RendererClearCachedMeshes(VULKAN *vulkan) {
   }
 
   mesh_cache_count = write;
+  rebuild_mesh_cache_slots();
+
   if (mesh_cache_count == 0) {
     free(mesh_cache);
     mesh_cache = NULL;
     mesh_cache_capacity = 0;
+    free(mesh_cache_slots);
+    mesh_cache_slots = NULL;
+    mesh_cache_slot_capacity = 0;
   }
 }

@@ -36,7 +36,7 @@ static int create_shadow_render_pass(VULKAN *vulkan) {
       {
           .srcSubpass = 0,
           .dstSubpass = VK_SUBPASS_EXTERNAL,
-          .srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+          .srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
           .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
           .srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
           .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
@@ -56,6 +56,50 @@ static int create_shadow_render_pass(VULKAN *vulkan) {
   VkResult result = vkCreateRenderPass(vulkan->device, &info, NULL, &vulkan->shadow_render_pass);
 
   return result == VK_SUCCESS ? 0 : -1;
+}
+
+static int initialize_shadow_images(VULKAN *vulkan) {
+  VkCommandBuffer command = VK_NULL_HANDLE;
+  VkCommandBufferAllocateInfo allocate = {.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+                                          .commandPool = vulkan->command_pool,
+                                          .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+                                          .commandBufferCount = 1};
+
+  if (vkAllocateCommandBuffers(vulkan->device, &allocate, &command) != VK_SUCCESS)
+    return -1;
+  VkCommandBufferBeginInfo begin = {.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
+  int result = -1;
+
+  if (vkBeginCommandBuffer(command, &begin) != VK_SUCCESS)
+    goto done;
+  VkClearValue clear = {.depthStencil = {1.0f, 0}};
+
+  for (uint32_t frame = 0; frame < VULKAN_MAX_FRAMES_IN_FLIGHT; ++frame) {
+    for (uint32_t shadow = 0; shadow < VULKAN_SHADOW_MAP_COUNT; ++shadow) {
+      VkRenderPassBeginInfo pass = {.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                                    .renderPass = vulkan->shadow_render_pass,
+                                    .framebuffer = vulkan->shadow_framebuffers[frame][shadow],
+                                    .renderArea = {.extent = {VULKAN_SHADOW_MAP_SIZE, VULKAN_SHADOW_MAP_SIZE}},
+                                    .clearValueCount = 1,
+                                    .pClearValues = &clear};
+      vkCmdBeginRenderPass(command, &pass, VK_SUBPASS_CONTENTS_INLINE);
+      vkCmdEndRenderPass(command);
+    }
+  }
+
+  if (vkEndCommandBuffer(command) != VK_SUCCESS)
+    goto done;
+  VkSubmitInfo submit = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO, .commandBufferCount = 1, .pCommandBuffers = &command};
+
+  if (vkQueueSubmit(vulkan->graphics_queue, 1, &submit, VK_NULL_HANDLE) != VK_SUCCESS)
+    goto done;
+
+  if (vkQueueWaitIdle(vulkan->graphics_queue) == VK_SUCCESS)
+    result = 0;
+done:
+  vkFreeCommandBuffers(vulkan->device, vulkan->command_pool, 1, &command);
+
+  return result;
 }
 
 int create_shadow_resources(VULKAN *vulkan) {
@@ -131,9 +175,13 @@ int create_shadow_resources(VULKAN *vulkan) {
   if (vkCreateSampler(vulkan->device, &sampler, NULL, &vulkan->shadow_sampler) != VK_SUCCESS)
     goto fail;
 
+  if (initialize_shadow_images(vulkan) != 0)
+    goto fail;
+
   return 0;
 fail:
   destroy_shadow_resources(vulkan);
+
   return -1;
 }
 

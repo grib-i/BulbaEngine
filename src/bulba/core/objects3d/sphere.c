@@ -1,9 +1,11 @@
 #include "bulba/core/objects3d/sphere.h"
-#include "bulba/core/math3v/HandmadeMath.h"
+#include "bulba/core/math3v/vec_math.h"
 #include "bulba/core/objects3d/objects3d.h"
+#include "bulba/core/physics/physics3d/physics3d.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/object_lod.h"
 #include "bulba/core/render/texture.h"
+#include "bulba/core/utils/delta_time.h"
 #include "bulba/core/utils/object.h"
 
 #ifdef _WIN32
@@ -49,7 +51,7 @@ static size_t sphere_get_slices(int level_of_detail) {
   return lod_slices[index];
 }
 
-BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of_detail, BLB_Texture *texture, BLB_TextureProjection mapping) {
+BLB_Object3D *BLB_CreateSphere3D(BLB_Vec3 scale, BLB_Vec3 position, int level_of_detail, BLB_Texture *texture, BLB_TextureProjection mapping) {
   BLB_Object3D *object = calloc(1, sizeof(*object));
 
   if (object == NULL)
@@ -57,10 +59,7 @@ BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of
 
   bool polygon_created = false;
 
-  object->delta_time = calloc(1, sizeof(*object->delta_time));
-
-  if (object->delta_time == NULL)
-    goto fail;
+  object->delta_time = BLB_DeltaTime_Get();
 
   object->type = BLB_OBJECT_SPHERE;
 
@@ -82,9 +81,9 @@ BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of
     const size_t vertex_count = 2 + (stacks - 1) * (slices + 1);
     const size_t index_count = 6 * slices * (stacks - 1);
 
-    polygon->vertices = malloc(sizeof(HMM_Vec3) * vertex_count);
-    polygon->base_vertices = malloc(sizeof(HMM_Vec3) * vertex_count);
-    polygon->uvs = malloc(sizeof(HMM_Vec2) * vertex_count);
+    polygon->vertices = malloc(sizeof(BLB_Vec3) * vertex_count);
+    polygon->base_vertices = malloc(sizeof(BLB_Vec3) * vertex_count);
+    polygon->uvs = malloc(sizeof(BLB_Vec2) * vertex_count);
     polygon->indices = malloc(sizeof(unsigned int) * index_count);
 
     if (polygon->vertices == NULL || polygon->base_vertices == NULL || polygon->uvs == NULL || polygon->indices == NULL)
@@ -121,11 +120,11 @@ BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of
 
     size_t vertex_index = 0;
 
-    const HMM_Vec3 top = HMM_V3(0.0f, 0.5f, 0.0f);
+    const BLB_Vec3 top = BLB_V3(0.0f, 0.5f, 0.0f);
 
     polygon->vertices[vertex_index] = top;
     polygon->base_vertices[vertex_index] = top;
-    polygon->uvs[vertex_index] = HMM_V2(0.5f, 0.0f);
+    polygon->uvs[vertex_index] = BLB_V2(0.5f, 0.0f);
 
     vertex_index++;
 
@@ -135,11 +134,11 @@ BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of
       const float v = (float)i / (float)stacks;
 
       for (size_t j = 0; j <= slices; j++) {
-        HMM_Vec3 vertex = HMM_V3(0.5f * sin_current_phi * cos_theta[j], 0.5f * cos_current_phi, 0.5f * sin_current_phi * sin_theta[j]);
+        BLB_Vec3 vertex = BLB_V3(0.5f * sin_current_phi * cos_theta[j], 0.5f * cos_current_phi, 0.5f * sin_current_phi * sin_theta[j]);
 
         polygon->vertices[vertex_index] = vertex;
         polygon->base_vertices[vertex_index] = vertex;
-        polygon->uvs[vertex_index] = HMM_V2((float)j / (float)slices, v);
+        polygon->uvs[vertex_index] = BLB_V2((float)j / (float)slices, v);
 
         vertex_index++;
       }
@@ -147,11 +146,11 @@ BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of
 
     const size_t bottom_index = vertex_index;
 
-    const HMM_Vec3 bottom = HMM_V3(0.0f, -0.5f, 0.0f);
+    const BLB_Vec3 bottom = BLB_V3(0.0f, -0.5f, 0.0f);
 
     polygon->vertices[bottom_index] = bottom;
     polygon->base_vertices[bottom_index] = bottom;
-    polygon->uvs[bottom_index] = HMM_V2(0.5f, 1.0f);
+    polygon->uvs[bottom_index] = BLB_V2(0.5f, 1.0f);
 
     size_t index = 0;
 
@@ -216,9 +215,6 @@ BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of
   if (object->polygon == NULL)
     object->polygon = polygon;
 
-  if (object->delta_time == NULL || object->polygon == NULL)
-    goto fail;
-
   object->polygon = polygon;
 
   object->id->id++;
@@ -231,21 +227,23 @@ BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of
   object->mesh.index_count = object->polygon->index_count;
 
   object->position = position;
-  object->rotation = HMM_V3(0.0f, 0.0f, 0.0f);
+  object->rotation = BLB_V3(0.0f, 0.0f, 0.0f);
   object->scale = scale;
-
   object->render_mode = BLB_RENDER_OPAQUE;
-
-  object->color = HMM_V4(255.0f, 255.0f, 255.0f, 255.0f);
+  object->color = BLB_V4(255.0f, 255.0f, 255.0f, 255.0f);
   object->visible = true;
   object->entity_id = BLB_INVALID_ENTITY_ID;
-
   object->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;
+
+  for (int i = 0; i < BLB_TRANSFORM_TYPE_COUNT; i++) {
+    object->physics_sync_mode[i] = BLB_PHYSICS_SYNC_BIDIRECTIONAL;
+  }
 
   object->material = BLB_Material_Create3D();
 
   if (object->material == NULL) {
     BLB_DestroySphere3D(object);
+
     return NULL;
   }
 
@@ -253,6 +251,7 @@ BLB_Object3D *BLB_CreateSphere3D(HMM_Vec3 scale, HMM_Vec3 position, int level_of
 
   if (texture != NULL) {
     BLB_Object3D_SetTexture(object, texture);
+
     if (object->material)
       object->material->base_color_texture.projection = mapping;
   } else {
@@ -265,7 +264,6 @@ fail:
   if (polygon_created)
     BLB_SphereFreePolygon();
 
-  free(object->delta_time);
   free(object);
 
   return NULL;
@@ -274,6 +272,9 @@ fail:
 void BLB_DestroySphere3D(BLB_Object3D *object) {
   if (object == NULL)
     return;
+
+  if (object->rigid_body)
+    BLB_Physics3D_BodyDestroy(object->rigid_body->world, object);
 
   BLB_Object3D_ClearLODs(object);
 
@@ -292,6 +293,5 @@ void BLB_DestroySphere3D(BLB_Object3D *object) {
   }
 
   free(object->handler);
-  free(object->delta_time);
   free(object);
 }

@@ -44,33 +44,40 @@ BLB_Audio3D *BLB_CreateAudio3D(BLB_IO_Audio *io_audio, bool loop, bool stream, f
   return NULL;
 }
 
-BLB_Audio3D *BLB_LoadAudio3D(BLB_IO_Audio *io_audio, const char *path, bool play, bool surround, bool loop, HMM_Vec3 position) {
+BLB_Audio3D *BLB_LoadAudio3D(BLB_IO_Audio *io_audio, const char *path, bool play, bool surround, bool loop, BLB_Vec3 position) {
   if (!io_audio || !path)
     return NULL;
 
   BLB_Audio3D *audio = calloc(1, sizeof(BLB_Audio3D));
+
   if (!audio)
     return NULL;
 
   audio->sound = malloc(sizeof(ma_sound));
+
   if (!audio->sound) {
     free(audio);
+
     return NULL;
   }
 
   audio->result = malloc(sizeof(*audio->result));
+
   if (!audio->result) {
     free(audio->sound);
     free(audio);
+
     return NULL;
   }
   audio->io_audio = io_audio;
 
   audio->path = BLB_Platform_DuplicateString(path);
+
   if (!audio->path) {
     free(audio->result);
     free(audio->sound);
     free(audio);
+
     return NULL;
   }
 
@@ -90,16 +97,19 @@ BLB_Audio3D *BLB_LoadAudio3D(BLB_IO_Audio *io_audio, const char *path, bool play
     free(audio->result);
     free(audio->sound);
     free(audio);
+
     return NULL;
   }
 
-  audio->obj = BLB_CreateCube3D(HMM_V3(1.0f, 1.0f, 0.001f), position, NULL, BLB_TEXMAP_STRETCH);
+  audio->obj = BLB_CreateCube3D(BLB_V3(1.0f, 1.0f, 0.001f), position, NULL, BLB_TEXMAP_STRETCH);
+
   if (!audio->obj) {
     ma_sound_uninit(audio->sound);
     free(audio->path);
     free(audio->result);
     free(audio->sound);
     free(audio);
+
     return NULL;
   }
 
@@ -132,10 +142,13 @@ void BLB_DestroyAudio3D(BLB_IO_Audio *io_audio, BLB_Audio3D *audio) {
     ma_sound_uninit(audio->sound);
     free(audio->sound);
   }
+
   if (audio->obj)
     BLB_DestroyCube3D(audio->obj);
+
   if (audio->audio_debug_texture)
     BLB_Texture_Release(audio->audio_debug_texture);
+
   if (audio->audio_off_debug_texture)
     BLB_Texture_Release(audio->audio_off_debug_texture);
 
@@ -170,7 +183,7 @@ void BLB_StopAudio3D(BLB_Audio3D *audio) {
     audio->play = false;
 }
 
-void BLB_SetPosition_Audio3D(BLB_Audio3D *audio, HMM_Vec3 position) {
+void BLB_SetPosition_Audio3D(BLB_Audio3D *audio, BLB_Vec3 position) {
   if (!audio)
     return;
 
@@ -179,14 +192,14 @@ void BLB_SetPosition_Audio3D(BLB_Audio3D *audio, HMM_Vec3 position) {
   ma_sound_set_position(audio->sound, position.x, position.y, position.z);
 }
 
-void BLB_SetVelocity_Audio3D(BLB_Audio3D *audio, HMM_Vec3 velocity) {
+void BLB_SetVelocity_Audio3D(BLB_Audio3D *audio, BLB_Vec3 velocity) {
   if (!audio)
     return;
 
   ma_sound_set_velocity(audio->sound, velocity.x, velocity.y, velocity.z);
 }
 
-void BLB_SetRotation_Audio3D(BLB_Audio3D *audio, HMM_Vec3 rotation) {
+void BLB_SetRotation_Audio3D(BLB_Audio3D *audio, BLB_Vec3 rotation) {
   if (!audio)
     return;
 

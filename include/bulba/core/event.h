@@ -1,7 +1,7 @@
 #ifndef BULBA_CORE_EVENT_H
 #define BULBA_CORE_EVENT_H
 
-#include "bulba/core/math3v/HandmadeMath.h"
+#include "bulba/core/math3v/vec_math.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -26,11 +26,7 @@ typedef enum {
   BLB_EVENT_COUNT
 } BLB_EventType;
 
-typedef enum {
-  BLB_INPUT_RELEASE = 0,
-  BLB_INPUT_PRESS = 1,
-  BLB_INPUT_REPEAT = 2
-} BLB_InputAction;
+typedef enum { BLB_INPUT_RELEASE = 0, BLB_INPUT_PRESS = 1, BLB_INPUT_REPEAT = 2 } BLB_InputAction;
 
 typedef enum {
   BLB_OBJECT_EVENT_NONE = 0,
@@ -39,10 +35,7 @@ typedef enum {
   BLB_OBJECT_EVENT_CLICK = 3
 } BLB_ObjectEventType;
 
-typedef enum {
-  BLB_HANDLER_CALLBACK = 0,
-  BLB_HANDLER_POLL = 1
-} BLB_HandlerMode;
+typedef enum { BLB_HANDLER_CALLBACK = 0, BLB_HANDLER_POLL = 1 } BLB_HandlerMode;
 
 typedef struct {
   BLB_EventType type;
@@ -72,7 +65,7 @@ typedef struct {
   BLB_Object2D *object2d;
   BLB_Object3D *object3d;
   BLB_ObjectEventType object_event;
-  HMM_Vec3 world_position;
+  BLB_Vec3 world_position;
   float hit_distance;
 } BLB_Event;
 
