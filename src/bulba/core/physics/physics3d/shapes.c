@@ -205,6 +205,12 @@ b3ShapeId blb_physics3d_create_backend_shape(const BLB_Collider3D *collider,
     if (!compound) {
       return b3_nullShapeId;
     }
+
+    b3ShapeDef mutable_def = *def;
+    b3ShapeId result = b3CreateCompoundShape(body, &mutable_def, compound);
+    b3DestroyCompound(compound);
+
+    return result;
   }
 
   default:

@@ -9,6 +9,8 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(BLB_VERSION "1.0.1" CACHE STRING "BulbaEngine version")
 project(BulbaEngine VERSION "${BLB_VERSION}" LANGUAGES C CXX)
 
+option(BUILD_TESTING "Build BulbaEngine tests" OFF)
+
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
@@ -95,4 +97,7 @@ target_compile_definitions(bulba_engine PUBLIC
 
 include("${BLB_SOURCE_DIR}/cmake/app.cmake")
 include("${BLB_SOURCE_DIR}/cmake/install.cmake")
-include("${BLB_SOURCE_DIR}/cmake/tests.cmake")
+
+if(BUILD_TESTING)
+  include("${BLB_SOURCE_DIR}/cmake/tests.cmake")
+endif()

@@ -1,4 +1,5 @@
 #include "box2d/id.h"
+#include "box2d/math_types.h"
 #include "bulba/core/physics/physics2d.h"
 #include "physics2d.h"
 
@@ -135,30 +136,37 @@ b2ShapeId blb_physics2d_create_backend_shape(const BLB_Collider2D *collider,
     return b2CreatePolygonShape(body, def, &polygon);
   }
 
-  case BLB_PHYSICS2D_SHAPE_CHAIN:
-    if (!collider->shape.data.chain.points ||
-        collider->shape.data.chain.point_count > 0 ||
-        collider->shape.data.chain.point_count <
-            (collider->shape.data.chain.loop ? 3 : 2))
+  case BLB_PHYSICS2D_SHAPE_CHAIN: {
+    const __typeof__(collider->shape.data.chain) *chain_data =
+        &collider->shape.data.chain;
+
+    if (!chain_data->points || chain_data->point_count > 0 ||
+        chain_data->point_count < (chain_data->loop ? 3 : 2))
       return b2_nullShapeId;
 
     b2ChainDef chainDef = b2DefaultChainDef();
 
     _Static_assert(sizeof(BLB_Vec2) == sizeof(b2Vec2), "Vector sizes differ");
-    b2Vec2 *points =
-        malloc(chainDef.pointCount * sizeof(*collider->shape.data.chain.points));
+    b2Vec2 *points = malloc(chain_data->point_count * sizeof(*points));
 
     if (!points)
       return b2_nullShapeId;
 
+    memcpy(points, chain_data->points, chain_data->point_count * sizeof(*points));
     chainDef.points = points;
-    chainDef.pointCount = collider->shape.data.chain.point_count;
-    chainDef.isLoop = collider->shape.data.chain.loop;
+    chainDef.pointCount = chain_data->point_count;
+    chainDef.isLoop = chain_data->loop;
+
+    chainDef.ghost1 = (b2Vec2){chain_data->ghost1.x, chain_data->ghost1.y};
+    chainDef.ghost2 = (b2Vec2){chain_data->ghost2.x, chain_data->ghost2.y};
 
     b2ChainId chain = b2CreateChain(body, &chainDef);
     if (b2Chain_IsValid(chain) == false) {
       return b2_nullShapeId;
     }
+
+    return b2_nullShapeId;
+  }
 
   default:
     return b2_nullShapeId;

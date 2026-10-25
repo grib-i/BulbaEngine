@@ -39,13 +39,15 @@ static bool build_normals(BLB_Polygon3D *polygon) {
     unsigned int ib = polygon->indices[i + 1];
     unsigned int ic = polygon->indices[i + 2];
 
-    if (ia >= polygon->vertex_count || ib >= polygon->vertex_count || ic >= polygon->vertex_count) {
+    if (ia >= polygon->vertex_count || ib >= polygon->vertex_count ||
+        ic >= polygon->vertex_count) {
       free(normals);
 
       return false;
     }
 
-    BLB_Vec3 normal = poly_normal(polygon->vertices[ia], polygon->vertices[ib], polygon->vertices[ic]);
+    BLB_Vec3 normal =
+        poly_normal(polygon->vertices[ia], polygon->vertices[ib], polygon->vertices[ic]);
 
     normals[ia] = BLB_AddV3(normals[ia], normal);
     normals[ib] = BLB_AddV3(normals[ib], normal);
@@ -60,7 +62,8 @@ static bool build_normals(BLB_Polygon3D *polygon) {
   return true;
 }
 
-BLB_Polygon3D *BLB_CreatePolygon3D(BLB_Vec3 *vertices, size_t vertex_count, unsigned int *indices, size_t index_count) {
+BLB_Polygon3D *BLB_CreatePolygon3D(BLB_Vec3 *vertices, size_t vertex_count,
+                                   unsigned int *indices, size_t index_count) {
   if (!vertices)
     return NULL;
 
@@ -106,9 +109,12 @@ void BLB_DestroyPolygon3D(BLB_Polygon3D *polygon) {
   free(polygon);
 }
 
-void BLB_TriangulatePolygon3D(BLB_Polygon3D *polygon) { (void)polygon; }
+void BLB_TriangulatePolygon3D(BLB_Polygon3D *polygon) {
+  (void)polygon;
+}
 
-BLB_Polygon2D *BLB_CreatePolygon2D(BLB_Vec2 *vertices, size_t vertex_count, unsigned int *indices, size_t index_count) {
+BLB_Polygon2D *BLB_CreatePolygon2D(BLB_Vec2 *vertices, size_t vertex_count,
+                                   unsigned int *indices, size_t index_count) {
   if (!vertices)
     return NULL;
 
@@ -143,4 +149,6 @@ void BLB_DestroyPolygon2D(BLB_Polygon2D *polygon) {
   free(polygon);
 }
 
-void BLB_TriangulatePolygon2D(BLB_Polygon2D *polygon) { (void)polygon; }
+void BLB_TriangulatePolygon2D(BLB_Polygon2D *polygon) {
+  (void)polygon;
+}
