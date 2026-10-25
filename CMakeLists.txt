@@ -26,8 +26,6 @@ set(BLB_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(BLB_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/BulbaEngine")
 
-include("${BLB_SOURCE_DIR}/cmake/umbrella.cmake")
-
 include("${BLB_SOURCE_DIR}/cmake/options.cmake")
 include("${BLB_SOURCE_DIR}/cmake/compiler.cmake")
 
