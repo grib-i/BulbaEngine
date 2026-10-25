@@ -140,7 +140,7 @@ b2ShapeId blb_physics2d_create_backend_shape(const BLB_Collider2D *collider,
     const __typeof__(collider->shape.data.chain) *chain_data =
         &collider->shape.data.chain;
 
-    if (!chain_data->points || chain_data->point_count > 0 ||
+    if (!chain_data->points || chain_data->point_count < 0 ||
         chain_data->point_count < (chain_data->loop ? 3 : 2))
       return b2_nullShapeId;
 
