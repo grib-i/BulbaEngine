@@ -239,31 +239,14 @@ target_link_libraries(MyGame PRIVATE BulbaEngine::BulbaEngine)
 
 ---
 
-## 🤝 Contributing
-
-Contributions, experiments and ideas are welcome.
-
-See the project documentation for development guidelines.
-
----
-
-## ⭐ Support
-
-<a href="https://github.com/grib-i/BulbaEngine">
-<img src="https://img.shields.io/badge/⭐%20Star%20the%20repository-181717?style=for-the-badge&logo=github">
-</a>
-
----
-
 ## 📄 License
 
 BulbaEngine is licensed under the **MIT License**.
+Copyright © 2026 **grib_i**
 
 <a href="LICENSE">
 <img src="https://img.shields.io/badge/View%20License-MIT-green?style=for-the-badge">
 </a>
-
-Copyright © 2026 **grib_i**
 
 ---
 
