@@ -98,7 +98,7 @@ void BLB_Physics2D_WorldUpdate(BLB_Physics2DWorld *world) {
 }
 
 void BLB_Physics2D_WorldSetGravity(BLB_Physics2DWorld *world, BLB_Vec2 gravity) {
-  if (!blb_physics2d_valid_world(world))
+  if (!blb_physics2d_valid_world(world) || !isfinite(gravity.x) || !isfinite(gravity.y))
     return;
 
   BLB_Box2DBackend *backend = blb_physics2d_get_backend(world);
@@ -141,7 +141,14 @@ void BLB_Physics2D_WorldSetLayerCollision(BLB_Physics2DWorld *world, uint8_t lay
 
   for (size_t i = 0; i < world->collider_count; ++i) {
     BLB_Collider2D *collider = backend->colliders[i];
-    b2Shape_SetFilter(collider->handle, blb_physics2d_make_filter(collider));
+    b2ShapeId *ids = NULL;
+    int count = 0;
+    if (!blb_physics2d_collect_shape_ids(collider, &ids, &count))
+      continue;
+    b2Filter filter = blb_physics2d_make_filter(collider);
+    for (int j = 0; j < count; ++j)
+      b2Shape_SetFilter(ids[j], filter);
+    free(ids);
   }
 }
 

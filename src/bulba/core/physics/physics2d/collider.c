@@ -33,9 +33,9 @@ BLB_Collider2D *BLB_Physics2D_SetCollider(BLB_Object2D *object,
   def.filter = blb_physics2d_make_filter(collider);
   def.userData = collider->user_data;
 
-  b2ShapeId handle = blb_physics2d_create_backend_shape(collider, &def);
-
-  if (!b2Shape_IsValid(handle)) {
+  b2ShapeId handle = b2_nullShapeId;
+  b2ChainId chain_handle = b2_nullChainId;
+  if (!blb_physics2d_create_backend_shape(collider, &def, &handle, &chain_handle)) {
     blb_physics2d_free_shape_copy(&collider->shape);
     free(collider);
 
@@ -43,17 +43,27 @@ BLB_Collider2D *BLB_Physics2D_SetCollider(BLB_Object2D *object,
   }
 
   collider->handle = handle;
+  collider->chain_handle = chain_handle;
   collider->density = b2Shape_GetDensity(handle);
   collider->friction = b2Shape_GetFriction(handle);
   collider->restitution = b2Shape_GetRestitution(handle);
 
-  b2Shape_SetUserData(handle, collider->user_data);
+  b2ShapeId *shape_ids = NULL;
+  int shape_count = 0;
+  if (blb_physics2d_collect_shape_ids(collider, &shape_ids, &shape_count)) {
+    for (int i = 0; i < shape_count; ++i)
+      b2Shape_SetUserData(shape_ids[i], collider->user_data);
+    free(shape_ids);
+  }
 
   BLB_Physics2DWorld *world = body->world;
   BLB_Box2DBackend *backend = blb_physics2d_get_backend(world);
 
   if (!blb_physics2d_append_body_collider(body, collider)) {
-    b2DestroyShape(handle, true);
+    if (b2Chain_IsValid(chain_handle))
+      b2DestroyChain(chain_handle);
+    else if (b2Shape_IsValid(handle))
+      b2DestroyShape(handle, true);
     blb_physics2d_free_shape_copy(&collider->shape);
     free(collider);
 
@@ -62,7 +72,10 @@ BLB_Collider2D *BLB_Physics2D_SetCollider(BLB_Object2D *object,
 
   if (!blb_physics2d_append_collider(backend, collider, world->collider_count)) {
     blb_physics2d_remove_body_collider(body, collider);
-    b2DestroyShape(handle, true);
+    if (b2Chain_IsValid(chain_handle))
+      b2DestroyChain(chain_handle);
+    else if (b2Shape_IsValid(handle))
+      b2DestroyShape(handle, true);
     blb_physics2d_free_shape_copy(&collider->shape);
     free(collider);
 
@@ -85,7 +98,9 @@ void BLB_Physics2D_ColliderDestroy(BLB_Object2D *object) {
   BLB_Physics2DWorld *world = collider->body->world;
   BLB_Box2DBackend *backend = blb_physics2d_get_backend(world);
 
-  if (b2Shape_IsValid(collider->handle))
+  if (b2Chain_IsValid(collider->chain_handle))
+    b2DestroyChain(collider->chain_handle);
+  else if (b2Shape_IsValid(collider->handle))
     b2DestroyShape(collider->handle, true);
 
   blb_physics2d_remove_body_collider(collider->body, collider);
@@ -110,11 +125,18 @@ BLB_Physics2DColliderId BLB_Physics2D_ColliderGetId(const BLB_Object2D *object) 
 void BLB_Physics2D_ColliderSetFilter(BLB_Object2D *object, BLB_PhysicsFilter filter) {
   BLB_Collider2D *collider = blb_physics2d_object_collider(object);
 
-  if (!collider || !b2Shape_IsValid(collider->handle))
+  if (!collider)
     return;
 
   collider->filter = filter;
-  b2Shape_SetFilter(collider->handle, blb_physics2d_make_filter(collider));
+  b2ShapeId *ids = NULL;
+  int count = 0;
+  if (blb_physics2d_collect_shape_ids(collider, &ids, &count)) {
+    b2Filter backend_filter = blb_physics2d_make_filter(collider);
+    for (int i = 0; i < count; ++i)
+      b2Shape_SetFilter(ids[i], backend_filter);
+    free(ids);
+  }
 }
 
 BLB_PhysicsFilter BLB_Physics2D_ColliderGetFilter(const BLB_Object2D *object) {
@@ -135,8 +157,14 @@ void BLB_Physics2D_ColliderSetLayer(BLB_Object2D *object, uint8_t layer) {
 
   collider->filter.layer = layer;
 
-  if (b2Shape_IsValid(collider->handle))
-    b2Shape_SetFilter(collider->handle, blb_physics2d_make_filter(collider));
+  b2ShapeId *ids = NULL;
+  int count = 0;
+  if (blb_physics2d_collect_shape_ids(collider, &ids, &count)) {
+    b2Filter backend_filter = blb_physics2d_make_filter(collider);
+    for (int i = 0; i < count; ++i)
+      b2Shape_SetFilter(ids[i], backend_filter);
+    free(ids);
+  }
 }
 
 void BLB_Physics2D_ColliderSetMask(BLB_Object2D *object, BLB_PhysicsLayerMask mask) {
@@ -147,8 +175,14 @@ void BLB_Physics2D_ColliderSetMask(BLB_Object2D *object, BLB_PhysicsLayerMask ma
 
   collider->filter.mask = mask;
 
-  if (b2Shape_IsValid(collider->handle))
-    b2Shape_SetFilter(collider->handle, blb_physics2d_make_filter(collider));
+  b2ShapeId *ids = NULL;
+  int count = 0;
+  if (blb_physics2d_collect_shape_ids(collider, &ids, &count)) {
+    b2Filter backend_filter = blb_physics2d_make_filter(collider);
+    for (int i = 0; i < count; ++i)
+      b2Shape_SetFilter(ids[i], backend_filter);
+    free(ids);
+  }
 }
 
 void BLB_Physics2D_ColliderSetGroup(BLB_Object2D *object, int32_t group) {
@@ -159,24 +193,38 @@ void BLB_Physics2D_ColliderSetGroup(BLB_Object2D *object, int32_t group) {
 
   collider->filter.group = group;
 
-  if (b2Shape_IsValid(collider->handle))
-    b2Shape_SetFilter(collider->handle, blb_physics2d_make_filter(collider));
+  b2ShapeId *ids = NULL;
+  int count = 0;
+  if (blb_physics2d_collect_shape_ids(collider, &ids, &count)) {
+    b2Filter backend_filter = blb_physics2d_make_filter(collider);
+    for (int i = 0; i < count; ++i)
+      b2Shape_SetFilter(ids[i], backend_filter);
+    free(ids);
+  }
 }
 
 void BLB_Physics2D_ColliderSetDensity(BLB_Object2D *object, float density) {
   BLB_Collider2D *collider = blb_physics2d_object_collider(object);
 
-  if (!collider || density < 0.0f || !b2Shape_IsValid(collider->handle))
+  if (!collider || !isfinite(density) || density < 0.0f ||
+      collider->shape.type == BLB_PHYSICS2D_SHAPE_CHAIN)
     return;
 
+  b2ShapeId *ids = NULL;
+  int count = 0;
+  if (!blb_physics2d_collect_shape_ids(collider, &ids, &count))
+    return;
   collider->density = density;
-  b2Shape_SetDensity(collider->handle, density, true);
+  for (int i = 0; i < count; ++i)
+    b2Shape_SetDensity(ids[i], density, true);
+  free(ids);
 }
 
 float BLB_Physics2D_ColliderGetDensity(const BLB_Object2D *object) {
   const BLB_Collider2D *collider = blb_physics2d_object_collider(object);
 
-  if (!collider || !b2Shape_IsValid(collider->handle))
+  if (!collider || collider->shape.type == BLB_PHYSICS2D_SHAPE_CHAIN ||
+      !b2Shape_IsValid(collider->handle))
     return 0.0f;
 
   return b2Shape_GetDensity(collider->handle);
@@ -185,11 +233,17 @@ float BLB_Physics2D_ColliderGetDensity(const BLB_Object2D *object) {
 void BLB_Physics2D_ColliderSetFriction(BLB_Object2D *object, float friction) {
   BLB_Collider2D *collider = blb_physics2d_object_collider(object);
 
-  if (!collider || !b2Shape_IsValid(collider->handle))
+  if (!collider || !isfinite(friction) || friction < 0.0f)
     return;
 
+  b2ShapeId *ids = NULL;
+  int count = 0;
+  if (!blb_physics2d_collect_shape_ids(collider, &ids, &count))
+    return;
   collider->friction = friction;
-  b2Shape_SetFriction(collider->handle, friction);
+  for (int i = 0; i < count; ++i)
+    b2Shape_SetFriction(ids[i], friction);
+  free(ids);
 }
 
 float BLB_Physics2D_ColliderGetFriction(const BLB_Object2D *object) {
@@ -204,11 +258,17 @@ float BLB_Physics2D_ColliderGetFriction(const BLB_Object2D *object) {
 void BLB_Physics2D_ColliderSetRestitution(BLB_Object2D *object, float restitution) {
   BLB_Collider2D *collider = blb_physics2d_object_collider(object);
 
-  if (!collider || !b2Shape_IsValid(collider->handle))
+  if (!collider || !isfinite(restitution) || restitution < 0.0f || restitution > 1.0f)
     return;
 
+  b2ShapeId *ids = NULL;
+  int count = 0;
+  if (!blb_physics2d_collect_shape_ids(collider, &ids, &count))
+    return;
   collider->restitution = restitution;
-  b2Shape_SetRestitution(collider->handle, restitution);
+  for (int i = 0; i < count; ++i)
+    b2Shape_SetRestitution(ids[i], restitution);
+  free(ids);
 }
 
 float BLB_Physics2D_ColliderGetRestitution(const BLB_Object2D *object) {
@@ -223,7 +283,8 @@ float BLB_Physics2D_ColliderGetRestitution(const BLB_Object2D *object) {
 void BLB_Physics2D_ColliderSetTrigger(BLB_Object2D *object, bool trigger) {
   BLB_Collider2D *collider = blb_physics2d_object_collider(object);
 
-  if (!collider || collider->trigger == trigger)
+  if (!collider || collider->trigger == trigger ||
+      (collider->shape.type == BLB_PHYSICS2D_SHAPE_CHAIN && trigger))
     return;
 
   blb_physics2d_recreate_shape(collider, trigger);
@@ -238,11 +299,18 @@ bool BLB_Physics2D_ColliderIsTrigger(const BLB_Object2D *object) {
 void BLB_Physics2D_ColliderSetActive(BLB_Object2D *object, bool active) {
   BLB_Collider2D *collider = blb_physics2d_object_collider(object);
 
-  if (!collider || !b2Shape_IsValid(collider->handle))
+  if (!collider)
     return;
 
+  b2ShapeId *ids = NULL;
+  int count = 0;
+  if (!blb_physics2d_collect_shape_ids(collider, &ids, &count))
+    return;
   collider->active = active;
-  b2Shape_SetFilter(collider->handle, blb_physics2d_make_filter(collider));
+  b2Filter backend_filter = blb_physics2d_make_filter(collider);
+  for (int i = 0; i < count; ++i)
+    b2Shape_SetFilter(ids[i], backend_filter);
+  free(ids);
 }
 
 bool BLB_Physics2D_ColliderIsActive(const BLB_Object2D *object) {
@@ -304,6 +372,12 @@ void BLB_Physics2D_ColliderSetScale(BLB_Object2D *object, BLB_Vec2 scale) {
   case BLB_PHYSICS2D_SHAPE_POLYGON:
     for (size_t i = 0; i < next.data.polygon.vertex_count; ++i)
       next.data.polygon.vertices[i] = BLB_MulV2(next.data.polygon.vertices[i], ratio);
+    break;
+  case BLB_PHYSICS2D_SHAPE_CHAIN:
+    for (size_t i = 0; i < next.data.chain.point_count; ++i)
+      next.data.chain.points[i] = BLB_MulV2(next.data.chain.points[i], ratio);
+    next.data.chain.ghost1 = BLB_MulV2(next.data.chain.ghost1, ratio);
+    next.data.chain.ghost2 = BLB_MulV2(next.data.chain.ghost2, ratio);
     break;
   default:
     blb_physics2d_free_shape_copy(&next);

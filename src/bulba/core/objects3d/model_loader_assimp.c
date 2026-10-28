@@ -111,9 +111,12 @@ static void decompose_hmm_matrix(BLB_Mat4 matrix, BLB_Vec3 *position, BLB_Quat *
     BLB_Mat4 rotation_matrix = matrix;
 
     for (size_t row = 0; row < 3; ++row) {
-      rotation_matrix.Elements[0][row] = actual_scale.x > 0.000001f ? rotation_matrix.Elements[0][row] / actual_scale.x : 0.0f;
-      rotation_matrix.Elements[1][row] = actual_scale.y > 0.000001f ? rotation_matrix.Elements[1][row] / actual_scale.y : 0.0f;
-      rotation_matrix.Elements[2][row] = actual_scale.z > 0.000001f ? rotation_matrix.Elements[2][row] / actual_scale.z : 0.0f;
+      rotation_matrix.Elements[0][row] =
+          actual_scale.x > 0.000001f ? rotation_matrix.Elements[0][row] / actual_scale.x : 0.0f;
+      rotation_matrix.Elements[1][row] =
+          actual_scale.y > 0.000001f ? rotation_matrix.Elements[1][row] / actual_scale.y : 0.0f;
+      rotation_matrix.Elements[2][row] =
+          actual_scale.z > 0.000001f ? rotation_matrix.Elements[2][row] / actual_scale.z : 0.0f;
     }
 
     rotation_matrix.Elements[3][0] = 0.0f;
@@ -210,8 +213,9 @@ static float matrix_relative_error(BLB_Mat4 a, BLB_Mat4 b) {
   return difference / fmaxf(1.0f, fmaxf(matrix_max_abs(a), matrix_max_abs(b)));
 }
 
-static bool build_ai_node_tree(BLB_ModelAnimationAsset *asset, const struct aiNode *source, int parent_index, BLB_Mat4 parent_global,
-                               int *mesh_node_indices, size_t mesh_count, size_t *cursor, bool preserve_bind_residual) {
+static bool build_ai_node_tree(BLB_ModelAnimationAsset *asset, const struct aiNode *source, int parent_index,
+                               BLB_Mat4 parent_global, int *mesh_node_indices, size_t mesh_count, size_t *cursor,
+                               bool preserve_bind_residual) {
   if (!asset || !source || !cursor || *cursor >= asset->node_count)
     return false;
 
@@ -252,8 +256,8 @@ static bool build_ai_node_tree(BLB_ModelAnimationAsset *asset, const struct aiNo
   }
 
   for (unsigned int i = 0; i < source->mNumChildren; ++i)
-    if (!build_ai_node_tree(asset, source->mChildren[i], (int)index, node->bind_global, mesh_node_indices, mesh_count, cursor,
-                            preserve_bind_residual))
+    if (!build_ai_node_tree(asset, source->mChildren[i], (int)index, node->bind_global, mesh_node_indices, mesh_count,
+                            cursor, preserve_bind_residual))
       return false;
 
   return true;
@@ -356,8 +360,8 @@ static bool import_animation_clips(BLB_ModelAnimationAsset *asset, const struct 
   return true;
 }
 
-static BLB_ModelAnimationAsset *build_animation_asset(const struct aiScene *scene, int **mesh_node_indices_out, bool *needs_animation_out,
-                                                      bool preserve_bind_residual) {
+static BLB_ModelAnimationAsset *build_animation_asset(const struct aiScene *scene, int **mesh_node_indices_out,
+                                                      bool *needs_animation_out, bool preserve_bind_residual) {
 
   if (!scene || !scene->mRootNode || !mesh_node_indices_out || !needs_animation_out)
     return NULL;
@@ -381,7 +385,8 @@ static BLB_ModelAnimationAsset *build_animation_asset(const struct aiScene *scen
 
   size_t cursor = 0;
 
-  if (!build_ai_node_tree(asset, scene->mRootNode, -1, BLB_M4D(1.0f), mesh_node_indices, scene->mNumMeshes, &cursor, preserve_bind_residual) ||
+  if (!build_ai_node_tree(asset, scene->mRootNode, -1, BLB_M4D(1.0f), mesh_node_indices, scene->mNumMeshes, &cursor,
+                          preserve_bind_residual) ||
       cursor != asset->node_count)
     goto fail;
 
@@ -443,7 +448,8 @@ static void add_vertex_influence(BLB_ModelSkinVertex *vertex, uint32_t node_inde
   }
 }
 
-static bool import_skin_submesh(BLB_ModelAnimationAsset *asset, const struct aiMesh *mesh, int mesh_node_index, bool repair_fbx_bind_offsets) {
+static bool import_skin_submesh(BLB_ModelAnimationAsset *asset, const struct aiMesh *mesh, int mesh_node_index,
+                                bool repair_fbx_bind_offsets) {
   if (!asset || !mesh || !asset->skins || asset->skin_count >= asset->skin_capacity)
     return false;
 
@@ -479,7 +485,10 @@ static bool import_skin_submesh(BLB_ModelAnimationAsset *asset, const struct aiM
 
       if (node_index < 0) {
         if (BLB_DEBUG)
-          fprintf(stderr, "[BLB:ML_Assimp] Model bone '%s' has no matching scene node; its weights are ignored.\n", bone->mName.data);
+          fprintf(stderr,
+                  "[BLB:ML_Assimp] Model bone '%s' has no matching scene node; its "
+                  "weights are ignored.\n",
+                  bone->mName.data);
         continue;
       }
 
@@ -492,7 +501,8 @@ static bool import_skin_submesh(BLB_ModelAnimationAsset *asset, const struct aiM
         BLB_Mat4 bone_bind_global = asset->nodes[node_index].bind_global;
         BLB_Mat4 actual_mesh_global = BLB_MulM4(bone_bind_global, offset);
 
-        if (!matrix_is_finite(actual_mesh_global) || matrix_relative_error(actual_mesh_global, expected_mesh_global) > 0.02f) {
+        if (!matrix_is_finite(actual_mesh_global) ||
+            matrix_relative_error(actual_mesh_global, expected_mesh_global) > 0.02f) {
           BLB_Mat4 inverse_bone_bind = BLB_InvGeneralM4(bone_bind_global);
 
           if (matrix_is_finite(inverse_bone_bind)) {
@@ -515,7 +525,8 @@ static bool import_skin_submesh(BLB_ModelAnimationAsset *asset, const struct aiM
       }
     }
   }
-  uint32_t rigid_node = mesh_node_index >= 0 && (size_t)mesh_node_index < asset->node_count ? (uint32_t)mesh_node_index : 0u;
+  uint32_t rigid_node =
+      mesh_node_index >= 0 && (size_t)mesh_node_index < asset->node_count ? (uint32_t)mesh_node_index : 0u;
 
   for (size_t i = 0; i < skin->vertex_count; ++i) {
     BLB_ModelSkinVertex *vertex = &skin->vertices[i];
@@ -600,7 +611,8 @@ static BLB_ImportedModelAsset *imported_asset_find(const char *path) {
   return NULL;
 }
 
-static BLB_ImportedModelAsset *imported_asset_take_object(BLB_Object3D *object, const char *path, BLB_ModelAnimationAsset *animation_asset) {
+static BLB_ImportedModelAsset *imported_asset_take_object(BLB_Object3D *object, const char *path,
+                                                          BLB_ModelAnimationAsset *animation_asset) {
   if (!object || !path || !object->submeshes || object->submesh_count == 0 || !object->polygon)
     return NULL;
 
@@ -649,8 +661,8 @@ static void imported_texture_release(BLB_Texture *texture, void *user_data) {
   BLB_Texture_Release(texture);
 }
 
-static BLB_Object3D *instantiate_imported_asset(BLB_ImportedModelAsset *asset, BLB_Vec3 scale, BLB_Vec3 position, BLB_Texture *texture,
-                                                BLB_TextureProjection mapping) {
+static BLB_Object3D *instantiate_imported_asset(BLB_ImportedModelAsset *asset, BLB_Vec3 scale, BLB_Vec3 position,
+                                                BLB_Texture *texture, BLB_TextureProjection mapping) {
   if (!asset || asset->submesh_count == 0 || !asset->polygon)
     return NULL;
 
@@ -702,6 +714,10 @@ static BLB_Object3D *instantiate_imported_asset(BLB_ImportedModelAsset *asset, B
   object->visible = true;
   object->entity_id = BLB_INVALID_ENTITY_ID;
   object->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;
+
+  for (int i = 0; i < BLB_TRANSFORM_TYPE_COUNT; ++i)
+    object->physics_sync_mode[i] = BLB_PHYSICS_SYNC_BIDIRECTIONAL;
+
   object->submeshes = calloc(asset->submesh_count, sizeof(*object->submeshes));
 
   if (!object->submeshes)
@@ -947,7 +963,8 @@ static BLB_Texture *load_embedded_jpeg(const struct aiTexture *source) {
   const size_t height = (size_t)context->decoder.output_height;
   const size_t components = (size_t)context->decoder.output_components;
 
-  if (!width || !height || components != 3u || width > SIZE_MAX / 4u || width * 4u > SIZE_MAX / height || width > SIZE_MAX / components)
+  if (!width || !height || components != 3u || width > SIZE_MAX / 4u || width * 4u > SIZE_MAX / height ||
+      width > SIZE_MAX / components)
     longjmp(context->error.jump, 1);
 
   const size_t pixel_size = width * height * 4u;
@@ -1054,12 +1071,14 @@ static BLB_Texture *load_embedded_texture(const struct aiTexture *source) {
   return texture;
 }
 
-static BLB_Texture *load_material_texture(const struct aiScene *scene, const struct aiMaterial *material, enum aiTextureType type, unsigned int index,
-                                          const char *model_path, enum aiTextureMapMode map_modes[3], unsigned int *uv_index) {
+static BLB_Texture *load_material_texture(const struct aiScene *scene, const struct aiMaterial *material,
+                                          enum aiTextureType type, unsigned int index, const char *model_path,
+                                          enum aiTextureMapMode map_modes[3], unsigned int *uv_index) {
   struct aiString path;
   memset(&path, 0, sizeof(path));
 
-  if (aiGetMaterialTexture(material, type, index, &path, NULL, uv_index, NULL, NULL, map_modes, NULL) != aiReturn_SUCCESS)
+  if (aiGetMaterialTexture(material, type, index, &path, NULL, uv_index, NULL, NULL, map_modes, NULL) !=
+      aiReturn_SUCCESS)
     return NULL;
 
   const char *name = path.data;
@@ -1082,14 +1101,15 @@ static BLB_Texture *load_material_texture(const struct aiScene *scene, const str
   BLB_Texture *texture = BLB_Texture_Load2D(resolved);
 
   if (!texture && BLB_DEBUG)
-    fprintf(stderr, "[BLB:ML_Assimp] Model '%s' references a missing or unsupported texture '%s'\n", model_path ? model_path : "<unknown>", resolved);
+    fprintf(stderr, "[BLB:ML_Assimp] Model '%s' references a missing or unsupported texture '%s'\n",
+            model_path ? model_path : "<unknown>", resolved);
   free(resolved);
 
   return texture;
 }
 
-static void set_material_texture(BLB_Material *material, BLB_MaterialTexture *slot, BLB_Texture *texture, unsigned int uv_index,
-                                 const enum aiTextureMapMode map_modes[3]) {
+static void set_material_texture(BLB_Material *material, BLB_MaterialTexture *slot, BLB_Texture *texture,
+                                 unsigned int uv_index, const enum aiTextureMapMode map_modes[3]) {
   if (!material || !slot || !texture)
     return;
 
@@ -1113,8 +1133,9 @@ static void set_material_texture(BLB_Material *material, BLB_MaterialTexture *sl
   (void)material;
 }
 
-static BLB_Texture *load_first_material_texture(const struct aiScene *scene, const struct aiMaterial *source, const char *model_path,
-                                                enum aiTextureType primary, enum aiTextureType fallback, enum aiTextureMapMode map_modes[3],
+static BLB_Texture *load_first_material_texture(const struct aiScene *scene, const struct aiMaterial *source,
+                                                const char *model_path, enum aiTextureType primary,
+                                                enum aiTextureType fallback, enum aiTextureMapMode map_modes[3],
                                                 unsigned int *uv_index) {
   BLB_Texture *texture = load_material_texture(scene, source, primary, 0, model_path, map_modes, uv_index);
 
@@ -1128,8 +1149,9 @@ static BLB_Texture *load_first_material_texture(const struct aiScene *scene, con
   return texture;
 }
 
-static BLB_Material *import_material(const struct aiScene *scene, const struct aiMaterial *source, const char *model_path,
-                                     BLB_TextureProjection fallback_mapping, bool mesh_has_uvs) {
+static BLB_Material *import_material(const struct aiScene *scene, const struct aiMaterial *source,
+                                     const char *model_path, BLB_TextureProjection fallback_mapping,
+                                     bool mesh_has_uvs) {
   BLB_Material *material = BLB_Material_Create3D();
 
   if (!material)
@@ -1193,7 +1215,8 @@ static BLB_Material *import_material(const struct aiScene *scene, const struct a
   float opacity = 1.0f;
   unsigned int value_count = 1;
 
-  if (aiGetMaterialFloatArray(source, AI_MATKEY_OPACITY, &opacity, &value_count) != aiReturn_SUCCESS || !isfinite(opacity))
+  if (aiGetMaterialFloatArray(source, AI_MATKEY_OPACITY, &opacity, &value_count) != aiReturn_SUCCESS ||
+      !isfinite(opacity))
     opacity = color.a;
   opacity = fminf(1.0f, fmaxf(0.0f, opacity));
 
@@ -1207,7 +1230,8 @@ static BLB_Material *import_material(const struct aiScene *scene, const struct a
     float shininess = 0.0f;
     value_count = 1;
 
-    if (aiGetMaterialFloatArray(source, AI_MATKEY_SHININESS, &shininess, &value_count) == aiReturn_SUCCESS && shininess > 0.0f)
+    if (aiGetMaterialFloatArray(source, AI_MATKEY_SHININESS, &shininess, &value_count) == aiReturn_SUCCESS &&
+        shininess > 0.0f)
       roughness = sqrtf(2.0f / (shininess + 2.0f));
   }
 
@@ -1216,13 +1240,14 @@ static BLB_Material *import_material(const struct aiScene *scene, const struct a
   struct aiColor4D imported_specular = {0.0f, 0.0f, 0.0f, 1.0f};
 
   if (aiGetMaterialColor(source, AI_MATKEY_COLOR_SPECULAR, &imported_specular) == aiReturn_SUCCESS)
-    BLB_Material_SetSpecular(material, 1.0f, fminf(1.0f, fmaxf(0.0f, imported_specular.r)), fminf(1.0f, fmaxf(0.0f, imported_specular.g)),
+    BLB_Material_SetSpecular(material, 1.0f, fminf(1.0f, fmaxf(0.0f, imported_specular.r)),
+                             fminf(1.0f, fmaxf(0.0f, imported_specular.g)),
                              fminf(1.0f, fmaxf(0.0f, imported_specular.b)));
   float imported_ior = 1.5f;
   value_count = 1;
 
-  if (aiGetMaterialFloatArray(source, AI_MATKEY_REFRACTI, &imported_ior, &value_count) == aiReturn_SUCCESS && isfinite(imported_ior) &&
-      imported_ior > 0.0f)
+  if (aiGetMaterialFloatArray(source, AI_MATKEY_REFRACTI, &imported_ior, &value_count) == aiReturn_SUCCESS &&
+      isfinite(imported_ior) && imported_ior > 0.0f)
     BLB_Material_SetIOR(material, imported_ior);
 
   if (opacity < 0.999f)
@@ -1239,8 +1264,8 @@ static BLB_Material *import_material(const struct aiScene *scene, const struct a
 
   enum aiTextureMapMode map_modes[3] = {aiTextureMapMode_Wrap, aiTextureMapMode_Wrap, aiTextureMapMode_Wrap};
   unsigned int uv_index = 0;
-  BLB_Texture *texture =
-      load_first_material_texture(scene, source, model_path, aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE, map_modes, &uv_index);
+  BLB_Texture *texture = load_first_material_texture(scene, source, model_path, aiTextureType_BASE_COLOR,
+                                                     aiTextureType_DIFFUSE, map_modes, &uv_index);
 
   if (texture) {
     set_material_texture(material, &material->base_color_texture, texture, uv_index, map_modes);
@@ -1251,14 +1276,17 @@ static BLB_Material *import_material(const struct aiScene *scene, const struct a
     BLB_MaterialTexture_SetProjection(&material->base_color_texture, projection);
 
     if (!mesh_has_uvs && BLB_DEBUG)
-      fprintf(stderr, "[BLB:ML_Assimp] Model '%s' has a texture but no UV channel; using generated projection %d\n",
+      fprintf(stderr,
+              "[BLB:ML_Assimp] Model '%s' has a texture but no UV channel; using "
+              "generated projection %d\n",
               model_path ? model_path : "<unknown>", (int)projection);
   }
 
   map_modes[0] = aiTextureMapMode_Wrap;
   map_modes[1] = aiTextureMapMode_Wrap;
   uv_index = 0;
-  texture = load_first_material_texture(scene, source, model_path, aiTextureType_METALNESS, aiTextureType_DIFFUSE_ROUGHNESS, map_modes, &uv_index);
+  texture = load_first_material_texture(scene, source, model_path, aiTextureType_METALNESS,
+                                        aiTextureType_DIFFUSE_ROUGHNESS, map_modes, &uv_index);
 
   if (texture)
     set_material_texture(material, &material->metallic_roughness_texture, texture, uv_index, map_modes);
@@ -1266,7 +1294,8 @@ static BLB_Material *import_material(const struct aiScene *scene, const struct a
   map_modes[0] = aiTextureMapMode_Wrap;
   map_modes[1] = aiTextureMapMode_Wrap;
   uv_index = 0;
-  texture = load_first_material_texture(scene, source, model_path, aiTextureType_NORMALS, aiTextureType_HEIGHT, map_modes, &uv_index);
+  texture = load_first_material_texture(scene, source, model_path, aiTextureType_NORMALS, aiTextureType_HEIGHT,
+                                        map_modes, &uv_index);
 
   if (texture)
     set_material_texture(material, &material->normal_texture, texture, uv_index, map_modes);
@@ -1274,7 +1303,8 @@ static BLB_Material *import_material(const struct aiScene *scene, const struct a
   map_modes[0] = aiTextureMapMode_Wrap;
   map_modes[1] = aiTextureMapMode_Wrap;
   uv_index = 0;
-  texture = load_first_material_texture(scene, source, model_path, aiTextureType_AMBIENT_OCCLUSION, aiTextureType_LIGHTMAP, map_modes, &uv_index);
+  texture = load_first_material_texture(scene, source, model_path, aiTextureType_AMBIENT_OCCLUSION,
+                                        aiTextureType_LIGHTMAP, map_modes, &uv_index);
 
   if (texture)
     set_material_texture(material, &material->occlusion_texture, texture, uv_index, map_modes);
@@ -1282,14 +1312,16 @@ static BLB_Material *import_material(const struct aiScene *scene, const struct a
   map_modes[0] = aiTextureMapMode_Wrap;
   map_modes[1] = aiTextureMapMode_Wrap;
   uv_index = 0;
-  texture = load_first_material_texture(scene, source, model_path, aiTextureType_EMISSIVE, aiTextureType_NONE, map_modes, &uv_index);
+  texture = load_first_material_texture(scene, source, model_path, aiTextureType_EMISSIVE, aiTextureType_NONE,
+                                        map_modes, &uv_index);
 
   if (texture)
     set_material_texture(material, &material->emission_texture, texture, uv_index, map_modes);
 
   if (material->base_color_texture.texture)
-    BLB_MaterialTexture_SetSampler(&material->base_color_texture, material->base_color_texture.wrap_u, material->base_color_texture.wrap_v,
-                                   BLB_TEXTURE_FILTER_LINEAR, BLB_TEXTURE_FILTER_LINEAR);
+    BLB_MaterialTexture_SetSampler(&material->base_color_texture, material->base_color_texture.wrap_u,
+                                   material->base_color_texture.wrap_v, BLB_TEXTURE_FILTER_LINEAR,
+                                   BLB_TEXTURE_FILTER_LINEAR);
 
   if (fallback_mapping != BLB_TEXMAP_UV && !material->base_color_texture.texture)
     BLB_MaterialTexture_SetProjection(&material->base_color_texture, fallback_mapping);
@@ -1298,8 +1330,8 @@ static BLB_Material *import_material(const struct aiScene *scene, const struct a
 }
 
 static BLB_Polygon3D *import_mesh(const struct aiMesh *mesh) {
-  if (!mesh || !mesh->mVertices || mesh->mNumVertices == 0 || mesh->mNumVertices > UINT_MAX || (mesh->mNumFaces > 0 && !mesh->mFaces) ||
-      SIZE_MAX / (size_t)mesh->mNumVertices < sizeof(BLB_Vec3))
+  if (!mesh || !mesh->mVertices || mesh->mNumVertices == 0 || mesh->mNumVertices > UINT_MAX ||
+      (mesh->mNumFaces > 0 && !mesh->mFaces) || SIZE_MAX / (size_t)mesh->mNumVertices < sizeof(BLB_Vec3))
     return NULL;
 
   size_t index_count = 0;
@@ -1357,7 +1389,8 @@ static BLB_Polygon3D *import_mesh(const struct aiMesh *mesh) {
     if (mesh->mNormals) {
       const struct aiVector3D *normal = &mesh->mNormals[i];
       BLB_Vec3 normal_value = BLB_V3(normal->x, normal->y, normal->z);
-      polygon->normals[i] = isfinite(normal_value.x) && isfinite(normal_value.y) && isfinite(normal_value.z) && BLB_LenV3(normal_value) > 0.000001f
+      polygon->normals[i] = isfinite(normal_value.x) && isfinite(normal_value.y) && isfinite(normal_value.z) &&
+                                    BLB_LenV3(normal_value) > 0.000001f
                                 ? BLB_NormV3(normal_value)
                                 : BLB_V3(0.0f, 1.0f, 0.0f);
     } else {
@@ -1416,7 +1449,8 @@ static bool build_combined_polygon(BLB_Object3D *object, const char *path) {
   for (size_t i = 0; i < object->submesh_count; ++i) {
     const BLB_Polygon3D *part = object->submeshes[i].polygon;
 
-    if (!part || !add_size(vertices_count, part->vertex_count, &vertices_count) || !add_size(indices_count, part->index_count, &indices_count))
+    if (!part || !add_size(vertices_count, part->vertex_count, &vertices_count) ||
+        !add_size(indices_count, part->index_count, &indices_count))
       return false;
   }
 
@@ -1446,7 +1480,8 @@ static bool build_combined_polygon(BLB_Object3D *object, const char *path) {
   for (size_t i = 0; i < object->submesh_count; ++i) {
     const BLB_Polygon3D *part = object->submeshes[i].polygon;
     memcpy(combined->vertices + vertex_offset, part->vertices, part->vertex_count * sizeof(*part->vertices));
-    memcpy(combined->base_vertices + vertex_offset, part->base_vertices, part->vertex_count * sizeof(*part->base_vertices));
+    memcpy(combined->base_vertices + vertex_offset, part->base_vertices,
+           part->vertex_count * sizeof(*part->base_vertices));
     memcpy(combined->normals + vertex_offset, part->normals, part->vertex_count * sizeof(*part->normals));
     memcpy(combined->uvs + vertex_offset, part->uvs, part->vertex_count * sizeof(*part->uvs));
 
@@ -1473,7 +1508,8 @@ static bool build_combined_polygon(BLB_Object3D *object, const char *path) {
   return true;
 }
 
-BLB_Object3D *BLB_LoadModelImported(const char *path, BLB_Vec3 scale, BLB_Vec3 position, BLB_Texture *texture, BLB_TextureProjection mapping) {
+BLB_Object3D *BLB_LoadModelImported(const char *path, BLB_Vec3 scale, BLB_Vec3 position, BLB_Texture *texture,
+                                    BLB_TextureProjection mapping) {
   if (!path || !path[0])
     return NULL;
 
@@ -1492,8 +1528,8 @@ BLB_Object3D *BLB_LoadModelImported(const char *path, BLB_Vec3 scale, BLB_Vec3 p
     is_fbx = a == 'f' && b == 'b' && c == 'x';
   }
   const unsigned int base_flags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FixInfacingNormals |
-                                  aiProcess_JoinIdenticalVertices | aiProcess_ImproveCacheLocality | aiProcess_ValidateDataStructure |
-                                  aiProcess_SortByPType;
+                                  aiProcess_JoinIdenticalVertices | aiProcess_ImproveCacheLocality |
+                                  aiProcess_ValidateDataStructure | aiProcess_SortByPType;
 
   /* Assimp normalizes glTF UVs to its bottom-left convention too. The engine's
    * PNG uploads use top-left rows, so every imported format needs the V flip. */
@@ -1514,13 +1550,16 @@ BLB_Object3D *BLB_LoadModelImported(const char *path, BLB_Vec3 scale, BLB_Vec3 p
   if (!needs_animation) {
     const struct aiScene *transformed_scene = aiImportFile(path, flags | aiProcess_PreTransformVertices);
 
-    if (transformed_scene && !(transformed_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) && transformed_scene->mNumMeshes > 0) {
+    if (transformed_scene && !(transformed_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) &&
+        transformed_scene->mNumMeshes > 0) {
       aiReleaseImport(scene);
       scene = transformed_scene;
     } else {
       if (BLB_DEBUG)
-        fprintf(stderr, "[BLB:ML_Assimp] Warning: pre-transform import failed for '%s'; using source mesh coordinates: %s\n", path,
-                aiGetErrorString());
+        fprintf(stderr,
+                "[BLB:ML_Assimp] Warning: pre-transform import failed for '%s'; using "
+                "source mesh coordinates: %s\n",
+                path, aiGetErrorString());
 
       if (transformed_scene)
         aiReleaseImport(transformed_scene);
@@ -1603,7 +1642,10 @@ BLB_Object3D *BLB_LoadModelImported(const char *path, BLB_Vec3 scale, BLB_Vec3 p
       material = import_material(scene, scene->mMaterials[source_mesh->mMaterialIndex], path, mapping, mesh_has_uvs);
     else {
       if (BLB_DEBUG)
-        fprintf(stderr, "[BLB:ML_Assimp] Model '%s' mesh %u has no valid material; using a default material\n", path, i);
+        fprintf(stderr,
+                "[BLB:ML_Assimp] Model '%s' mesh %u has no valid material; using a "
+                "default material\n",
+                path, i);
       material = BLB_Material_Create3D();
     }
 

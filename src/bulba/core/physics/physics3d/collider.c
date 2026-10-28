@@ -201,7 +201,7 @@ void BLB_Physics3D_ColliderSetGroup(BLB_Object3D *object, int32_t group) {
 }
 
 void BLB_Physics3D_ColliderSetDensity(BLB_Object3D *object, float density) {
-  if (!object || !object->collider || density < 0.0f ||
+  if (!object || !object->collider || !isfinite(density) || density < 0.0f ||
       !b3Shape_IsValid(object->collider->handle))
     return;
 
@@ -295,7 +295,8 @@ const BLB_Physics3DShape *BLB_Physics3D_ColliderGetShape(const BLB_Object3D *obj
 }
 
 void BLB_Physics3D_ColliderSetFriction(BLB_Object3D *object, float friction) {
-  if (!object || !object->collider || !b3Shape_IsValid(object->collider->handle))
+  if (!object || !object->collider || !isfinite(friction) || friction < 0.0f ||
+      !b3Shape_IsValid(object->collider->handle))
     return;
 
   object->collider->friction = friction;
@@ -310,7 +311,8 @@ float BLB_Physics3D_ColliderGetFriction(const BLB_Object3D *object) {
 }
 
 void BLB_Physics3D_ColliderSetRestitution(BLB_Object3D *object, float restitution) {
-  if (!object || !object->collider || !b3Shape_IsValid(object->collider->handle))
+  if (!object || !object->collider || !isfinite(restitution) || restitution < 0.0f ||
+      restitution > 1.0f || !b3Shape_IsValid(object->collider->handle))
     return;
 
   object->collider->restitution = restitution;

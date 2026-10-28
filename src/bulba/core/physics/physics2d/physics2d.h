@@ -29,6 +29,7 @@ struct BLB_RigidBody2D {
 struct BLB_Collider2D {
   BLB_Physics2DColliderId id;
   b2ShapeId handle;
+  b2ChainId chain_handle;
   BLB_RigidBody2D *body;
   BLB_Physics2DShape shape;
   BLB_Vec2 sync_scale;
@@ -68,8 +69,10 @@ void blb_physics2d_remove_collider(BLB_Box2DBackend *backend, BLB_Collider2D *co
 void blb_physics2d_remove_body_collider(BLB_RigidBody2D *body, BLB_Collider2D *collider);
 void blb_physics2d_free_shape_copy(BLB_Physics2DShape *shape);
 bool blb_physics2d_copy_shape(BLB_Physics2DShape *dst, const BLB_Physics2DShape *src);
-b2ShapeId blb_physics2d_create_backend_shape(const BLB_Collider2D *collider,
-                                             const b2ShapeDef *def);
+bool blb_physics2d_create_backend_shape(BLB_Collider2D *collider, const b2ShapeDef *def,
+                                        b2ShapeId *shape_handle, b2ChainId *chain_handle);
+bool blb_physics2d_collect_shape_ids(const BLB_Collider2D *collider, b2ShapeId **shape_ids,
+                                     int *shape_count);
 bool blb_physics2d_recreate_shape(BLB_Collider2D *collider, bool trigger);
 
 BLB_RigidBody2D *blb_physics2d_object_body(const BLB_Object2D *object);

@@ -848,7 +848,7 @@ static int BLB_ObjectFile_ReadAnimation(FILE *file, BLB_Animation **out_animatio
   animation->textures_count = (size_t)textures_count;
 
   if (animation->textures_count) {
-    animation->textures = calloc(animation->textures_count, sizeof(BLB_Texture));
+    animation->textures = calloc(animation->textures_count, sizeof(*animation->textures));
 
     if (!animation->textures)
       goto error;

@@ -71,21 +71,32 @@ typedef struct BLB_Scene {
 
   int object3d_count;
   int object2d_count;
+  size_t object3d_capacity;
+  size_t object2d_capacity;
 
   int text3d_count;
   int text2d_count;
+  size_t text2d_capacity;
 
   int light3d_count;
   int light2d_count;
+  size_t light3d_capacity;
+  size_t light2d_capacity;
 
   int particle3d_count;
   int particle2d_count;
+  size_t particle3d_capacity;
+  size_t particle2d_capacity;
 
   int particle_system3d_count;
   int particle_system2d_count;
+  size_t particle_system3d_capacity;
+  size_t particle_system2d_capacity;
 
   int audio3d_count;
   int audio2d_count;
+  size_t audio3d_capacity;
+  size_t audio2d_capacity;
 
   int main_count;
 

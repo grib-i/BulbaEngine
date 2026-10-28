@@ -5,14 +5,31 @@
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
 
+static size_t blb_window_count;
+static bool blb_glfw_initialized;
+
+static void blb_glfw_release_if_unused(void) {
+  if (blb_window_count == 0 && blb_glfw_initialized) {
+    glfwTerminate();
+    blb_glfw_initialized = false;
+  }
+}
+
 static void framebuffer_resize_cb(GLFWwindow *window, int width, int height) {
   BLB_Handlers *handlers = glfwGetWindowUserPointer(window);
   BLB_HandlersPushResize(handlers, width, height);
 }
 
 BLB_Window *BLB_CreateWindow(int width, int height, const char *title) {
-  if (!glfwInit())
+  if (width <= 0 || height <= 0)
     return NULL;
+
+  if (!blb_glfw_initialized) {
+    if (!glfwInit())
+      return NULL;
+
+    blb_glfw_initialized = true;
+  }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
@@ -20,8 +37,7 @@ BLB_Window *BLB_CreateWindow(int width, int height, const char *title) {
   BLB_Window *w = calloc(1, sizeof(*w));
 
   if (!w) {
-    glfwTerminate();
-
+    blb_glfw_release_if_unused();
     return NULL;
   }
 
@@ -31,13 +47,19 @@ BLB_Window *BLB_CreateWindow(int width, int height, const char *title) {
   w->windowed_height = height;
   w->resize_time = glfwGetTime();
   w->title = BLB_Platform_DuplicateString(title ? title : "BulbaEngine");
+
+  if (!w->title) {
+    free(w);
+    blb_glfw_release_if_unused();
+    return NULL;
+  }
+
   w->handle = glfwCreateWindow(width, height, w->title, NULL, NULL);
 
   if (!w->handle) {
     free(w->title);
     free(w);
-    glfwTerminate();
-
+    blb_glfw_release_if_unused();
     return NULL;
   }
 
@@ -45,8 +67,7 @@ BLB_Window *BLB_CreateWindow(int width, int height, const char *title) {
     glfwDestroyWindow(w->handle);
     free(w->title);
     free(w);
-    glfwTerminate();
-
+    blb_glfw_release_if_unused();
     return NULL;
   }
 
@@ -54,6 +75,7 @@ BLB_Window *BLB_CreateWindow(int width, int height, const char *title) {
 
   glfwSetFramebufferSizeCallback(w->handle, framebuffer_resize_cb);
   glfwGetWindowPos(w->handle, &w->windowed_x, &w->windowed_y);
+  ++blb_window_count;
 
   return w;
 }
@@ -65,11 +87,13 @@ void BLB_DestroyWindow(BLB_Window *w) {
   if (w->handle) {
     BLB_HandlersShutdown(&w->handlers);
     glfwDestroyWindow(w->handle);
+    if (blb_window_count > 0)
+      --blb_window_count;
   }
 
   free(w->title);
   free(w);
-  glfwTerminate();
+  blb_glfw_release_if_unused();
 }
 
 void BLB_WindowSetFullscreen(BLB_Window *w, bool fullscreen) {
@@ -152,16 +176,36 @@ void BLB_WindowSetHandlerMode(BLB_Window *w, BLB_HandlerMode mode) {
   BLB_HandlersSetMode(&w->handlers, mode);
 }
 
-BLB_HandlerMode BLB_WindowGetHandlerMode(const BLB_Window *w) { return w ? BLB_HandlersGetMode(&w->handlers) : BLB_HANDLER_CALLBACK; }
+BLB_HandlerMode BLB_WindowGetHandlerMode(const BLB_Window *w) {
+  return w ? BLB_HandlersGetMode(&w->handlers) : BLB_HANDLER_CALLBACK;
+}
 
-bool BLB_WindowNextEvent(BLB_Window *w, BLB_HandlerEvent *event) { return w ? BLB_HandlersNextEvent(&w->handlers, event) : false; }
+bool BLB_WindowNextEvent(BLB_Window *w, BLB_HandlerEvent *event) {
+  return w ? BLB_HandlersNextEvent(&w->handlers, event) : false;
+}
 
-size_t BLB_WindowPendingEvents(const BLB_Window *w) { return w ? BLB_HandlersPendingEvents(&w->handlers) : 0; }
+size_t BLB_WindowPendingEvents(const BLB_Window *w) {
+  return w ? BLB_HandlersPendingEvents(&w->handlers) : 0;
+}
 
-uint64_t BLB_WindowDroppedEvents(const BLB_Window *w) { return w ? BLB_HandlersDroppedEvents(&w->handlers) : 0; }
+uint64_t BLB_WindowDroppedEvents(const BLB_Window *w) {
+  return w ? BLB_HandlersDroppedEvents(&w->handlers) : 0;
+}
 
-void BLB_WindowPresent(BLB_Window *w) { (void)w; }
+void BLB_WindowPresent(BLB_Window *w) {
+  (void)w;
+}
 
-bool BLB_WindowShouldClose(const BLB_Window *w) { return w ? w->should_close : true; }
+bool BLB_WindowShouldClose(const BLB_Window *w) {
+  return w ? w->should_close : true;
+}
 
-void BLB_WindowSetCursorMode(BLB_Window *window, BLB_CursorMode mode) { glfwSetInputMode(window->handle, GLFW_CURSOR, mode); }
+void BLB_WindowSetCursorMode(BLB_Window *window, BLB_CursorMode mode) {
+  if (!window || !window->handle)
+    return;
+
+  if (mode != BLB_CURSOR_NORMAL && mode != BLB_CURSOR_HIDDEN && mode != BLB_CURSOR_DISABLED)
+    mode = BLB_CURSOR_NORMAL;
+
+  glfwSetInputMode(window->handle, GLFW_CURSOR, mode);
+}

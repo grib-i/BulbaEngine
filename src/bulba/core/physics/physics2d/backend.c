@@ -184,5 +184,8 @@ BLB_RigidBody2D *blb_physics2d_object_body(const BLB_Object2D *object) {
 BLB_Collider2D *blb_physics2d_object_collider(const BLB_Object2D *object) {
   BLB_Collider2D *collider = object ? object->collider : NULL;
 
-  return collider && b2Shape_IsValid(collider->handle) ? collider : NULL;
+  return collider && (b2Shape_IsValid(collider->handle) ||
+                      b2Chain_IsValid(collider->chain_handle))
+             ? collider
+             : NULL;
 }

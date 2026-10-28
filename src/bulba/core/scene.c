@@ -1,6 +1,7 @@
 #include "bulba/core/scene.h"
 #include "bulba/core/utils/delta_time.h"
 #include <math.h>
+#include <limits.h>
 
 #include "bulba/core/objects2d/objects2d.h"
 #include "bulba/core/objects3d/objects3d.h"
@@ -91,21 +92,32 @@ BLB_Scene *BLB_CreateScene(const char *name) {
 
   scene->object3d_count = 0;
   scene->object2d_count = 0;
+  scene->object3d_capacity = 0;
+  scene->object2d_capacity = 0;
 
   scene->text3d_count = 0;
   scene->text2d_count = 0;
+  scene->text2d_capacity = 0;
 
   scene->light3d_count = 0;
   scene->light2d_count = 0;
+  scene->light3d_capacity = 0;
+  scene->light2d_capacity = 0;
 
   scene->particle3d_count = 0;
   scene->particle2d_count = 0;
+  scene->particle3d_capacity = 0;
+  scene->particle2d_capacity = 0;
 
   scene->particle_system3d_count = 0;
   scene->particle_system2d_count = 0;
+  scene->particle_system3d_capacity = 0;
+  scene->particle_system2d_capacity = 0;
 
   scene->audio3d_count = 0;
   scene->audio2d_count = 0;
+  scene->audio3d_capacity = 0;
+  scene->audio2d_capacity = 0;
 
   scene->main_count = 0;
 
@@ -222,19 +234,34 @@ void BLB_SetSceneClear(BLB_Scene *scene, bool enabled, unsigned char r, unsigned
   scene->clear_color[3] = a;
 }
 
-#define ADD_ITEM(array, count, type, value)                                                                                                          \
+#define ADD_ITEM(array, count, capacity, type, value)                                                                                                 \
   do {                                                                                                                                               \
-    type **new_array = realloc((array), sizeof(type *) * ((size_t)(count) + 1));                                                                     \
-                                                                                                                                                     \
-    if (!new_array)                                                                                                                                  \
+    const size_t max_capacity = SIZE_MAX / sizeof(type *);                                                                                           \
+    if ((count) < 0 || (count) == INT_MAX || (size_t)(count) >= max_capacity)                                                                        \
       return -1;                                                                                                                                     \
                                                                                                                                                      \
-    (array) = new_array;                                                                                                                             \
-    (array)[(count)++] = (value);                                                                                                                    \
+    /* Duplicate entries can leave dangling pointers after the caller frees an object. */                                                            \
+    for (int item_index = 0; item_index < (count); ++item_index)                                                                                     \
+      if ((array)[item_index] == (value))                                                                                                            \
+        return -1;                                                                                                                                   \
                                                                                                                                                      \
+    if ((size_t)(count) >= (capacity)) {                                                                                                             \
+      size_t new_capacity = (capacity) ? (capacity) : 8u;                                                                                            \
+      if ((capacity))                                                                                                                                \
+        new_capacity = new_capacity <= max_capacity / 2u ? new_capacity * 2u : max_capacity;                                                        \
+      if (new_capacity <= (size_t)(count))                                                                                                           \
+        return -1;                                                                                                                                   \
+                                                                                                                                                     \
+      type **new_array = realloc((array), new_capacity * sizeof(*new_array));                                                                         \
+      if (!new_array)                                                                                                                                \
+        return -1;                                                                                                                                   \
+      (array) = new_array;                                                                                                                           \
+      (capacity) = new_capacity;                                                                                                                     \
+    }                                                                                                                                                \
+                                                                                                                                                     \
+    (array)[(count)++] = (value);                                                                                                                    \
     if ((count) > scene->main_count)                                                                                                                 \
       scene->main_count = (count);                                                                                                                   \
-                                                                                                                                                     \
     return 0;                                                                                                                                        \
   } while (0)
 
@@ -247,7 +274,7 @@ int BLB_AddObject3D(BLB_Scene *scene, BLB_Object3D *object) {
 
   object->delta_time = scene->delta_time;
 
-  ADD_ITEM(scene->objects3d, scene->object3d_count, BLB_Object3D, object);
+  ADD_ITEM(scene->objects3d, scene->object3d_count, scene->object3d_capacity, BLB_Object3D, object);
 }
 
 int BLB_AddObject2D(BLB_Scene *scene, BLB_Object2D *object) {
@@ -259,7 +286,7 @@ int BLB_AddObject2D(BLB_Scene *scene, BLB_Object2D *object) {
 
   object->delta_time = scene->delta_time;
 
-  ADD_ITEM(scene->objects2d, scene->object2d_count, BLB_Object2D, object);
+  ADD_ITEM(scene->objects2d, scene->object2d_count, scene->object2d_capacity, BLB_Object2D, object);
 }
 
 int BLB_AddText2D(BLB_Scene *scene, BLB_Text2D *text) {
@@ -270,7 +297,7 @@ int BLB_AddText2D(BLB_Scene *scene, BLB_Text2D *text) {
     text->entity_id = scene->next_entity_id++;
 
   text->delta_time = scene->delta_time;
-  ADD_ITEM(scene->text2d, scene->text2d_count, BLB_Text2D, text);
+  ADD_ITEM(scene->text2d, scene->text2d_count, scene->text2d_capacity, BLB_Text2D, text);
 }
 
 int BLB_AddLight3D(BLB_Scene *scene, BLB_Light3D *light) {
@@ -281,7 +308,7 @@ int BLB_AddLight3D(BLB_Scene *scene, BLB_Light3D *light) {
     light->object->entity_id = scene->next_entity_id++;
 
   light->object->delta_time = scene->delta_time;
-  ADD_ITEM(scene->lights3d, scene->light3d_count, BLB_Light3D, light);
+  ADD_ITEM(scene->lights3d, scene->light3d_count, scene->light3d_capacity, BLB_Light3D, light);
 }
 
 int BLB_AddLight2D(BLB_Scene *scene, BLB_Light2D *light) {
@@ -292,7 +319,7 @@ int BLB_AddLight2D(BLB_Scene *scene, BLB_Light2D *light) {
     light->object->entity_id = scene->next_entity_id++;
 
   light->object->delta_time = scene->delta_time;
-  ADD_ITEM(scene->lights2d, scene->light2d_count, BLB_Light2D, light);
+  ADD_ITEM(scene->lights2d, scene->light2d_count, scene->light2d_capacity, BLB_Light2D, light);
 }
 
 int BLB_AddParticle3D(BLB_Scene *scene, BLB_Particle3D *particle) {
@@ -300,7 +327,7 @@ int BLB_AddParticle3D(BLB_Scene *scene, BLB_Particle3D *particle) {
     return -1;
 
   particle->delta_time = scene->delta_time;
-  ADD_ITEM(scene->particles3d, scene->particle3d_count, BLB_Particle3D, particle);
+  ADD_ITEM(scene->particles3d, scene->particle3d_count, scene->particle3d_capacity, BLB_Particle3D, particle);
 }
 
 int BLB_AddParticle2D(BLB_Scene *scene, BLB_Particle2D *particle) {
@@ -308,7 +335,7 @@ int BLB_AddParticle2D(BLB_Scene *scene, BLB_Particle2D *particle) {
     return -1;
 
   particle->delta_time = scene->delta_time;
-  ADD_ITEM(scene->particles2d, scene->particle2d_count, BLB_Particle2D, particle);
+  ADD_ITEM(scene->particles2d, scene->particle2d_count, scene->particle2d_capacity, BLB_Particle2D, particle);
 }
 
 int BLB_AddParticleSystem3D(BLB_Scene *scene, BLB_ParticleSystem3D *system) {
@@ -316,7 +343,7 @@ int BLB_AddParticleSystem3D(BLB_Scene *scene, BLB_ParticleSystem3D *system) {
     return -1;
 
   system->delta_time = scene->delta_time;
-  ADD_ITEM(scene->particle_systems3d, scene->particle_system3d_count, BLB_ParticleSystem3D, system);
+  ADD_ITEM(scene->particle_systems3d, scene->particle_system3d_count, scene->particle_system3d_capacity, BLB_ParticleSystem3D, system);
 }
 
 int BLB_AddParticleSystem2D(BLB_Scene *scene, BLB_ParticleSystem2D *system) {
@@ -324,21 +351,21 @@ int BLB_AddParticleSystem2D(BLB_Scene *scene, BLB_ParticleSystem2D *system) {
     return -1;
 
   system->delta_time = scene->delta_time;
-  ADD_ITEM(scene->particle_systems2d, scene->particle_system2d_count, BLB_ParticleSystem2D, system);
+  ADD_ITEM(scene->particle_systems2d, scene->particle_system2d_count, scene->particle_system2d_capacity, BLB_ParticleSystem2D, system);
 }
 
 int BLB_AddAudio3D(BLB_Scene *scene, BLB_Audio3D *audio) {
   if (!scene || !audio)
     return -1;
 
-  ADD_ITEM(scene->audio3d, scene->audio3d_count, BLB_Audio3D, audio);
+  ADD_ITEM(scene->audio3d, scene->audio3d_count, scene->audio3d_capacity, BLB_Audio3D, audio);
 }
 
 int BLB_AddAudio2D(BLB_Scene *scene, BLB_Audio2D *audio) {
   if (!scene || !audio)
     return -1;
 
-  ADD_ITEM(scene->audio2d, scene->audio2d_count, BLB_Audio2D, audio);
+  ADD_ITEM(scene->audio2d, scene->audio2d_count, scene->audio2d_capacity, BLB_Audio2D, audio);
 }
 
 /*
@@ -346,37 +373,21 @@ int BLB_AddAudio2D(BLB_Scene *scene, BLB_Audio2D *audio) {
  * Must be used when deleting the object.
  */
 
-static int remove_item(void *array, int *count, void *item) {
-  if (!array || !count || !item)
-    return -1;
-
-  void **items = *(void ***)array;
-
-  if (!items)
-    return -1;
-
-  for (int i = 0; i < *count; ++i) {
-    if (items[i] == item) {
-      memmove(&items[i], &items[i + 1], (size_t)(*count - i - 1) * sizeof(void *));
-
-      (*count)--;
-
-      if (*count == 0) {
-        free(items);
-        *(void ***)array = NULL;
-      } else {
-        void **new_array = realloc(items, (size_t)*count * sizeof(void *));
-
-        if (new_array)
-          *(void ***)array = new_array;
-      }
-
-      return 0;
-    }
-  }
-
-  return -1;
-}
+#define REMOVE_ITEM(array, count, item, result)                                                                                                       \
+  do {                                                                                                                                               \
+    (result) = -1;                                                                                                                                   \
+    if ((array) && (item)) {                                                                                                                         \
+      for (int remove_index = 0; remove_index < (count); ++remove_index) {                                                                           \
+        if ((array)[remove_index] == (item)) {                                                                                                      \
+          memmove(&(array)[remove_index], &(array)[remove_index + 1],                                                                                \
+                  (size_t)((count) - remove_index - 1) * sizeof(*(array)));                                                                          \
+          --(count);                                                                                                                                 \
+          (result) = 0;                                                                                                                              \
+          break;                                                                                                                                     \
+        }                                                                                                                                            \
+      }                                                                                                                                              \
+    }                                                                                                                                                \
+  } while (0)
 
 int BLB_RemoveObject3D(BLB_Scene *scene, BLB_Object3D *object) {
   if (!scene || !object)
@@ -386,14 +397,17 @@ int BLB_RemoveObject3D(BLB_Scene *scene, BLB_Object3D *object) {
     BLB_Light3D *light = scene->lights3d[i];
 
     if (light && light->object == object) {
-      remove_item((void **)&scene->lights3d, &scene->light3d_count, light);
-      continue;
+      int remove_result;
+      REMOVE_ITEM(scene->lights3d, scene->light3d_count, light, remove_result);
+      if (remove_result == 0)
+        continue;
     }
 
     i++;
   }
 
-  int result = remove_item((void **)&scene->objects3d, &scene->object3d_count, object);
+  int result;
+  REMOVE_ITEM(scene->objects3d, scene->object3d_count, object, result);
 
   if (result == 0) {
     BLB_RenderAsync_WaitAll();
@@ -415,14 +429,17 @@ int BLB_RemoveObject2D(BLB_Scene *scene, BLB_Object2D *object) {
     BLB_Light2D *light = scene->lights2d[i];
 
     if (light && light->object == object) {
-      remove_item((void **)&scene->lights2d, &scene->light2d_count, light);
-      continue;
+      int remove_result;
+      REMOVE_ITEM(scene->lights2d, scene->light2d_count, light, remove_result);
+      if (remove_result == 0)
+        continue;
     }
 
     i++;
   }
 
-  int result = remove_item((void **)&scene->objects2d, &scene->object2d_count, object);
+  int result;
+  REMOVE_ITEM(scene->objects2d, scene->object2d_count, object, result);
 
   if (result == 0) {
     BLB_ObjectOptimization2D_Destroy(scene->object_optimization2d);
@@ -436,61 +453,79 @@ int BLB_RemoveText2D(BLB_Scene *scene, BLB_Text2D *text) {
   if (!scene || !text)
     return -1;
 
-  return remove_item((void **)&scene->text2d, &scene->text2d_count, text);
+  int result;
+  REMOVE_ITEM(scene->text2d, scene->text2d_count, text, result);
+  return result;
 }
 
 int BLB_RemoveLight3D(BLB_Scene *scene, BLB_Light3D *light) {
   if (!scene || !light)
     return -1;
 
-  return remove_item((void **)&scene->lights3d, &scene->light3d_count, light);
+  int result;
+  REMOVE_ITEM(scene->lights3d, scene->light3d_count, light, result);
+  return result;
 }
 
 int BLB_RemoveLight2D(BLB_Scene *scene, BLB_Light2D *light) {
   if (!scene || !light)
     return -1;
 
-  return remove_item((void **)&scene->lights2d, &scene->light2d_count, light);
+  int result;
+  REMOVE_ITEM(scene->lights2d, scene->light2d_count, light, result);
+  return result;
 }
 
 int BLB_RemoveParticle3D(BLB_Scene *scene, BLB_Particle3D *particle) {
   if (!scene || !particle)
     return -1;
 
-  return remove_item((void **)&scene->particles3d, &scene->particle3d_count, particle);
+  int result;
+  REMOVE_ITEM(scene->particles3d, scene->particle3d_count, particle, result);
+  return result;
 }
 
 int BLB_RemoveParticle2D(BLB_Scene *scene, BLB_Particle2D *particle) {
   if (!scene || !particle)
     return -1;
 
-  return remove_item((void **)&scene->particles2d, &scene->particle2d_count, particle);
+  int result;
+  REMOVE_ITEM(scene->particles2d, scene->particle2d_count, particle, result);
+  return result;
 }
 
 int BLB_RemoveParticleSystem3D(BLB_Scene *scene, BLB_ParticleSystem3D *system) {
   if (!scene || !system)
     return -1;
 
-  return remove_item((void **)&scene->particle_systems3d, &scene->particle_system3d_count, system);
+  int result;
+  REMOVE_ITEM(scene->particle_systems3d, scene->particle_system3d_count, system, result);
+  return result;
 }
 
 int BLB_RemoveParticleSystem2D(BLB_Scene *scene, BLB_ParticleSystem2D *system) {
   if (!scene || !system)
     return -1;
 
-  return remove_item((void **)&scene->particle_systems2d, &scene->particle_system2d_count, system);
+  int result;
+  REMOVE_ITEM(scene->particle_systems2d, scene->particle_system2d_count, system, result);
+  return result;
 }
 
 int BLB_RemoveAudio3D(BLB_Scene *scene, BLB_Audio3D *audio) {
   if (!scene || !audio)
     return -1;
 
-  return remove_item((void **)&scene->audio3d, &scene->audio3d_count, audio);
+  int result;
+  REMOVE_ITEM(scene->audio3d, scene->audio3d_count, audio, result);
+  return result;
 }
 
 int BLB_RemoveAudio2D(BLB_Scene *scene, BLB_Audio2D *audio) {
   if (!scene || !audio)
     return -1;
 
-  return remove_item((void **)&scene->audio2d, &scene->audio2d_count, audio);
+  int result;
+  REMOVE_ITEM(scene->audio2d, scene->audio2d_count, audio, result);
+  return result;
 }

@@ -98,7 +98,8 @@ void BLB_Physics3D_WorldUpdate(BLB_Physics3DWorld *world) {
 }
 
 void BLB_Physics3D_WorldSetGravity(BLB_Physics3DWorld *world, BLB_Vec3 gravity) {
-  if (!blb_physics3d_valid_world(world))
+  if (!blb_physics3d_valid_world(world) || !isfinite(gravity.x) || !isfinite(gravity.y) ||
+      !isfinite(gravity.z))
     return;
 
   BLB_Box3DBackend *backend = blb_physics3d_get_backend(world);

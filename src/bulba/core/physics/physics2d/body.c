@@ -2,7 +2,8 @@
 
 void BLB_Physics2D_SetBody(BLB_Physics2DWorld *world, BLB_Object2D *object,
                            BLB_Physics2DBodyType type) {
-  if (!object || object->rigid_body || !blb_physics2d_valid_world(world))
+  if (!object || object->rigid_body || !blb_physics2d_valid_world(world) ||
+      type < BLB_PHYSICS2D_STATIC || type > BLB_PHYSICS2D_KINEMATIC)
     return;
 
   BLB_Box2DBackend *backend = blb_physics2d_get_backend(world);
@@ -90,8 +91,16 @@ BLB_Physics2DBodyId BLB_Physics2D_BodyGetId(const BLB_Object2D *object) {
 void BLB_Physics2D_BodySetType(BLB_Object2D *object, BLB_Physics2DBodyType type) {
   BLB_RigidBody2D *body = object ? object->rigid_body : NULL;
 
-  if (!body || !b2Body_IsValid(body->handle))
+  if (!body || !b2Body_IsValid(body->handle) || type < BLB_PHYSICS2D_STATIC ||
+      type > BLB_PHYSICS2D_KINEMATIC)
     return;
+
+  if (type != BLB_PHYSICS2D_STATIC) {
+    for (size_t i = 0; i < body->collider_count; ++i) {
+      if (body->colliders[i]->shape.type == BLB_PHYSICS2D_SHAPE_CHAIN)
+        return;
+    }
+  }
 
   b2Body_SetType(body->handle, blb_physics2d_to_b2_body_type(type));
   body->type = type;
@@ -167,7 +176,7 @@ float BLB_Physics2D_BodyGetRotation(const BLB_Object2D *object) {
 void BLB_Physics2D_BodySetVelocity(BLB_Object2D *object, BLB_Vec2 velocity) {
   BLB_RigidBody2D *body = object ? object->rigid_body : NULL;
 
-  if (!body || !b2Body_IsValid(body->handle))
+  if (!body || !b2Body_IsValid(body->handle) || !isfinite(velocity.x) || !isfinite(velocity.y))
     return;
 
   b2Body_SetLinearVelocity(body->handle, (b2Vec2){velocity.x, velocity.y});
@@ -187,7 +196,7 @@ BLB_Vec2 BLB_Physics2D_BodyGetVelocity(const BLB_Object2D *object) {
 void BLB_Physics2D_BodyApplyForce(BLB_Object2D *object, BLB_Vec2 force) {
   BLB_RigidBody2D *body = object ? object->rigid_body : NULL;
 
-  if (!body || !b2Body_IsValid(body->handle))
+  if (!body || !b2Body_IsValid(body->handle) || !isfinite(force.x) || !isfinite(force.y))
     return;
 
   b2Body_ApplyForceToCenter(body->handle, (b2Vec2){force.x, force.y}, true);
@@ -196,7 +205,7 @@ void BLB_Physics2D_BodyApplyForce(BLB_Object2D *object, BLB_Vec2 force) {
 void BLB_Physics2D_BodyApplyImpulse(BLB_Object2D *object, BLB_Vec2 impulse) {
   BLB_RigidBody2D *body = object ? object->rigid_body : NULL;
 
-  if (!body || !b2Body_IsValid(body->handle))
+  if (!body || !b2Body_IsValid(body->handle) || !isfinite(impulse.x) || !isfinite(impulse.y))
     return;
 
   b2Body_ApplyLinearImpulseToCenter(body->handle, (b2Vec2){impulse.x, impulse.y}, true);
@@ -205,21 +214,21 @@ void BLB_Physics2D_BodyApplyImpulse(BLB_Object2D *object, BLB_Vec2 impulse) {
 void BLB_Physics2D_BodySetGravityScale(BLB_Object2D *object, float scale) {
   BLB_RigidBody2D *body = object ? object->rigid_body : NULL;
 
-  if (body && b2Body_IsValid(body->handle))
+  if (body && b2Body_IsValid(body->handle) && isfinite(scale))
     b2Body_SetGravityScale(body->handle, scale);
 }
 
 void BLB_Physics2D_BodySetLinearDamping(BLB_Object2D *object, float damping) {
   BLB_RigidBody2D *body = object ? object->rigid_body : NULL;
 
-  if (body && b2Body_IsValid(body->handle))
+  if (body && b2Body_IsValid(body->handle) && isfinite(damping) && damping >= 0.0f)
     b2Body_SetLinearDamping(body->handle, damping);
 }
 
 void BLB_Physics2D_BodySetAngularDamping(BLB_Object2D *object, float damping) {
   BLB_RigidBody2D *body = object ? object->rigid_body : NULL;
 
-  if (body && b2Body_IsValid(body->handle))
+  if (body && b2Body_IsValid(body->handle) && isfinite(damping) && damping >= 0.0f)
     b2Body_SetAngularDamping(body->handle, damping);
 }
 

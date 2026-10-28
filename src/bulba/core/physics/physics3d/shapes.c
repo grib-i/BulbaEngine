@@ -23,6 +23,10 @@ void blb_physics3d_free_shape_copy(BLB_Physics3DShape *shape) {
     shape->data.triangle_mesh.indices = NULL;
     shape->data.triangle_mesh.vertex_count = 0;
     shape->data.triangle_mesh.index_count = 0;
+  } else if (shape->type == BLB_PHYSICS3D_SHAPE_COMPOUND) {
+    free(shape->data.compound.shapes);
+    shape->data.compound.shapes = NULL;
+    shape->data.compound.shape_count = 0;
   }
 }
 
@@ -48,6 +52,13 @@ bool blb_physics3d_copy_shape(BLB_Physics3DShape *dst, const BLB_Physics3DShape 
 
     memcpy(dst->data.convex_hull.vertices, src->data.convex_hull.vertices,
            src->data.convex_hull.vertex_count * sizeof(*dst->data.convex_hull.vertices));
+    for (size_t i = 0; i < src->data.convex_hull.vertex_count; ++i) {
+      BLB_Vec3 v = dst->data.convex_hull.vertices[i];
+      if (!isfinite(v.x) || !isfinite(v.y) || !isfinite(v.z)) {
+        blb_physics3d_free_shape_copy(dst);
+        return false;
+      }
+    }
   } else if (src->type == BLB_PHYSICS3D_SHAPE_TRIANGLE_MESH) {
 
     dst->data.triangle_mesh.vertices = NULL;
@@ -92,6 +103,66 @@ bool blb_physics3d_copy_shape(BLB_Physics3DShape *dst, const BLB_Physics3DShape 
     memcpy(dst->data.triangle_mesh.indices, src->data.triangle_mesh.indices,
            src->data.triangle_mesh.index_count *
                sizeof(*dst->data.triangle_mesh.indices));
+    for (size_t i = 0; i < src->data.triangle_mesh.vertex_count; ++i) {
+      BLB_Vec3 v = dst->data.triangle_mesh.vertices[i];
+      if (!isfinite(v.x) || !isfinite(v.y) || !isfinite(v.z)) {
+        blb_physics3d_free_shape_copy(dst);
+        return false;
+      }
+    }
+    BLB_Vec3 scale = src->data.triangle_mesh.scale;
+    if (!isfinite(scale.x) || !isfinite(scale.y) || !isfinite(scale.z) ||
+        scale.x <= 0.0f || scale.y <= 0.0f || scale.z <= 0.0f) {
+      blb_physics3d_free_shape_copy(dst);
+      return false;
+    }
+  } else if (src->type == BLB_PHYSICS3D_SHAPE_COMPOUND) {
+    dst->data.compound.shapes = NULL;
+    if (!src->data.compound.shapes || src->data.compound.shape_count == 0 ||
+        src->data.compound.shape_count > INT_MAX ||
+        src->data.compound.shape_count > SIZE_MAX / sizeof(BLB_Physics3DShape))
+      return false;
+
+    const BLB_Physics3DShape *children = src->data.compound.shapes;
+    for (size_t i = 0; i < src->data.compound.shape_count; ++i) {
+      if (children[i].type != BLB_PHYSICS3D_SHAPE_BOX &&
+          children[i].type != BLB_PHYSICS3D_SHAPE_SPHERE &&
+          children[i].type != BLB_PHYSICS3D_SHAPE_CAPSULE)
+        return false;
+      if (children[i].type == BLB_PHYSICS3D_SHAPE_BOX) {
+        BLB_Vec3 v = children[i].data.box.scale;
+        if (!isfinite(v.x) || !isfinite(v.y) || !isfinite(v.z) ||
+            v.x <= 0.0f || v.y <= 0.0f || v.z <= 0.0f)
+          return false;
+      } else if (children[i].type == BLB_PHYSICS3D_SHAPE_SPHERE) {
+        if (!isfinite(children[i].data.sphere.radius) || children[i].data.sphere.radius <= 0.0f)
+          return false;
+      } else if (!isfinite(children[i].data.capsule.radius) ||
+                 !isfinite(children[i].data.capsule.height) ||
+                 children[i].data.capsule.radius <= 0.0f || children[i].data.capsule.height < 0.0f) {
+        return false;
+      }
+    }
+
+    dst->data.compound.shapes = malloc(src->data.compound.shape_count * sizeof(BLB_Physics3DShape));
+    if (!dst->data.compound.shapes)
+      return false;
+    memcpy(dst->data.compound.shapes, children,
+           src->data.compound.shape_count * sizeof(BLB_Physics3DShape));
+  } else if (src->type == BLB_PHYSICS3D_SHAPE_BOX) {
+    BLB_Vec3 v = src->data.box.scale;
+    if (!isfinite(v.x) || !isfinite(v.y) || !isfinite(v.z) ||
+        v.x <= 0.0f || v.y <= 0.0f || v.z <= 0.0f)
+      return false;
+  } else if (src->type == BLB_PHYSICS3D_SHAPE_SPHERE) {
+    if (!isfinite(src->data.sphere.radius) || src->data.sphere.radius <= 0.0f)
+      return false;
+  } else if (src->type == BLB_PHYSICS3D_SHAPE_CAPSULE) {
+    if (!isfinite(src->data.capsule.radius) || !isfinite(src->data.capsule.height) ||
+        src->data.capsule.radius <= 0.0f || src->data.capsule.height < 0.0f)
+      return false;
+  } else if (src->type != BLB_PHYSICS3D_SHAPE_PLANE) {
+    return false;
   }
 
   return true;
@@ -196,20 +267,85 @@ b3ShapeId blb_physics3d_create_backend_shape(const BLB_Collider3D *collider,
   }
 
   case BLB_PHYSICS3D_SHAPE_COMPOUND: {
-    b3CompoundDef compound_def = {0};
+    if (collider->body->type != BLB_PHYSICS3D_STATIC ||
+        !collider->shape.data.compound.shapes ||
+        collider->shape.data.compound.shape_count == 0 ||
+        collider->shape.data.compound.shape_count > INT_MAX)
+      return b3_nullShapeId;
 
-    compound_def.spheres = collider->shape.data.compound.shapes;
-    compound_def.sphereCount = collider->shape.data.compound.shape_count;
-    b3CompoundData *compound = b3CreateCompound(&compound_def);
+    const BLB_Physics3DShape *children = collider->shape.data.compound.shapes;
+    size_t child_count = collider->shape.data.compound.shape_count;
+    size_t sphere_count = 0;
+    size_t capsule_count = 0;
+    size_t hull_count = 0;
+    for (size_t i = 0; i < child_count; ++i) {
+      switch (children[i].type) {
+      case BLB_PHYSICS3D_SHAPE_SPHERE: ++sphere_count; break;
+      case BLB_PHYSICS3D_SHAPE_CAPSULE: ++capsule_count; break;
+      case BLB_PHYSICS3D_SHAPE_BOX: ++hull_count; break;
+      default: return b3_nullShapeId;
+      }
+    }
 
-    if (!compound) {
+    b3CompoundSphereDef *spheres = sphere_count ? calloc(sphere_count, sizeof(*spheres)) : NULL;
+    b3CompoundCapsuleDef *capsules = capsule_count ? calloc(capsule_count, sizeof(*capsules)) : NULL;
+    b3CompoundHullDef *hulls = hull_count ? calloc(hull_count, sizeof(*hulls)) : NULL;
+    b3BoxHull *box_hulls = hull_count ? calloc(hull_count, sizeof(*box_hulls)) : NULL;
+    if ((sphere_count && !spheres) || (capsule_count && !capsules) ||
+        (hull_count && (!hulls || !box_hulls))) {
+      free(spheres);
+      free(capsules);
+      free(hulls);
+      free(box_hulls);
       return b3_nullShapeId;
     }
+
+    b3SurfaceMaterial material = b3DefaultSurfaceMaterial();
+    material.friction = collider->friction;
+    material.restitution = collider->restitution;
+    size_t sphere_index = 0;
+    size_t capsule_index = 0;
+    size_t hull_index = 0;
+    for (size_t i = 0; i < child_count; ++i) {
+      if (children[i].type == BLB_PHYSICS3D_SHAPE_SPHERE) {
+        spheres[sphere_index].sphere.center = (b3Vec3){0.0f, 0.0f, 0.0f};
+        spheres[sphere_index].sphere.radius = children[i].data.sphere.radius;
+        spheres[sphere_index++].material = material;
+      } else if (children[i].type == BLB_PHYSICS3D_SHAPE_CAPSULE) {
+        capsules[capsule_index].capsule.center1 =
+            (b3Vec3){0.0f, -children[i].data.capsule.height, 0.0f};
+        capsules[capsule_index].capsule.center2 =
+            (b3Vec3){0.0f, children[i].data.capsule.height, 0.0f};
+        capsules[capsule_index].capsule.radius = children[i].data.capsule.radius;
+        capsules[capsule_index++].material = material;
+      } else {
+        BLB_Vec3 h = children[i].data.box.scale;
+        box_hulls[hull_index] = b3MakeBoxHull(h.x, h.y, h.z);
+        hulls[hull_index].hull = &box_hulls[hull_index].base;
+        hulls[hull_index].transform.p = (b3Vec3){0.0f, 0.0f, 0.0f};
+        hulls[hull_index].transform.q = (b3Quat){0.0f, 0.0f, 0.0f, 1.0f};
+        hulls[hull_index++].material = material;
+      }
+    }
+
+    b3CompoundDef compound_def = {0};
+    compound_def.spheres = spheres;
+    compound_def.sphereCount = (int)sphere_count;
+    compound_def.capsules = capsules;
+    compound_def.capsuleCount = (int)capsule_count;
+    compound_def.hulls = hulls;
+    compound_def.hullCount = (int)hull_count;
+    b3CompoundData *compound = b3CreateCompound(&compound_def);
+    free(spheres);
+    free(capsules);
+    free(hulls);
+    free(box_hulls);
+    if (!compound)
+      return b3_nullShapeId;
 
     b3ShapeDef mutable_def = *def;
     b3ShapeId result = b3CreateCompoundShape(body, &mutable_def, compound);
     b3DestroyCompound(compound);
-
     return result;
   }
 
@@ -288,7 +424,8 @@ BLB_Physics3DShape *BLB_Physics3D_CreateShape(BLB_Physics3DShapeType type,
 
 BLB_Physics3DShape *BLB_Physics3D_CreateShapeCompound(BLB_Physics3DShape *shapes,
                                                       size_t count) {
-  if (!shapes || count <= 0)
+  if (!shapes || count == 0 || count > INT_MAX ||
+      count > SIZE_MAX / sizeof(BLB_Physics3DShape))
     return NULL;
 
   BLB_Physics3DShape source = {.type = BLB_PHYSICS3D_SHAPE_COMPOUND};

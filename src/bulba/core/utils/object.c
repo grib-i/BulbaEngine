@@ -6,6 +6,11 @@ BLB_ObjectID *BLB_OBJECTS_ID = NULL;
 size_t BLB_OBJECTS_ID_COUNT = BLB_OBJECT_COUNT;
 
 void BLB_Object_Init(void) {
+  /* This registry is process-wide; a repeated init must not leak/rewrite it. */
+  if (BLB_OBJECTS_ID)
+    return;
+
+  BLB_OBJECTS_ID_COUNT = BLB_OBJECT_COUNT;
   BLB_OBJECTS_ID = malloc(sizeof(*BLB_OBJECTS_ID) * BLB_OBJECTS_ID_COUNT);
 
   if (BLB_OBJECTS_ID == NULL) {
