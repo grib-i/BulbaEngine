@@ -12,11 +12,7 @@
 typedef uint64_t BLB_Physics2DBodyId;
 typedef uint64_t BLB_Physics2DColliderId;
 
-typedef enum {
-  BLB_PHYSICS2D_STATIC = 0,
-  BLB_PHYSICS2D_DYNAMIC = 1,
-  BLB_PHYSICS2D_KINEMATIC = 2
-} BLB_Physics2DBodyType;
+typedef enum { BLB_PHYSICS2D_STATIC = 0, BLB_PHYSICS2D_DYNAMIC = 1, BLB_PHYSICS2D_KINEMATIC = 2 } BLB_Physics2DBodyType;
 
 typedef enum {
   BLB_PHYSICS2D_SHAPE_BOX = 0,
@@ -114,8 +110,7 @@ void BLB_Physics2D_WorldSetGravity(BLB_Physics2DWorld *world, BLB_Vec2 gravity);
 
 void BLB_Physics2D_WorldSetFixedTimestep(BLB_Physics2DWorld *world, float timestep);
 
-void BLB_Physics2D_WorldSetLayerCollision(BLB_Physics2DWorld *world, uint8_t layer_a,
-                                          uint8_t layer_b, bool enabled);
+void BLB_Physics2D_WorldSetLayerCollision(BLB_Physics2DWorld *world, uint8_t layer_a, uint8_t layer_b, bool enabled);
 
 void BLB_Physics2D_WorldSetSubsteps(BLB_Physics2DWorld *world, int substeps);
 void BLB_Physics2D_WorldSetDebugDraw(BLB_Physics2DWorld *world, bool enabled);
@@ -125,8 +120,7 @@ bool BLB_Physics2D_WorldGetDebugCollider(const BLB_Physics2DWorld *world, size_t
                                          BLB_Physics2DDebugCollider *out_collider);
 
 // body
-void BLB_Physics2D_SetBody(BLB_Physics2DWorld *world, BLB_Object2D *object,
-                           BLB_Physics2DBodyType type);
+void BLB_Physics2D_SetBody(BLB_Physics2DWorld *world, BLB_Object2D *object, BLB_Physics2DBodyType type);
 
 BLB_RigidBody2D *BLB_Physics2D_GetBody(BLB_Object2D *object);
 
@@ -170,16 +164,13 @@ void BLB_Physics2D_BodySetActive(BLB_Object2D *object, bool active);
 bool BLB_Physics2D_BodyIsActive(const BLB_Object2D *object);
 
 // shape
-BLB_Physics2DShape *BLB_Physics2D_CreateShape(BLB_Physics2DShapeType type,
-                                              BLB_Vec2 scale);
+BLB_Physics2DShape *BLB_Physics2D_CreateShape(BLB_Physics2DShapeType type, BLB_Vec2 scale);
 
-BLB_Physics2DShape *BLB_Physics2D_CreateShapePolygon(BLB_Vec2 *vertices,
-                                                     size_t vertex_count);
+BLB_Physics2DShape *BLB_Physics2D_CreateShapePolygon(BLB_Vec2 *vertices, size_t vertex_count);
 
 BLB_Physics2DShape *BLB_Physics2D_CreateShapeSegment(BLB_Vec2 point1, BLB_Vec2 point2);
 
-BLB_Physics2DShape *BLB_Physics2D_CreateShapeChain(BLB_Vec2 *points, size_t point_count,
-                                                   bool loop, BLB_Vec2 ghost1,
+BLB_Physics2DShape *BLB_Physics2D_CreateShapeChain(BLB_Vec2 *points, size_t point_count, bool loop, BLB_Vec2 ghost1,
                                                    BLB_Vec2 ghost2);
 
 BLB_Physics2DShape *BLB_Physics2D_CreateShapeFromObject2D(const BLB_Object2D *object);
@@ -187,8 +178,7 @@ BLB_Physics2DShape *BLB_Physics2D_CreateShapeFromObject2D(const BLB_Object2D *ob
 void BLB_Physics2D_DestroyShape(BLB_Physics2DShape *shape);
 
 // colider
-BLB_Collider2D *BLB_Physics2D_SetCollider(BLB_Object2D *object,
-                                          const BLB_Physics2DShape *shape);
+BLB_Collider2D *BLB_Physics2D_SetCollider(BLB_Object2D *object, const BLB_Physics2DShape *shape);
 
 void BLB_Physics2D_ColliderDestroy(BLB_Object2D *object);
 

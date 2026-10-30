@@ -8,16 +8,19 @@
 #include <string.h>
 
 #ifdef _WIN32
-static const char *default_font_paths[] = {"C:/Windows/Fonts/segoeui.ttf", "C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/calibri.ttf"};
+static const char *default_font_paths[] = {"C:/Windows/Fonts/segoeui.ttf", "C:/Windows/Fonts/arial.ttf",
+                                           "C:/Windows/Fonts/calibri.ttf"};
 #elif defined(__APPLE__)
-static const char *default_font_paths[] = {"/System/Library/Fonts/Supplemental/Arial.ttf", "/System/Library/Fonts/Supplemental/Helvetica.ttc",
+static const char *default_font_paths[] = {"/System/Library/Fonts/Supplemental/Arial.ttf",
+                                           "/System/Library/Fonts/Supplemental/Helvetica.ttc",
                                            "/Library/Fonts/Arial.ttf"};
 #elif defined(__ANDROID__)
 static const char *default_font_paths[] = {"/system/fonts/Roboto-Regular.ttf", "/system/fonts/NotoSans-Regular.ttf"};
 #else
 static const char *default_font_paths[] = {"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
                                            "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
-                                           "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf", "/usr/share/fonts/truetype/freefont/FreeSans.ttf"};
+                                           "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+                                           "/usr/share/fonts/truetype/freefont/FreeSans.ttf"};
 #endif
 
 static char *dupstr(const char *s) {
@@ -125,13 +128,13 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, BLB_Vec2 pos, floa
   t->entity_id = BLB_INVALID_ENTITY_ID;
   t->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;
 
-  t->material = BLB_Material_Create2D();
+  t->material = NULL;
 
-  if (!t->material) {
-    BLB_DestroyText2D(t);
+  // // if (!t->material) {
+  // //   BLB_DestroyText2D(t);
 
-    return NULL;
-  }
+  //   return NULL;
+  // }
 
   t->delta_time = BLB_DeltaTime_Get();
 
@@ -217,4 +220,6 @@ void BLB_Text2D_SetCameraAttached(BLB_Text2D *text, bool attached) {
     text->camera_attached = attached;
 }
 
-bool BLB_Text2D_IsCameraAttached(const BLB_Text2D *text) { return text && text->camera_attached; }
+bool BLB_Text2D_IsCameraAttached(const BLB_Text2D *text) {
+  return text && text->camera_attached;
+}

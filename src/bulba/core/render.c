@@ -563,6 +563,7 @@ static BLB_RenderMaterialState material_state_from_text(const BLB_Text2D *text) 
 
   if (text->material) {
     const BLB_Material *material = text->material;
+    printf("32");
 
     state.base_color[0] = material->base_color[0];
     state.base_color[1] = material->base_color[1];
@@ -2272,6 +2273,9 @@ static void draw_text2d(BLB_Text2D *text, BLB_Renderer *renderer, BLB_Camera *ca
                                   scale, text->rotation, state.base_color[0], state.base_color[1], state.base_color[2],
                                   state.base_color[3], state.emission, state.glow, state.roughness,
                                   normalize_render_mode(state.render_mode), &matrix.Elements[0][0]);
+
+  printf("r = %f\ng = %f\nb = %f\na = %f\n", state.base_color[0], state.base_color[1], state.base_color[2],
+         state.base_color[3]);
 }
 
 static uint64_t render_sort_signature3d(BLB_Object3D **objects, int count) {

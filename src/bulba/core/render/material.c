@@ -101,7 +101,9 @@ static float clamp01(float value) {
   return value;
 }
 
-static float non_negative(float value) { return value < 0.0f ? 0.0f : value; }
+static float non_negative(float value) {
+  return value < 0.0f ? 0.0f : value;
+}
 
 static uint64_t texture_state_revision = 1;
 
@@ -251,9 +253,13 @@ BLB_Material *BLB_Material_Create(BLB_MaterialDomain domain) {
   return material;
 }
 
-BLB_Material *BLB_Material_Create2D(void) { return BLB_Material_Create(BLB_MATERIAL_2D); }
+BLB_Material *BLB_Material_Create2D(void) {
+  return BLB_Material_Create(BLB_MATERIAL_2D);
+}
 
-BLB_Material *BLB_Material_Create3D(void) { return BLB_Material_Create(BLB_MATERIAL_3D); }
+BLB_Material *BLB_Material_Create3D(void) {
+  return BLB_Material_Create(BLB_MATERIAL_3D);
+}
 
 BLB_Material *BLB_Material_Build(BLB_MaterialDomain domain, BLB_MaterialConfigureFn configure) {
   BLB_Material *material = BLB_Material_Create(domain);
@@ -377,7 +383,8 @@ int BLB_Material_SetDomain(BLB_Material *material, BLB_MaterialDomain domain) {
   if (!material || (domain != BLB_MATERIAL_2D && domain != BLB_MATERIAL_3D))
     return -1;
 
-  if (domain == BLB_MATERIAL_2D && material->base_color_texture.texture && material->base_color_texture.texture->type == BLB_TEXTURE_3D)
+  if (domain == BLB_MATERIAL_2D && material->base_color_texture.texture &&
+      material->base_color_texture.texture->type == BLB_TEXTURE_3D)
     return -1;
 
   if (material->domain == domain)
@@ -466,7 +473,8 @@ void BLB_Material_SetTransmission(BLB_Material *material, float transmission) {
   }
 }
 
-void BLB_Material_SetVolume(BLB_Material *material, float thickness, float attenuation_distance, float r, float g, float b) {
+void BLB_Material_SetVolume(BLB_Material *material, float thickness, float attenuation_distance, float r, float g,
+                            float b) {
   if (!material)
     return;
 
@@ -499,14 +507,16 @@ void BLB_Material_SetSheen(BLB_Material *material, float r, float g, float b, fl
   material_touch(material);
 }
 
-void BLB_Material_SetIridescence(BLB_Material *material, float factor, float ior, float thickness_min, float thickness_max) {
+void BLB_Material_SetIridescence(BLB_Material *material, float factor, float ior, float thickness_min,
+                                 float thickness_max) {
   if (!material)
     return;
 
   material->iridescence_factor = clamp01(factor);
   material->iridescence_ior = ior < 1.0f ? 1.0f : ior;
   material->iridescence_thickness_min = non_negative(thickness_min);
-  material->iridescence_thickness_max = thickness_max < material->iridescence_thickness_min ? material->iridescence_thickness_min : thickness_max;
+  material->iridescence_thickness_max =
+      thickness_max < material->iridescence_thickness_min ? material->iridescence_thickness_min : thickness_max;
   material_touch(material);
 }
 
@@ -605,13 +615,16 @@ void BLB_Material_SetShader(BLB_Material *material, BLB_ShaderProgram *shader) {
   material_touch(material);
 }
 
-void BLB_MaterialTexture_Init(BLB_MaterialTexture *texture) { init_texture(texture); }
+void BLB_MaterialTexture_Init(BLB_MaterialTexture *texture) {
+  init_texture(texture);
+}
 
 int BLB_MaterialTexture_SetTexture(BLB_Material *material, BLB_MaterialTexture *slot, BLB_Texture *texture) {
   if (!material || !slot)
     return -1;
 
-  if (texture && texture->type == BLB_TEXTURE_3D && (material->domain != BLB_MATERIAL_3D || slot != &material->base_color_texture))
+  if (texture && texture->type == BLB_TEXTURE_3D &&
+      (material->domain != BLB_MATERIAL_3D || slot != &material->base_color_texture))
     return -1;
 
   release_material_texture(material, slot);
@@ -632,7 +645,8 @@ void BLB_MaterialTexture_AdoptTexture(BLB_MaterialTexture *slot, BLB_Texture *te
   texture_state_touch();
 }
 
-void BLB_MaterialTexture_SetTransform(BLB_MaterialTexture *texture, float offset_x, float offset_y, float scale_x, float scale_y, float rotation) {
+void BLB_MaterialTexture_SetTransform(BLB_MaterialTexture *texture, float offset_x, float offset_y, float scale_x,
+                                      float scale_y, float rotation) {
   if (!texture)
     return;
 
@@ -644,8 +658,8 @@ void BLB_MaterialTexture_SetTransform(BLB_MaterialTexture *texture, float offset
   texture_state_touch();
 }
 
-void BLB_MaterialTexture_SetSampler(BLB_MaterialTexture *texture, BLB_TextureWrap wrap_u, BLB_TextureWrap wrap_v, BLB_TextureFilter min_filter,
-                                    BLB_TextureFilter mag_filter) {
+void BLB_MaterialTexture_SetSampler(BLB_MaterialTexture *texture, BLB_TextureWrap wrap_u, BLB_TextureWrap wrap_v,
+                                    BLB_TextureFilter min_filter, BLB_TextureFilter mag_filter) {
   if (!texture)
     return;
 
@@ -663,9 +677,13 @@ void BLB_MaterialTexture_SetProjection(BLB_MaterialTexture *texture, BLB_Texture
   texture_state_touch();
 }
 
-bool BLB_MaterialTexture_Valid(const BLB_MaterialTexture *texture) { return texture && texture->texture; }
+bool BLB_MaterialTexture_Valid(const BLB_MaterialTexture *texture) {
+  return texture && texture->texture;
+}
 
-uint64_t BLB_Material_TextureStateRevision(void) { return texture_state_revision; }
+uint64_t BLB_Material_TextureStateRevision(void) {
+  return texture_state_revision;
+}
 
 typedef enum {
   BLB_MAT_SEC_NONE = 0,
@@ -815,10 +833,23 @@ static BLB_AlphaMode parse_alpha_mode(const char *text) {
 }
 
 static int texture_slot_index(const char *name) {
-  static const char *names[BLB_MATERIAL_TEXTURE_SLOT_COUNT] = {
-      "base_color",  "metallic_roughness",    "normal",           "occlusion",    "emission",  "specular",    "specular_color",
-      "clearcoat",   "clearcoat_roughness",   "clearcoat_normal", "transmission", "thickness", "sheen_color", "sheen_roughness",
-      "iridescence", "iridescence_thickness", "anisotropy"};
+  static const char *names[BLB_MATERIAL_TEXTURE_SLOT_COUNT] = {"base_color",
+                                                               "metallic_roughness",
+                                                               "normal",
+                                                               "occlusion",
+                                                               "emission",
+                                                               "specular",
+                                                               "specular_color",
+                                                               "clearcoat",
+                                                               "clearcoat_roughness",
+                                                               "clearcoat_normal",
+                                                               "transmission",
+                                                               "thickness",
+                                                               "sheen_color",
+                                                               "sheen_roughness",
+                                                               "iridescence",
+                                                               "iridescence_thickness",
+                                                               "anisotropy"};
 
   for (int i = 0; i < BLB_MATERIAL_TEXTURE_SLOT_COUNT; ++i)
     if (strcmp(name, names[i]) == 0)
@@ -930,7 +961,8 @@ static void release_loaded_texture(BLB_Texture *texture, void *user_data) {
   BLB_Texture_Release(texture);
 }
 
-BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn texture_load, BLB_MaterialTextureRetainFn texture_retain,
+BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn texture_load,
+                                BLB_MaterialTextureRetainFn texture_retain,
                                 BLB_MaterialTextureReleaseFn texture_release, void *user_data) {
   if (!path)
     return NULL;
@@ -1139,15 +1171,17 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
       } else if (strcmp(clean_key, "wrap_u") == 0) {
         char token[64];
         sscanf(value, "%63s", token);
-        slot->wrap_u = strcmp(token, "clamp") == 0 || strcmp(token, "clamp_to_edge") == 0 ? BLB_TEXTURE_WRAP_CLAMP_TO_EDGE
-                       : strcmp(token, "mirrored_repeat") == 0                            ? BLB_TEXTURE_WRAP_MIRRORED_REPEAT
-                                                                                          : BLB_TEXTURE_WRAP_REPEAT;
+        slot->wrap_u = strcmp(token, "clamp") == 0 || strcmp(token, "clamp_to_edge") == 0
+                           ? BLB_TEXTURE_WRAP_CLAMP_TO_EDGE
+                       : strcmp(token, "mirrored_repeat") == 0 ? BLB_TEXTURE_WRAP_MIRRORED_REPEAT
+                                                               : BLB_TEXTURE_WRAP_REPEAT;
       } else if (strcmp(clean_key, "wrap_v") == 0) {
         char token[64];
         sscanf(value, "%63s", token);
-        slot->wrap_v = strcmp(token, "clamp") == 0 || strcmp(token, "clamp_to_edge") == 0 ? BLB_TEXTURE_WRAP_CLAMP_TO_EDGE
-                       : strcmp(token, "mirrored_repeat") == 0                            ? BLB_TEXTURE_WRAP_MIRRORED_REPEAT
-                                                                                          : BLB_TEXTURE_WRAP_REPEAT;
+        slot->wrap_v = strcmp(token, "clamp") == 0 || strcmp(token, "clamp_to_edge") == 0
+                           ? BLB_TEXTURE_WRAP_CLAMP_TO_EDGE
+                       : strcmp(token, "mirrored_repeat") == 0 ? BLB_TEXTURE_WRAP_MIRRORED_REPEAT
+                                                               : BLB_TEXTURE_WRAP_REPEAT;
       } else if (strcmp(clean_key, "min_filter") == 0) {
         slot->min_filter = strstr(value, "nearest") ? BLB_TEXTURE_FILTER_NEAREST : BLB_TEXTURE_FILTER_LINEAR;
       } else if (strcmp(clean_key, "mag_filter") == 0) {
@@ -1255,7 +1289,8 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
       else if (strcmp(clean_key, "ior") == 0)
         material->iridescence_ior = fmaxf(1.0f, parse_float_value(value, material->iridescence_ior));
       else if (strcmp(clean_key, "thickness_min") == 0)
-        material->iridescence_thickness_min = non_negative(parse_float_value(value, material->iridescence_thickness_min));
+        material->iridescence_thickness_min =
+            non_negative(parse_float_value(value, material->iridescence_thickness_min));
       else if (strcmp(clean_key, "thickness_max") == 0)
         material->iridescence_thickness_max =
             fmaxf(material->iridescence_thickness_min, parse_float_value(value, material->iridescence_thickness_max));
@@ -1319,7 +1354,8 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
   fclose(file);
 
   if (have_shader_vertex && have_shader_fragment) {
-    BLB_ShaderProgram *shader = BLB_Shader_LoadSPIRV(shader_vertex_path, shader_fragment_path, material->domain == BLB_MATERIAL_2D);
+    BLB_ShaderProgram *shader =
+        BLB_Shader_LoadSPIRV(shader_vertex_path, shader_fragment_path, material->domain == BLB_MATERIAL_2D);
 
     if (shader) {
       BLB_Material_SetShader(material, shader);

@@ -19,12 +19,13 @@ int Demo_Text2d(const Demo_Settings *settings) {
     return Demo_Finish(&demo, NULL);
 
   for (int i = 0; i < (int)Demo_Count(&demo, 5); ++i) {
-    BLB_Text2D *text = Demo_Text(&demo, "BulbaEngine - Text2D", 180, 180 + i * 450.0f / Demo_Count(&demo, 5), 20 + i % 5 * 8.0f);
+    BLB_Text2D *text =
+        Demo_Text(&demo, "BulbaEngine - Text2D", 180, 180 + i * 450.0f / Demo_Count(&demo, 5), 20 + i % 5 * 8.0f);
 
     if (!text)
       break;
 
-    text->color[0] = (unsigned char)(70 + i * 35);
+    text->color[0] = (unsigned char)(255 + i * 35);
     text->color[1] = 220;
   }
   return Demo_Finish(&demo, animate);

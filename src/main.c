@@ -27,7 +27,7 @@ int main(void) {
   // result = Demo_Primitives3d(NULL);
   // result = Demo_Textures2d(NULL);
   // result = Demo_SpriteAnimation(NULL);
-  // result = Demo_Text2d(NULL);
+  result = Demo_Text2d(NULL);
   // result = Demo_Particles2d(NULL);
   // result = Demo_Particles3d(NULL);
   // result = Demo_Textures3d(NULL);
@@ -48,26 +48,26 @@ int main(void) {
   // result = Demo_Audio(NULL);
   // result = Demo_Transparency3d(NULL);
 
-  Test_Settings checks = Test_DefaultSettings();
-  checks.cycles = 500;
-  result = Test_Lifecycle(&checks);
+  // Test_Settings checks = Test_DefaultSettings();
+  // checks.cycles = 500;
+  // result = Test_Lifecycle(&checks);
 
-  result = Test_Run("all");
-  result = Test_Run("io");
-  result = Test_Run("shaders");
-  result = Test_Run("audio");
-  result = Test_Run("core");
-  result = Test_Run("resources");
-  result = Test_Run("physics2d");
-  result = Test_Run("physics3d");
-  result = Test_Run("particles2d");
-  result = Test_Run("particles3d");
-  result = Test_Run("handlers");
-  result = Test_Run("assets");
-  result = Test_Run("spatial");
-  result = Test_Run("renderer");
-  result = Test_Benchmarks(NULL);
-  result = Test_Lifecycle(NULL);
+  // result = Test_Run("all");
+  // result = Test_Run("io");
+  // result = Test_Run("shaders");
+  // result = Test_Run("audio");
+  // result = Test_Run("core");
+  // result = Test_Run("resources");
+  // result = Test_Run("physics2d");
+  // result = Test_Run("physics3d");
+  // result = Test_Run("particles2d");
+  // result = Test_Run("particles3d");
+  // result = Test_Run("handlers");
+  // result = Test_Run("assets");
+  // result = Test_Run("spatial");
+  // result = Test_Run("renderer");
+  // result = Test_Benchmarks(NULL);
+  // result = Test_Lifecycle(NULL);
 
   // result = Tests_Main(argc, argv);
 

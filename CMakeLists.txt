@@ -101,3 +101,9 @@ include("${BLB_SOURCE_DIR}/cmake/install.cmake")
 if(BUILD_TESTING)
   include("${BLB_SOURCE_DIR}/cmake/tests.cmake")
 endif()
+
+# Optional Glowbound 2D platformer.
+option(BLB_BUILD_GLOWBOUND "Build the Glowbound 2D platformer" OFF)
+if(BLB_BUILD_GLOWBOUND)
+  add_subdirectory(games/glowbound)
+endif()

@@ -64,8 +64,9 @@ static int create_font_texture(VULKAN *vulkan, const Font *font, VULKAN_FontReso
 
   memcpy(staging.mapped, font->atlas, (size_t)size);
 
-  if (create_image(vulkan, font->atlas_width, font->atlas_height, VK_FORMAT_R8_UNORM, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                   &resource->image, &resource->memory) != 0)
+  if (create_image(vulkan, font->atlas_width, font->atlas_height, VK_FORMAT_R8_UNORM,
+                   VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, &resource->image,
+                   &resource->memory) != 0)
     goto fail;
 
   VkCommandBufferAllocateInfo alloc = {
@@ -105,7 +106,8 @@ static int create_font_texture(VULKAN *vulkan, const Font *font, VULKAN_FontReso
           },
   };
 
-  vkCmdPipelineBarrier(command, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
+  vkCmdPipelineBarrier(command, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL,
+                       1, &barrier);
 
   VkBufferImageCopy copy = {
       .bufferOffset = 0,
@@ -134,7 +136,8 @@ static int create_font_texture(VULKAN *vulkan, const Font *font, VULKAN_FontReso
   barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
   barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-  vkCmdPipelineBarrier(command, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
+  vkCmdPipelineBarrier(command, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0,
+                       NULL, 1, &barrier);
 
   if (vkEndCommandBuffer(command) != VK_SUCCESS)
     goto fail;
@@ -372,16 +375,17 @@ static VkPipelineLayout select_text_layout(VULKAN *vulkan, BLB_RenderMode mode) 
   return vulkan->text_pipeline_layout_2d[mode];
 }
 
-void VULKAN_RendererDrawText(VULKAN *vulkan, const Font *font, const char *text, float x, float y, float glyph_scale, BLB_Vec2 transform_scale,
-                             float rotation, float r, float g, float b, float a, float emission, float glow, float roundness,
-                             BLB_RenderMode render_mode) {
-  VULKAN_RendererDrawTextTransformed(vulkan, font, text, x, y, glyph_scale, transform_scale, rotation, r, g, b, a, emission, glow, roundness,
-                                     render_mode, NULL);
+void VULKAN_RendererDrawText(VULKAN *vulkan, const Font *font, const char *text, float x, float y, float glyph_scale,
+                             BLB_Vec2 transform_scale, float rotation, float r, float g, float b, float a,
+                             float emission, float glow, float roundness, BLB_RenderMode render_mode) {
+  VULKAN_RendererDrawTextTransformed(vulkan, font, text, x, y, glyph_scale, transform_scale, rotation, r, g, b, a,
+                                     emission, glow, roundness, render_mode, NULL);
 }
 
-void VULKAN_RendererDrawTextTransformed(VULKAN *vulkan, const Font *font, const char *text, float x, float y, float glyph_scale,
-                                        BLB_Vec2 transform_scale, float rotation, float r, float g, float b, float a, float emission, float glow,
-                                        float roundness, BLB_RenderMode render_mode, const float *mvp) {
+void VULKAN_RendererDrawTextTransformed(VULKAN *vulkan, const Font *font, const char *text, float x, float y,
+                                        float glyph_scale, BLB_Vec2 transform_scale, float rotation, float r, float g,
+                                        float b, float a, float emission, float glow, float roundness,
+                                        BLB_RenderMode render_mode, const float *mvp) {
 
   if (!vulkan || !font || !text)
     return;
@@ -629,7 +633,8 @@ void VULKAN_RendererDrawTextTransformed(VULKAN *vulkan, const Font *font, const 
   if (mvp) {
     memcpy(data.mvp, mvp, sizeof(data.mvp));
   } else {
-    BLB_Mat4 projection = BLB_CameraPixelProjection((float)vulkan->swapchain_extent.width, (float)vulkan->swapchain_extent.height);
+    BLB_Mat4 projection =
+        BLB_CameraPixelProjection((float)vulkan->swapchain_extent.width, (float)vulkan->swapchain_extent.height);
     memcpy(data.mvp, projection.Elements, sizeof(data.mvp));
   }
 
@@ -652,9 +657,11 @@ void VULKAN_RendererDrawTextTransformed(VULKAN *vulkan, const Font *font, const 
 
   vkCmdBindVertexBuffers(command, 0, 1, &buffer, &offset);
 
-  vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &font_resource->descriptor_set, 0, NULL);
+  vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &font_resource->descriptor_set, 0,
+                          NULL);
 
-  vkCmdPushConstants(command, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(data), &data);
+  vkCmdPushConstants(command, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(data),
+                     &data);
 
   vkCmdDraw(command, (uint32_t)vertex_count, 1, 0, 0);
 
