@@ -1,5 +1,5 @@
 {
   "name": "bulba-engine",
-  "version-string": "1.1.2",
+  "version-string": "1.0.2",
   "dependencies": ["assimp", "freetype", "glfw3", "libjpeg-turbo", "libpng"]
 }
