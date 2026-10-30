@@ -710,7 +710,7 @@ static BLB_Object3D *instantiate_imported_asset(BLB_ImportedModelAsset *asset, B
   object->rotation = BLB_V3(0.0f, 0.0f, 0.0f);
   object->scale = scale;
   object->render_mode = BLB_RENDER_OPAQUE;
-  object->color = BLB_V4(255.0f, 255.0f, 255.0f, 255.0f);
+  object->color = BLB_COLOR_WHITE;
   object->visible = true;
   object->entity_id = BLB_INVALID_ENTITY_ID;
   object->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;
@@ -742,7 +742,7 @@ static BLB_Object3D *instantiate_imported_asset(BLB_ImportedModelAsset *asset, B
     for (size_t i = 0; i < object->submesh_count; ++i) {
       BLB_Material *material = object->submeshes[i].material;
       BLB_MaterialTexture_SetProjection(&material->base_color_texture, mapping);
-      BLB_Material_SetBaseColor(material, 1.0f, 1.0f, 1.0f, material->base_color[3]);
+      BLB_Material_SetBaseColor(material, BLB_ColorRGBA(255, 255, 255, material->base_color.a));
     }
   }
 
@@ -1235,14 +1235,15 @@ static BLB_Material *import_material(const struct aiScene *scene, const struct a
       roughness = sqrtf(2.0f / (shininess + 2.0f));
   }
 
-  BLB_Material_SetBaseColor(material, color.r, color.g, color.b, fminf(1.0f, fmaxf(0.0f, opacity)));
+  BLB_Material_SetBaseColor(material, BLB_ColorFromNormalized(color.r, color.g, color.b, fminf(1.0f, fmaxf(0.0f, opacity))));
   BLB_Material_SetPBR(material, fminf(1.0f, fmaxf(0.0f, metallic)), fminf(1.0f, fmaxf(0.04f, roughness)));
   struct aiColor4D imported_specular = {0.0f, 0.0f, 0.0f, 1.0f};
 
   if (aiGetMaterialColor(source, AI_MATKEY_COLOR_SPECULAR, &imported_specular) == aiReturn_SUCCESS)
-    BLB_Material_SetSpecular(material, 1.0f, fminf(1.0f, fmaxf(0.0f, imported_specular.r)),
-                             fminf(1.0f, fmaxf(0.0f, imported_specular.g)),
-                             fminf(1.0f, fmaxf(0.0f, imported_specular.b)));
+    BLB_Material_SetSpecular(material, 1.0f,
+                             BLB_ColorFromNormalized(fminf(1.0f, fmaxf(0.0f, imported_specular.r)),
+                                                     fminf(1.0f, fmaxf(0.0f, imported_specular.g)),
+                                                     fminf(1.0f, fmaxf(0.0f, imported_specular.b)), 1.0f));
   float imported_ior = 1.5f;
   value_count = 1;
 
@@ -1259,7 +1260,7 @@ static BLB_Material *import_material(const struct aiScene *scene, const struct a
     const float strength = fmaxf(emissive.r, fmaxf(emissive.g, emissive.b));
 
     if (strength > 0.0f)
-      BLB_Material_SetEmission(material, emissive.r, emissive.g, emissive.b, 1.0f, strength);
+      BLB_Material_SetEmission(material, BLB_ColorFromNormalized(emissive.r, emissive.g, emissive.b, 1.0f), strength);
   }
 
   enum aiTextureMapMode map_modes[3] = {aiTextureMapMode_Wrap, aiTextureMapMode_Wrap, aiTextureMapMode_Wrap};
@@ -1608,7 +1609,7 @@ BLB_Object3D *BLB_LoadModelImported(const char *path, BLB_Vec3 scale, BLB_Vec3 p
   object->position = position;
   object->scale = scale;
   object->render_mode = BLB_RENDER_OPAQUE;
-  object->color = BLB_V4(255.0f, 255.0f, 255.0f, 255.0f);
+  object->color = BLB_COLOR_WHITE;
   object->visible = true;
   object->entity_id = BLB_INVALID_ENTITY_ID;
   object->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;

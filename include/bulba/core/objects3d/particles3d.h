@@ -6,6 +6,7 @@
 #include "bulba/core/math3v/polygon.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
+#include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/particle.h"
 
 #include <stdbool.h>
@@ -20,7 +21,7 @@ typedef struct {
   BLB_Vec3 scale;
   BLB_Vec3 rotation;
   BLB_Vec3 rotation_speed;
-  BLB_Vec4 color;
+  BLB_Color color;
 
   float lifetime;
   float lifetime_max;
@@ -65,8 +66,8 @@ typedef struct {
   BLB_Vec3 particle_scale;
   BLB_Vec3 particle_scale_variation;
 
-  BLB_Vec4 color;
-  BLB_Vec4 color_end;
+  BLB_Color color;
+  BLB_Color color_end;
 
   BLB_Vec3 rotation;
   BLB_Vec3 rotation_speed;
@@ -78,7 +79,7 @@ typedef struct {
   BLB_Material *material;
 } BLB_ParticleSystem3D;
 
-BLB_Particle3D *BLB_CreateParticle3D(BLB_ParticleID id, BLB_Vec3 position, BLB_Vec3 velocity, BLB_Vec3 scale, BLB_Vec3 rotation, BLB_Vec4 color,
+BLB_Particle3D *BLB_CreateParticle3D(BLB_ParticleID id, BLB_Vec3 position, BLB_Vec3 velocity, BLB_Vec3 scale, BLB_Vec3 rotation, BLB_Color color,
                                      float lifetime, float lifetime_max, BLB_Texture *texture, BLB_Material *material);
 
 void BLB_DestroyParticle3D(BLB_Particle3D *p);

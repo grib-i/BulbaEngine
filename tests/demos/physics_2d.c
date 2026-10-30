@@ -32,7 +32,7 @@ int Demo_Physics2d(const Demo_Settings *settings) {
     if (!object)
       break;
 
-    BLB_Object2D_SetColor(object, BLB_V4(80 + i * 3.0f, 190, 240, 255));
+    BLB_Object2D_SetColor(object, BLB_ColorRGBA((unsigned char)(80 + i * 3.0f), 190, 240, 255));
     BLB_Physics2D_SetBody(demo.scene->physics_world2d, object, BLB_PHYSICS2D_DYNAMIC);
     attach(&demo, object);
   }

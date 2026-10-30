@@ -42,7 +42,7 @@
 #endif
 
 typedef struct {
-  float base_color[4];
+  BLB_Color base_color;
   float emission;
   float glow;
   float glow_radius;
@@ -52,18 +52,18 @@ typedef struct {
   float normal_scale;
   float specular;
   float occlusion;
-  float specular_color[3];
-  float emission_color[4];
+  BLB_Color specular_color;
+  BLB_Color emission_color;
   float temperature;
   float ior;
   float transmission;
   float volume_thickness;
-  float attenuation_color[3];
+  BLB_Color attenuation_color;
   float attenuation_distance;
   float clearcoat_factor;
   float clearcoat_roughness;
   float clearcoat_normal_scale;
-  float sheen_color[3];
+  BLB_Color sheen_color;
   float sheen_roughness;
   float iridescence_factor;
   float iridescence_ior;
@@ -101,11 +101,15 @@ static void debug_visibility(BLB_RenderVisibilityCache *cache) {
           (unsigned long long)BLB_RenderVisibilityCache_GetCameraRevision(cache));
 }
 
-static void rgb(const BLB_Vec4 color, float output[4]) {
-  output[0] = color.x / 255.0f;
-  output[1] = color.y / 255.0f;
-  output[2] = color.z / 255.0f;
-  output[3] = color.w / 255.0f;
+static BLB_Color color_multiply(BLB_Color a, BLB_Color b) {
+  return BLB_ColorRGBA((unsigned char)(((unsigned int)a.r * b.r + 127u) / 255u),
+                       (unsigned char)(((unsigned int)a.g * b.g + 127u) / 255u),
+                       (unsigned char)(((unsigned int)a.b * b.b + 127u) / 255u),
+                       (unsigned char)(((unsigned int)a.a * b.a + 127u) / 255u));
+}
+
+static BLB_Color color_rgb(BLB_Color color) {
+  return BLB_ColorRGB(color.r, color.g, color.b);
 }
 
 static BLB_RenderMode normalize_render_mode(BLB_RenderMode mode) {
@@ -349,10 +353,7 @@ static BLB_RenderMaterialState material_state_from_3d(const BLB_Object3D *object
   if (object->material) {
     const BLB_Material *material = object->material;
 
-    state.base_color[0] = material->base_color[0] * object->color.x / 255.0f;
-    state.base_color[1] = material->base_color[1] * object->color.y / 255.0f;
-    state.base_color[2] = material->base_color[2] * object->color.z / 255.0f;
-    state.base_color[3] = material->base_color[3] * object->color.w / 255.0f;
+    state.base_color = color_multiply(material->base_color, object->color);
 
     state.emission = material->emission_strength;
     state.glow = material->glow_strength;
@@ -362,28 +363,19 @@ static BLB_RenderMaterialState material_state_from_3d(const BLB_Object3D *object
     state.metallic = material->metallic;
     state.specular = material->specular_factor;
     state.occlusion = material->occlusion_strength;
-    state.specular_color[0] = material->specular_color[0];
-    state.specular_color[1] = material->specular_color[1];
-    state.specular_color[2] = material->specular_color[2];
-    state.emission_color[0] = material->emission_color[0];
-    state.emission_color[1] = material->emission_color[1];
-    state.emission_color[2] = material->emission_color[2];
-    state.emission_color[3] = material->emission_color[3];
+    state.specular_color = color_rgb(material->specular_color);
+    state.emission_color = material->emission_color;
     state.temperature = material->temperature;
     state.normal_scale = material->normal_scale;
     state.ior = material->ior;
     state.transmission = material->transmission;
     state.volume_thickness = material->volume_thickness;
-    state.attenuation_color[0] = material->attenuation_color[0];
-    state.attenuation_color[1] = material->attenuation_color[1];
-    state.attenuation_color[2] = material->attenuation_color[2];
+    state.attenuation_color = color_rgb(material->attenuation_color);
     state.attenuation_distance = material->attenuation_distance;
     state.clearcoat_factor = material->clearcoat_factor;
     state.clearcoat_roughness = material->clearcoat_roughness;
     state.clearcoat_normal_scale = material->clearcoat_normal_scale;
-    state.sheen_color[0] = material->sheen_color[0];
-    state.sheen_color[1] = material->sheen_color[1];
-    state.sheen_color[2] = material->sheen_color[2];
+    state.sheen_color = color_rgb(material->sheen_color);
     state.sheen_roughness = material->sheen_roughness;
     state.iridescence_factor = material->iridescence_factor;
     state.iridescence_ior = material->iridescence_ior;
@@ -412,7 +404,7 @@ static BLB_RenderMaterialState material_state_from_3d(const BLB_Object3D *object
   state.depth_write = true;
   state.double_sided = false;
   state.unlit = false;
-  rgb(object->color, state.base_color);
+  state.base_color = object->color;
   state.emission = 0.0f;
   state.glow = 0.0f;
   state.glow_radius = 0.0f;
@@ -421,13 +413,8 @@ static BLB_RenderMaterialState material_state_from_3d(const BLB_Object3D *object
   state.metallic = 0.0f;
   state.specular = 1.0f;
   state.occlusion = 1.0f;
-  state.specular_color[0] = 1.0f;
-  state.specular_color[1] = 1.0f;
-  state.specular_color[2] = 1.0f;
-  state.emission_color[0] = 1.0f;
-  state.emission_color[1] = 1.0f;
-  state.emission_color[2] = 1.0f;
-  state.emission_color[3] = 1.0f;
+  state.specular_color = BLB_COLOR_WHITE;
+  state.emission_color = BLB_COLOR_WHITE;
   state.temperature = 6500.0f;
   state.entity_id = (float)object->entity_id;
   state.alpha_cutoff = 0.5f;
@@ -436,9 +423,8 @@ static BLB_RenderMaterialState material_state_from_3d(const BLB_Object3D *object
   state.ior = 1.5f;
   state.transmission = 0.0f;
   state.volume_thickness = 0.0f;
-  state.attenuation_color[0] = 1.0f;
-  state.attenuation_color[1] = 1.0f;
-  state.attenuation_color[2] = 1.0f;
+  state.attenuation_color = BLB_COLOR_WHITE;
+  state.sheen_color = BLB_COLOR_BLACK;
   state.attenuation_distance = INFINITY;
   state.clearcoat_normal_scale = 1.0f;
   state.iridescence_ior = 1.3f;
@@ -457,10 +443,7 @@ static BLB_RenderMaterialState material_state_from_2d(const BLB_Object2D *object
   if (object->material) {
     const BLB_Material *material = object->material;
 
-    state.base_color[0] = material->base_color[0] * object->color.x / 255.0f;
-    state.base_color[1] = material->base_color[1] * object->color.y / 255.0f;
-    state.base_color[2] = material->base_color[2] * object->color.z / 255.0f;
-    state.base_color[3] = material->base_color[3] * object->color.w / 255.0f;
+    state.base_color = color_multiply(material->base_color, object->color);
     state.emission = material->emission_strength;
     state.glow = material->glow_strength;
     state.glow_radius = material->glow_radius;
@@ -469,28 +452,19 @@ static BLB_RenderMaterialState material_state_from_2d(const BLB_Object2D *object
     state.metallic = material->metallic;
     state.specular = material->specular_factor;
     state.occlusion = material->occlusion_strength;
-    state.specular_color[0] = material->specular_color[0];
-    state.specular_color[1] = material->specular_color[1];
-    state.specular_color[2] = material->specular_color[2];
-    state.emission_color[0] = material->emission_color[0];
-    state.emission_color[1] = material->emission_color[1];
-    state.emission_color[2] = material->emission_color[2];
-    state.emission_color[3] = material->emission_color[3];
+    state.specular_color = color_rgb(material->specular_color);
+    state.emission_color = material->emission_color;
     state.temperature = material->temperature;
     state.normal_scale = material->normal_scale;
     state.ior = material->ior;
     state.transmission = material->transmission;
     state.volume_thickness = material->volume_thickness;
-    state.attenuation_color[0] = material->attenuation_color[0];
-    state.attenuation_color[1] = material->attenuation_color[1];
-    state.attenuation_color[2] = material->attenuation_color[2];
+    state.attenuation_color = color_rgb(material->attenuation_color);
     state.attenuation_distance = material->attenuation_distance;
     state.clearcoat_factor = material->clearcoat_factor;
     state.clearcoat_roughness = material->clearcoat_roughness;
     state.clearcoat_normal_scale = material->clearcoat_normal_scale;
-    state.sheen_color[0] = material->sheen_color[0];
-    state.sheen_color[1] = material->sheen_color[1];
-    state.sheen_color[2] = material->sheen_color[2];
+    state.sheen_color = color_rgb(material->sheen_color);
     state.sheen_roughness = material->sheen_roughness;
     state.iridescence_factor = material->iridescence_factor;
     state.iridescence_ior = material->iridescence_ior;
@@ -519,7 +493,7 @@ static BLB_RenderMaterialState material_state_from_2d(const BLB_Object2D *object
   state.depth_write = false;
   state.double_sided = true;
   state.unlit = true;
-  rgb(object->color, state.base_color);
+  state.base_color = object->color;
   state.emission = 0.0f;
   state.glow = 0.0f;
   state.glow_radius = 0.0f;
@@ -528,13 +502,8 @@ static BLB_RenderMaterialState material_state_from_2d(const BLB_Object2D *object
   state.metallic = 0.0f;
   state.specular = 1.0f;
   state.occlusion = 1.0f;
-  state.specular_color[0] = 1.0f;
-  state.specular_color[1] = 1.0f;
-  state.specular_color[2] = 1.0f;
-  state.emission_color[0] = 1.0f;
-  state.emission_color[1] = 1.0f;
-  state.emission_color[2] = 1.0f;
-  state.emission_color[3] = 1.0f;
+  state.specular_color = BLB_COLOR_WHITE;
+  state.emission_color = BLB_COLOR_WHITE;
   state.temperature = 6500.0f;
   state.entity_id = (float)object->entity_id;
   state.alpha_cutoff = 0.5f;
@@ -543,9 +512,8 @@ static BLB_RenderMaterialState material_state_from_2d(const BLB_Object2D *object
   state.ior = 1.5f;
   state.transmission = 0.0f;
   state.volume_thickness = 0.0f;
-  state.attenuation_color[0] = 1.0f;
-  state.attenuation_color[1] = 1.0f;
-  state.attenuation_color[2] = 1.0f;
+  state.attenuation_color = BLB_COLOR_WHITE;
+  state.sheen_color = BLB_COLOR_BLACK;
   state.attenuation_distance = INFINITY;
   state.clearcoat_normal_scale = 1.0f;
   state.iridescence_ior = 1.3f;
@@ -563,12 +531,7 @@ static BLB_RenderMaterialState material_state_from_text(const BLB_Text2D *text) 
 
   if (text->material) {
     const BLB_Material *material = text->material;
-    printf("32");
-
-    state.base_color[0] = material->base_color[0];
-    state.base_color[1] = material->base_color[1];
-    state.base_color[2] = material->base_color[2];
-    state.base_color[3] = material->base_color[3];
+    state.base_color = material->base_color;
     state.emission = material->emission_strength;
     state.glow = material->glow_strength;
     state.glow_radius = material->glow_radius;
@@ -577,27 +540,18 @@ static BLB_RenderMaterialState material_state_from_text(const BLB_Text2D *text) 
     state.metallic = material->metallic;
     state.specular = material->specular_factor;
     state.occlusion = material->occlusion_strength;
-    state.specular_color[0] = material->specular_color[0];
-    state.specular_color[1] = material->specular_color[1];
-    state.specular_color[2] = material->specular_color[2];
-    state.emission_color[0] = material->emission_color[0];
-    state.emission_color[1] = material->emission_color[1];
-    state.emission_color[2] = material->emission_color[2];
-    state.emission_color[3] = material->emission_color[3];
+    state.specular_color = color_rgb(material->specular_color);
+    state.emission_color = material->emission_color;
     state.temperature = material->temperature;
     state.ior = material->ior;
     state.transmission = material->transmission;
     state.volume_thickness = material->volume_thickness;
-    state.attenuation_color[0] = material->attenuation_color[0];
-    state.attenuation_color[1] = material->attenuation_color[1];
-    state.attenuation_color[2] = material->attenuation_color[2];
+    state.attenuation_color = color_rgb(material->attenuation_color);
     state.attenuation_distance = material->attenuation_distance;
     state.clearcoat_factor = material->clearcoat_factor;
     state.clearcoat_roughness = material->clearcoat_roughness;
     state.clearcoat_normal_scale = material->clearcoat_normal_scale;
-    state.sheen_color[0] = material->sheen_color[0];
-    state.sheen_color[1] = material->sheen_color[1];
-    state.sheen_color[2] = material->sheen_color[2];
+    state.sheen_color = color_rgb(material->sheen_color);
     state.sheen_roughness = material->sheen_roughness;
     state.iridescence_factor = material->iridescence_factor;
     state.iridescence_ior = material->iridescence_ior;
@@ -620,10 +574,11 @@ static BLB_RenderMaterialState material_state_from_text(const BLB_Text2D *text) 
     return state;
   }
 
-  state.base_color[0] = text->color[0] / 255.0f;
-  state.base_color[1] = text->color[1] / 255.0f;
-  state.base_color[2] = text->color[2] / 255.0f;
-  state.base_color[3] = text->color[3] / 255.0f;
+  state.base_color = text->color;
+  state.specular_color = BLB_COLOR_BLACK;
+  state.emission_color = BLB_COLOR_TRANSPARENT;
+  state.attenuation_color = BLB_COLOR_BLACK;
+  state.sheen_color = BLB_COLOR_BLACK;
   state.emission = text->emission;
   state.glow = text->glow;
   state.roughness = text->roundness;
@@ -1039,10 +994,10 @@ static bool append_instance_data(BLB_RenderInstanceData *dst, BLB_Object3D *obje
   build_model(object->position, object->rotation, object->scale, &model);
   memcpy(dst->model, model.Elements, sizeof(dst->model));
 
-  dst->color[0] = object->color.x / 255.0f * (object->material ? object->material->base_color[0] : 1.0f);
-  dst->color[1] = object->color.y / 255.0f * (object->material ? object->material->base_color[1] : 1.0f);
-  dst->color[2] = object->color.z / 255.0f * (object->material ? object->material->base_color[2] : 1.0f);
-  dst->color[3] = object->color.w / 255.0f * (object->material ? object->material->base_color[3] : 1.0f);
+  dst->color[0] = object->color.r / 255.0f * (object->material ? object->material->base_color.r / 255.0f : 1.0f);
+  dst->color[1] = object->color.g / 255.0f * (object->material ? object->material->base_color.g / 255.0f : 1.0f);
+  dst->color[2] = object->color.b / 255.0f * (object->material ? object->material->base_color.b / 255.0f : 1.0f);
+  dst->color[3] = object->color.a / 255.0f * (object->material ? object->material->base_color.a / 255.0f : 1.0f);
   dst->entity_id = (uint32_t)object->entity_id;
   dst->padding[0] = 0;
   dst->padding[1] = 0;
@@ -1098,7 +1053,8 @@ static void append_cached_instance(BLB_RenderInstanceData *dst, BLB_RenderInstan
 
   *dst = entry->data;
   for (int c = 0; c < 4; ++c)
-    dst->color[c] = object->color.Elements[c] / 255.0f * (object->material ? object->material->base_color[c] : 1.0f);
+    dst->color[c] =
+        object->color.rgba[c] / 255.0f * (object->material ? object->material->base_color.rgba[c] / 255.0f : 1.0f);
 
   dst->entity_id = (uint32_t)object->entity_id;
 }
@@ -1242,13 +1198,8 @@ static BLB_RenderMaterial renderer_material_from_state(const BLB_RenderMaterialS
   result.roughness = state->roughness;
   result.specular = state->specular;
   result.occlusion = state->occlusion;
-  result.specular_color[0] = state->specular_color[0];
-  result.specular_color[1] = state->specular_color[1];
-  result.specular_color[2] = state->specular_color[2];
-  result.emission_color[0] = state->emission_color[0];
-  result.emission_color[1] = state->emission_color[1];
-  result.emission_color[2] = state->emission_color[2];
-  result.emission_color[3] = state->emission_color[3];
+  result.specular_color = state->specular_color;
+  result.emission_color = state->emission_color;
   result.temperature = state->temperature;
   result.entity_id = state->entity_id;
   result.uv_bounds_min[0] = result.uv_bounds_min[1] = result.uv_bounds_min[2] = -0.5f;
@@ -1257,16 +1208,12 @@ static BLB_RenderMaterial renderer_material_from_state(const BLB_RenderMaterialS
   result.ior = state->ior;
   result.transmission = state->transmission;
   result.volume_thickness = state->volume_thickness;
-  result.attenuation_color[0] = state->attenuation_color[0];
-  result.attenuation_color[1] = state->attenuation_color[1];
-  result.attenuation_color[2] = state->attenuation_color[2];
+  result.attenuation_color = state->attenuation_color;
   result.attenuation_distance = state->attenuation_distance;
   result.clearcoat_factor = state->clearcoat_factor;
   result.clearcoat_roughness = state->clearcoat_roughness;
   result.clearcoat_normal_scale = state->clearcoat_normal_scale;
-  result.sheen_color[0] = state->sheen_color[0];
-  result.sheen_color[1] = state->sheen_color[1];
-  result.sheen_color[2] = state->sheen_color[2];
+  result.sheen_color = state->sheen_color;
   result.sheen_roughness = state->sheen_roughness;
   result.iridescence_factor = state->iridescence_factor;
   result.iridescence_ior = state->iridescence_ior;
@@ -1484,15 +1431,15 @@ static void draw_object3d_pass(BLB_Object3D *object, const BLB_Polygon3D *polygo
 
   pass.emission *= glow_mul;
   pass.glow *= glow_mul;
-  pass.base_color[3] *= glow_mul;
+  pass.base_color.a = BLB_ColorChannelFromNormalized(BLB_ColorChannelToNormalized(pass.base_color.a) * glow_mul);
 
   if (glow_pass) {
     pass.lighting_enabled = false;
     pass.emission = glow_mul;
     pass.glow = 0.0f;
-    pass.base_color[0] = pass.emission_color[0];
-    pass.base_color[1] = pass.emission_color[1];
-    pass.base_color[2] = pass.emission_color[2];
+    pass.base_color.r = pass.emission_color.r;
+    pass.base_color.g = pass.emission_color.g;
+    pass.base_color.b = pass.emission_color.b;
     pass.render_mode = BLB_RENDER_ADDITIVE;
   } else if (pass.alpha_mode == BLB_ALPHA_BLEND && pass.render_mode == BLB_RENDER_OPAQUE) {
     pass.render_mode = BLB_RENDER_TRANSPARENT;
@@ -1505,8 +1452,10 @@ static void draw_object3d_pass(BLB_Object3D *object, const BLB_Polygon3D *polygo
   if (object->camera_attached)
     renderer_material_force_overlay(&material);
 
-  BLB_RendererDrawPolygon3D(renderer, polygon, &mvp.Elements[0][0], model_rows, pass.base_color[0], pass.base_color[1],
-                            pass.base_color[2], pass.base_color[3], &material, object->texture);
+  BLB_RendererDrawPolygon3D(
+      renderer, polygon, &mvp.Elements[0][0], model_rows, BLB_ColorChannelToNormalized(pass.base_color.r),
+      BLB_ColorChannelToNormalized(pass.base_color.g), BLB_ColorChannelToNormalized(pass.base_color.b),
+      BLB_ColorChannelToNormalized(pass.base_color.a), &material, object->texture);
 }
 
 static BLB_Polygon3D *skybox_plane_polygon(void) {
@@ -1674,10 +1623,10 @@ static bool append_instance_data2d(BLB_RenderInstanceData *dst, const BLB_Object
 
   memset(dst, 0, sizeof(*dst));
   memcpy(dst->model, model.Elements, sizeof(dst->model));
-  dst->color[0] = object->color.x / 255.0f * (object->material ? object->material->base_color[0] : 1.0f);
-  dst->color[1] = object->color.y / 255.0f * (object->material ? object->material->base_color[1] : 1.0f);
-  dst->color[2] = object->color.z / 255.0f * (object->material ? object->material->base_color[2] : 1.0f);
-  dst->color[3] = object->color.w / 255.0f * (object->material ? object->material->base_color[3] : 1.0f);
+  dst->color[0] = object->color.r / 255.0f * (object->material ? object->material->base_color.r / 255.0f : 1.0f);
+  dst->color[1] = object->color.g / 255.0f * (object->material ? object->material->base_color.g / 255.0f : 1.0f);
+  dst->color[2] = object->color.b / 255.0f * (object->material ? object->material->base_color.b / 255.0f : 1.0f);
+  dst->color[3] = object->color.a / 255.0f * (object->material ? object->material->base_color.a / 255.0f : 1.0f);
   dst->entity_id = (uint32_t)object->entity_id;
 
   return true;
@@ -1787,10 +1736,13 @@ static void draw_particle2d(BLB_Particle2D *particle, BLB_Renderer *renderer, fl
     return;
 
   BLB_RenderMaterialState state = {0};
+  state.specular_color = BLB_COLOR_BLACK;
+  state.attenuation_color = BLB_COLOR_BLACK;
+  state.sheen_color = BLB_COLOR_BLACK;
 
   if (particle->material) {
     BLB_Object2D proxy = {0};
-    proxy.color = BLB_V4(255, 255, 255, 255);
+    proxy.color = BLB_COLOR_WHITE;
     proxy.material = particle->material;
     proxy.entity_id = particle->id.id;
     state = material_state_from_2d(&proxy);
@@ -1809,10 +1761,14 @@ static void draw_particle2d(BLB_Particle2D *particle, BLB_Renderer *renderer, fl
                              BLB_MulM4(rotation, BLB_Scale(BLB_V3(particle->scale.x, particle->scale.y, 1.0f))));
   memcpy(instance.model, model.Elements, sizeof(instance.model));
 
-  instance.color[0] = particle->color.x / 255.0f * state.base_color[0];
-  instance.color[1] = particle->color.y / 255.0f * state.base_color[1];
-  instance.color[2] = particle->color.z / 255.0f * state.base_color[2];
-  instance.color[3] = particle->color.w / 255.0f * state.base_color[3];
+  instance.color[0] =
+      BLB_ColorChannelToNormalized(particle->color.r) * BLB_ColorChannelToNormalized(state.base_color.r);
+  instance.color[1] =
+      BLB_ColorChannelToNormalized(particle->color.g) * BLB_ColorChannelToNormalized(state.base_color.g);
+  instance.color[2] =
+      BLB_ColorChannelToNormalized(particle->color.b) * BLB_ColorChannelToNormalized(state.base_color.b);
+  instance.color[3] =
+      BLB_ColorChannelToNormalized(particle->color.a) * BLB_ColorChannelToNormalized(state.base_color.a);
 
   instance.entity_id = particle->id.id;
 
@@ -1855,10 +1811,13 @@ static void draw_particle3d(BLB_Particle3D *particle, BLB_Renderer *renderer, co
     return;
 
   BLB_RenderMaterialState state = {0};
+  state.specular_color = BLB_COLOR_BLACK;
+  state.attenuation_color = BLB_COLOR_BLACK;
+  state.sheen_color = BLB_COLOR_BLACK;
 
   if (particle->material) {
     BLB_Object3D proxy = {0};
-    proxy.color = BLB_V4(255, 255, 255, 255);
+    proxy.color = BLB_COLOR_WHITE;
     proxy.material = particle->material;
     proxy.entity_id = particle->id.id;
     state = material_state_from_3d(&proxy);
@@ -1880,10 +1839,14 @@ static void draw_particle3d(BLB_Particle3D *particle, BLB_Renderer *renderer, co
 
   BLB_RenderInstanceData instance = {0};
   memcpy(instance.model, model.Elements, sizeof(instance.model));
-  instance.color[0] = particle->color.x / 255.0f * state.base_color[0];
-  instance.color[1] = particle->color.y / 255.0f * state.base_color[1];
-  instance.color[2] = particle->color.z / 255.0f * state.base_color[2];
-  instance.color[3] = particle->color.w / 255.0f * state.base_color[3];
+  instance.color[0] =
+      BLB_ColorChannelToNormalized(particle->color.r) * BLB_ColorChannelToNormalized(state.base_color.r);
+  instance.color[1] =
+      BLB_ColorChannelToNormalized(particle->color.g) * BLB_ColorChannelToNormalized(state.base_color.g);
+  instance.color[2] =
+      BLB_ColorChannelToNormalized(particle->color.b) * BLB_ColorChannelToNormalized(state.base_color.b);
+  instance.color[3] =
+      BLB_ColorChannelToNormalized(particle->color.a) * BLB_ColorChannelToNormalized(state.base_color.a);
   instance.entity_id = particle->id.id;
 
   BLB_Mat4 identity = BLB_M4D(1.0f);
@@ -1931,10 +1894,13 @@ static void draw_particle_system3d(BLB_ParticleSystem3D *system, BLB_Renderer *r
     return;
 
   BLB_RenderMaterialState state = {0};
+  state.specular_color = BLB_COLOR_BLACK;
+  state.attenuation_color = BLB_COLOR_BLACK;
+  state.sheen_color = BLB_COLOR_BLACK;
 
   if (system->material) {
     BLB_Object3D proxy = {0};
-    proxy.color = BLB_V4(255, 255, 255, 255);
+    proxy.color = BLB_COLOR_WHITE;
     proxy.material = system->material;
     proxy.entity_id = system->id.id;
     state = material_state_from_3d(&proxy);
@@ -1987,10 +1953,10 @@ static void draw_particle_system3d(BLB_ParticleSystem3D *system, BLB_Renderer *r
     }
 
     memcpy(batch[count].model, model.Elements, sizeof(batch[count].model));
-    batch[count].color[0] = p->color.x / 255.0f * state.base_color[0];
-    batch[count].color[1] = p->color.y / 255.0f * state.base_color[1];
-    batch[count].color[2] = p->color.z / 255.0f * state.base_color[2];
-    batch[count].color[3] = p->color.w / 255.0f * state.base_color[3];
+    batch[count].color[0] = BLB_ColorChannelToNormalized(p->color.r) * BLB_ColorChannelToNormalized(state.base_color.r);
+    batch[count].color[1] = BLB_ColorChannelToNormalized(p->color.g) * BLB_ColorChannelToNormalized(state.base_color.g);
+    batch[count].color[2] = BLB_ColorChannelToNormalized(p->color.b) * BLB_ColorChannelToNormalized(state.base_color.b);
+    batch[count].color[3] = BLB_ColorChannelToNormalized(p->color.a) * BLB_ColorChannelToNormalized(state.base_color.a);
     batch[count].entity_id = p->id.id;
     batch[count].padding[0] = batch[count].padding[1] = batch[count].padding[2] = 0;
     ++count;
@@ -2068,14 +2034,15 @@ static void draw_particle_system2d(BLB_ParticleSystem2D *system, BLB_Renderer *r
     return;
 
   BLB_RenderMaterialState state = {0};
-  state.base_color[0] = state.base_color[1] = state.base_color[2] = state.base_color[3] = 1.0f;
+  state.base_color = BLB_COLOR_WHITE;
   state.roughness = 0.65f;
   state.specular = 1.0f;
   state.occlusion = 1.0f;
   state.temperature = 6500.0f;
-  state.specular_color[0] = state.specular_color[1] = state.specular_color[2] = 1.0f;
-  state.emission_color[0] = state.emission_color[1] = state.emission_color[2] = state.emission_color[3] = 1.0f;
-  state.attenuation_color[0] = state.attenuation_color[1] = state.attenuation_color[2] = 1.0f;
+  state.specular_color = BLB_COLOR_WHITE;
+  state.emission_color = BLB_COLOR_WHITE;
+  state.attenuation_color = BLB_COLOR_WHITE;
+  state.sheen_color = BLB_COLOR_BLACK;
   state.render_mode = normalize_render_mode((BLB_RenderMode)system->render_mode);
   state.alpha_mode = BLB_ALPHA_BLEND;
   state.lighting_enabled = false;
@@ -2085,10 +2052,7 @@ static void draw_particle_system2d(BLB_ParticleSystem2D *system, BLB_Renderer *r
 
   if (system->material) {
     const BLB_Material *m = system->material;
-    state.base_color[0] = m->base_color[0];
-    state.base_color[1] = m->base_color[1];
-    state.base_color[2] = m->base_color[2];
-    state.base_color[3] = m->base_color[3];
+    state.base_color = m->base_color;
     state.emission = m->emission_strength;
     state.glow = m->glow_strength;
     state.glow_radius = m->glow_radius;
@@ -2138,10 +2102,10 @@ static void draw_particle_system2d(BLB_ParticleSystem2D *system, BLB_Renderer *r
     BLB_Mat4 model = BLB_MulM4(BLB_Translate(BLB_V3(p->position.x, p->position.y, 0.0f)),
                                BLB_MulM4(rotation, BLB_Scale(BLB_V3(p->scale.x, p->scale.y, 1.0f))));
     memcpy(batch[count].model, model.Elements, sizeof(batch[count].model));
-    batch[count].color[0] = p->color.x / 255.0f * state.base_color[0];
-    batch[count].color[1] = p->color.y / 255.0f * state.base_color[1];
-    batch[count].color[2] = p->color.z / 255.0f * state.base_color[2];
-    batch[count].color[3] = p->color.w / 255.0f * state.base_color[3];
+    batch[count].color[0] = BLB_ColorChannelToNormalized(p->color.r) * BLB_ColorChannelToNormalized(state.base_color.r);
+    batch[count].color[1] = BLB_ColorChannelToNormalized(p->color.g) * BLB_ColorChannelToNormalized(state.base_color.g);
+    batch[count].color[2] = BLB_ColorChannelToNormalized(p->color.b) * BLB_ColorChannelToNormalized(state.base_color.b);
+    batch[count].color[3] = BLB_ColorChannelToNormalized(p->color.a) * BLB_ColorChannelToNormalized(state.base_color.a);
     batch[count].entity_id = (uint32_t)p->id.id;
     batch[count].padding[0] = batch[count].padding[1] = batch[count].padding[2] = 0;
     ++count;
@@ -2174,15 +2138,15 @@ static void draw_object2d_pass(BLB_Object2D *object, BLB_Renderer *renderer, con
 
   pass.emission *= glow_mul;
   pass.glow *= glow_mul;
-  pass.base_color[3] *= glow_mul;
+  pass.base_color.a = BLB_ColorChannelFromNormalized(BLB_ColorChannelToNormalized(pass.base_color.a) * glow_mul);
 
   if (glow_pass) {
     pass.lighting_enabled = false;
     pass.emission = glow_mul;
     pass.glow = 0.0f;
-    pass.base_color[0] = pass.emission_color[0];
-    pass.base_color[1] = pass.emission_color[1];
-    pass.base_color[2] = pass.emission_color[2];
+    pass.base_color.r = pass.emission_color.r;
+    pass.base_color.g = pass.emission_color.g;
+    pass.base_color.b = pass.emission_color.b;
     pass.render_mode = BLB_RENDER_ADDITIVE;
   } else if (pass.alpha_mode == BLB_ALPHA_BLEND && pass.render_mode == BLB_RENDER_OPAQUE) {
     pass.render_mode = BLB_RENDER_TRANSPARENT;
@@ -2207,7 +2171,10 @@ static void draw_object2d_pass(BLB_Object2D *object, BLB_Renderer *renderer, con
     for (size_t row = 0; row < 4; ++row)
       instance.model[column * 4 + row] *= scale_mul;
 
-  memcpy(instance.color, pass.base_color, sizeof(instance.color));
+  instance.color[0] = BLB_ColorChannelToNormalized(pass.base_color.r);
+  instance.color[1] = BLB_ColorChannelToNormalized(pass.base_color.g);
+  instance.color[2] = BLB_ColorChannelToNormalized(pass.base_color.b);
+  instance.color[3] = BLB_ColorChannelToNormalized(pass.base_color.a);
   uint32_t width = 0, height = 0;
   BLB_RendererGetViewport(renderer, &width, &height);
 
@@ -2269,13 +2236,11 @@ static void draw_text2d(BLB_Text2D *text, BLB_Renderer *renderer, BLB_Camera *ca
   if (!text->camera_attached)
     scale.y = -scale.y;
 
-  BLB_RendererDrawTextTransformed(renderer, &text->font, text->text, text->position.x, text->position.y, glyph_scale,
-                                  scale, text->rotation, state.base_color[0], state.base_color[1], state.base_color[2],
-                                  state.base_color[3], state.emission, state.glow, state.roughness,
-                                  normalize_render_mode(state.render_mode), &matrix.Elements[0][0]);
-
-  printf("r = %f\ng = %f\nb = %f\na = %f\n", state.base_color[0], state.base_color[1], state.base_color[2],
-         state.base_color[3]);
+  BLB_RendererDrawTextTransformed(
+      renderer, &text->font, text->text, text->position.x, text->position.y, glyph_scale, scale, text->rotation,
+      BLB_ColorChannelToNormalized(state.base_color.r), BLB_ColorChannelToNormalized(state.base_color.g),
+      BLB_ColorChannelToNormalized(state.base_color.b), BLB_ColorChannelToNormalized(state.base_color.a),
+      state.emission, state.glow, state.roughness, normalize_render_mode(state.render_mode), &matrix.Elements[0][0]);
 }
 
 static uint64_t render_sort_signature3d(BLB_Object3D **objects, int count) {
@@ -2837,9 +2802,10 @@ static void draw_aggregated_cluster3d(BLB_RenderObjects3DCluster *cluster, BLB_R
   BLB_Mat4 identity = BLB_M4D(1.0f);
   BLB_Mat4 mvp = BLB_MulM4(camera_cache->projection, BLB_MulM4(camera_cache->view, identity));
 
-  BLB_RendererDrawCachedMeshMaterial(renderer, mesh, &mvp.Elements[0][0], NULL, state.base_color[0],
-                                     state.base_color[1], state.base_color[2], state.base_color[3], &material,
-                                     source->texture, scene->camera->position);
+  BLB_RendererDrawCachedMeshMaterial(
+      renderer, mesh, &mvp.Elements[0][0], NULL, BLB_ColorChannelToNormalized(state.base_color.r),
+      BLB_ColorChannelToNormalized(state.base_color.g), BLB_ColorChannelToNormalized(state.base_color.b),
+      BLB_ColorChannelToNormalized(state.base_color.a), &material, source->texture, scene->camera->position);
 }
 
 typedef struct {
@@ -2877,8 +2843,8 @@ static uint64_t render_object3d_generation(BLB_Object3D **objects, size_t count)
     if (object) {
       const float values[] = {object->position.x, object->position.y, object->position.z, object->rotation.x,
                               object->rotation.y, object->rotation.z, object->scale.x,    object->scale.y,
-                              object->scale.z,    object->color.x,    object->color.y,    object->color.z,
-                              object->color.w};
+                              object->scale.z,    object->color.r,    object->color.g,    object->color.b,
+                              object->color.a};
 
       for (size_t k = 0; k < sizeof(values) / sizeof(values[0]); ++k) {
         uint32_t bits;
@@ -3332,10 +3298,9 @@ static void update_scene(BLB_Scene *scene) {
 
 static void prepare_clear(BLB_Scene *scene, BLB_Renderer *renderer) {
   if (scene->clear_enabled) {
-    BLB_RendererSetClearColor(renderer, scene->clear_color[0] / 255.0f, scene->clear_color[1] / 255.0f,
-                              scene->clear_color[2] / 255.0f, scene->clear_color[3] / 255.0f);
+    BLB_RendererSetClearColor(renderer, scene->clear_color);
   } else {
-    BLB_RendererSetClearColor(renderer, 0.0f, 0.0f, 0.0f, 1.0f);
+    BLB_RendererSetClearColor(renderer, BLB_COLOR_BLACK);
   }
 }
 

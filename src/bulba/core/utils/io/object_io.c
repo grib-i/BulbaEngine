@@ -98,6 +98,49 @@ static int BLB_ObjectFile_ReadQuat(FILE *file, BLB_Quat *value) {
          BLB_ObjectFile_Read(file, &value->z, sizeof(value->z), 1) || BLB_ObjectFile_Read(file, &value->w, sizeof(value->w), 1);
 }
 
+/* Material colors are persisted as normalized floats to preserve the existing file layout. */
+static int BLB_ObjectFile_WriteColor4(FILE *file, BLB_Color color) {
+  const float channels[4] = {BLB_ColorChannelToNormalized(color.r), BLB_ColorChannelToNormalized(color.g),
+                             BLB_ColorChannelToNormalized(color.b), BLB_ColorChannelToNormalized(color.a)};
+  return BLB_ObjectFile_Write(file, channels, sizeof(float), 4);
+}
+
+static int BLB_ObjectFile_ReadColor4(FILE *file, BLB_Color *color) {
+  float channels[4];
+
+  if (BLB_ObjectFile_Read(file, channels, sizeof(float), 4) != 0)
+    return -1;
+
+  *color = BLB_ColorFromNormalized(channels[0], channels[1], channels[2], channels[3]);
+  return 0;
+}
+
+static int BLB_ObjectFile_WriteColor3(FILE *file, BLB_Color color) {
+  const float channels[3] = {BLB_ColorChannelToNormalized(color.r), BLB_ColorChannelToNormalized(color.g),
+                             BLB_ColorChannelToNormalized(color.b)};
+  return BLB_ObjectFile_Write(file, channels, sizeof(float), 3);
+}
+
+static int BLB_ObjectFile_ReadColor3(FILE *file, BLB_Color *color) {
+  float channels[3];
+
+  if (BLB_ObjectFile_Read(file, channels, sizeof(float), 3) != 0)
+    return -1;
+
+  *color = BLB_ColorFromNormalized(channels[0], channels[1], channels[2], 1.0f);
+  return 0;
+}
+
+static int BLB_ObjectFile_ReadLegacyColor4(FILE *file, BLB_Color *color) {
+  BLB_Vec4 legacy_color;
+
+  if (BLB_ObjectFile_Read(file, &legacy_color, sizeof(legacy_color), 1) != 0)
+    return -1;
+
+  *color = BLB_ColorFromNormalized(legacy_color.x, legacy_color.y, legacy_color.z, legacy_color.w);
+  return 0;
+}
+
 static int BLB_ObjectFile_CheckExtension(const char *path, const char *extension) {
   if (!path || !extension)
     return -1;
@@ -452,25 +495,25 @@ static int BLB_ObjectFile_WriteMaterial(FILE *file, const BLB_Material *material
       BLB_ObjectFile_Write(file, &alpha_mode, sizeof(alpha_mode), 1) != 0 || BLB_ObjectFile_WriteBool(file, material->lighting_enabled) != 0 ||
       BLB_ObjectFile_WriteBool(file, material->depth_enabled) != 0 || BLB_ObjectFile_WriteBool(file, material->depth_write) != 0 ||
       BLB_ObjectFile_WriteBool(file, material->double_sided) != 0 || BLB_ObjectFile_WriteBool(file, material->unlit) != 0 ||
-      BLB_ObjectFile_Write(file, material->base_color, sizeof(material->base_color), 1) != 0 ||
+      BLB_ObjectFile_WriteColor4(file, material->base_color) != 0 ||
       BLB_ObjectFile_Write(file, &material->metallic, sizeof(material->metallic), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->roughness, sizeof(material->roughness), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->normal_scale, sizeof(material->normal_scale), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->occlusion_strength, sizeof(material->occlusion_strength), 1) != 0 ||
-      BLB_ObjectFile_Write(file, material->emission_color, sizeof(material->emission_color), 1) != 0 ||
+      BLB_ObjectFile_WriteColor4(file, material->emission_color) != 0 ||
       BLB_ObjectFile_Write(file, &material->emission_strength, sizeof(material->emission_strength), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->alpha_cutoff, sizeof(material->alpha_cutoff), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->specular_factor, sizeof(material->specular_factor), 1) != 0 ||
-      BLB_ObjectFile_Write(file, material->specular_color, sizeof(material->specular_color), 1) != 0 ||
+      BLB_ObjectFile_WriteColor3(file, material->specular_color) != 0 ||
       BLB_ObjectFile_Write(file, &material->ior, sizeof(material->ior), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->transmission, sizeof(material->transmission), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->volume_thickness, sizeof(material->volume_thickness), 1) != 0 ||
-      BLB_ObjectFile_Write(file, material->attenuation_color, sizeof(material->attenuation_color), 1) != 0 ||
+      BLB_ObjectFile_WriteColor3(file, material->attenuation_color) != 0 ||
       BLB_ObjectFile_Write(file, &material->attenuation_distance, sizeof(material->attenuation_distance), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->clearcoat_factor, sizeof(material->clearcoat_factor), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->clearcoat_roughness, sizeof(material->clearcoat_roughness), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->clearcoat_normal_scale, sizeof(material->clearcoat_normal_scale), 1) != 0 ||
-      BLB_ObjectFile_Write(file, material->sheen_color, sizeof(material->sheen_color), 1) != 0 ||
+      BLB_ObjectFile_WriteColor3(file, material->sheen_color) != 0 ||
       BLB_ObjectFile_Write(file, &material->sheen_roughness, sizeof(material->sheen_roughness), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->iridescence_factor, sizeof(material->iridescence_factor), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->iridescence_ior, sizeof(material->iridescence_ior), 1) != 0 ||
@@ -543,25 +586,25 @@ static int BLB_ObjectFile_ReadMaterial(FILE *file, BLB_Material **out_material) 
 
   if (BLB_ObjectFile_ReadBool(file, &material->lighting_enabled) != 0 || BLB_ObjectFile_ReadBool(file, &material->depth_enabled) != 0 ||
       BLB_ObjectFile_ReadBool(file, &material->depth_write) != 0 || BLB_ObjectFile_ReadBool(file, &material->double_sided) != 0 ||
-      BLB_ObjectFile_ReadBool(file, &material->unlit) != 0 || BLB_ObjectFile_Read(file, material->base_color, sizeof(material->base_color), 1) != 0 ||
+      BLB_ObjectFile_ReadBool(file, &material->unlit) != 0 || BLB_ObjectFile_ReadColor4(file, &material->base_color) != 0 ||
       BLB_ObjectFile_Read(file, &material->metallic, sizeof(material->metallic), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->roughness, sizeof(material->roughness), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->normal_scale, sizeof(material->normal_scale), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->occlusion_strength, sizeof(material->occlusion_strength), 1) != 0 ||
-      BLB_ObjectFile_Read(file, material->emission_color, sizeof(material->emission_color), 1) != 0 ||
+      BLB_ObjectFile_ReadColor4(file, &material->emission_color) != 0 ||
       BLB_ObjectFile_Read(file, &material->emission_strength, sizeof(material->emission_strength), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->alpha_cutoff, sizeof(material->alpha_cutoff), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->specular_factor, sizeof(material->specular_factor), 1) != 0 ||
-      BLB_ObjectFile_Read(file, material->specular_color, sizeof(material->specular_color), 1) != 0 ||
+      BLB_ObjectFile_ReadColor3(file, &material->specular_color) != 0 ||
       BLB_ObjectFile_Read(file, &material->ior, sizeof(material->ior), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->transmission, sizeof(material->transmission), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->volume_thickness, sizeof(material->volume_thickness), 1) != 0 ||
-      BLB_ObjectFile_Read(file, material->attenuation_color, sizeof(material->attenuation_color), 1) != 0 ||
+      BLB_ObjectFile_ReadColor3(file, &material->attenuation_color) != 0 ||
       BLB_ObjectFile_Read(file, &material->attenuation_distance, sizeof(material->attenuation_distance), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->clearcoat_factor, sizeof(material->clearcoat_factor), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->clearcoat_roughness, sizeof(material->clearcoat_roughness), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->clearcoat_normal_scale, sizeof(material->clearcoat_normal_scale), 1) != 0 ||
-      BLB_ObjectFile_Read(file, material->sheen_color, sizeof(material->sheen_color), 1) != 0 ||
+      BLB_ObjectFile_ReadColor3(file, &material->sheen_color) != 0 ||
       BLB_ObjectFile_Read(file, &material->sheen_roughness, sizeof(material->sheen_roughness), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->iridescence_factor, sizeof(material->iridescence_factor), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->iridescence_ior, sizeof(material->iridescence_ior), 1) != 0 ||
@@ -1166,7 +1209,9 @@ static int BLB_ObjectFile_Read3DData(FILE *file, BLB_Object3D *object, BLB_Scene
       BLB_ObjectFile_Read(file, &type, sizeof(type), 1) != 0 || BLB_ObjectFile_ReadU64(file, &object->geometry_id) != 0 ||
       BLB_ObjectFile_ReadVec3(file, &object->position) != 0 || BLB_ObjectFile_ReadVec3(file, &object->rotation) != 0 ||
       BLB_ObjectFile_ReadVec3(file, &object->scale) != 0 || BLB_ObjectFile_Read(file, &render_mode, sizeof(render_mode), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->color, sizeof(object->color), 1) != 0 || BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
+      (version >= 4 ? BLB_ObjectFile_Read(file, &object->color, sizeof(object->color), 1)
+                    : BLB_ObjectFile_ReadLegacyColor4(file, &object->color)) != 0 ||
+      BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_ReadBool(file, &object->visible) != 0)
@@ -1464,7 +1509,8 @@ static int BLB_ObjectFile_Read2DData(FILE *file, BLB_Object2D *object, uint32_t 
       BLB_ObjectFile_Read(file, &type, sizeof(type), 1) != 0 || BLB_ObjectFile_ReadVec2(file, &object->position) != 0 ||
       BLB_ObjectFile_Read(file, &object->rotation, sizeof(object->rotation), 1) != 0 || BLB_ObjectFile_ReadVec2(file, &object->scale) != 0 ||
       BLB_ObjectFile_Read(file, &render_mode, sizeof(render_mode), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->color, sizeof(object->color), 1) != 0 || BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &object->color, sizeof(object->color), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_ReadBool(file, &object->visible) != 0)

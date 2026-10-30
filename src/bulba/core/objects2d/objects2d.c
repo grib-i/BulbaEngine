@@ -74,8 +74,8 @@ void BLB_StopAnimation(BLB_Object2D *object) {
 void BLB_Object2D_UpdateAnimation(BLB_Object2D *object, float delta_time) {
   BLB_Animation *animation = object ? object->animation : NULL;
 
-  if (!animation || !animation->enable || !animation->textures || !animation->textures_count || !isfinite(delta_time) || delta_time < 0.0f ||
-      !isfinite(animation->frame_time) || animation->frame_time <= 0.0f)
+  if (!animation || !animation->enable || !animation->textures || !animation->textures_count || !isfinite(delta_time) ||
+      delta_time < 0.0f || !isfinite(animation->frame_time) || animation->frame_time <= 0.0f)
     return;
 
   double elapsed = (double)animation->frame_count + delta_time;
@@ -95,7 +95,8 @@ static void apply_position(BLB_Object2D *object, BLB_Vec2 value, BLB_TransformTy
   object->position = value;
 
   if (object->rigid_body && BLB_PhysicsSyncToBody(object->physics_sync_mode[operation])) {
-    b2Body_SetTransform(object->rigid_body->handle, (b2Vec2){value.x, value.y}, b2Body_GetRotation(object->rigid_body->handle));
+    b2Body_SetTransform(object->rigid_body->handle, (b2Vec2){value.x, value.y},
+                        b2Body_GetRotation(object->rigid_body->handle));
   }
 }
 
@@ -109,7 +110,9 @@ void BLB_Object2D_Move(BLB_Object2D *object, BLB_Vec2 velocity) {
   apply_position(object, BLB_AddV2(object->position, velocity), BLB_TRANSFORM_TYPE_MOVE);
 }
 
-void BLB_Object2D_SetPosition(BLB_Object2D *object, BLB_Vec2 value) { apply_position(object, value, BLB_TRANSFORM_TYPE_SET_POSITION); }
+void BLB_Object2D_SetPosition(BLB_Object2D *object, BLB_Vec2 value) {
+  apply_position(object, value, BLB_TRANSFORM_TYPE_SET_POSITION);
+}
 
 static void apply_rotation(BLB_Object2D *object, float value, BLB_TransformType operation) {
   if (!object || !isfinite(value))
@@ -118,7 +121,8 @@ static void apply_rotation(BLB_Object2D *object, float value, BLB_TransformType 
   object->rotation = value;
 
   if (object->rigid_body && BLB_PhysicsSyncToBody(object->physics_sync_mode[operation])) {
-    b2Body_SetTransform(object->rigid_body->handle, b2Body_GetPosition(object->rigid_body->handle), b2MakeRot(value * (float)BLB_PI / 180.0f));
+    b2Body_SetTransform(object->rigid_body->handle, b2Body_GetPosition(object->rigid_body->handle),
+                        b2MakeRot(value * (float)BLB_PI / 180.0f));
   }
 }
 
@@ -132,7 +136,9 @@ void BLB_Object2D_Rotate(BLB_Object2D *object, float velocity) {
   apply_rotation(object, object->rotation + velocity, BLB_TRANSFORM_TYPE_ROTATE);
 }
 
-void BLB_Object2D_SetRotation(BLB_Object2D *object, float value) { apply_rotation(object, value, BLB_TRANSFORM_TYPE_SET_ROTATION); }
+void BLB_Object2D_SetRotation(BLB_Object2D *object, float value) {
+  apply_rotation(object, value, BLB_TRANSFORM_TYPE_SET_ROTATION);
+}
 
 static void apply_scale(BLB_Object2D *object, BLB_Vec2 value, BLB_TransformType operation) {
   if (!object || !isfinite(value.x) || !isfinite(value.y))
@@ -155,7 +161,9 @@ void BLB_Object2D_Scale(BLB_Object2D *object, BLB_Vec2 velocity) {
   apply_scale(object, BLB_AddV2(object->scale, velocity), BLB_TRANSFORM_TYPE_SCALE);
 }
 
-void BLB_Object2D_SetScale(BLB_Object2D *object, BLB_Vec2 value) { apply_scale(object, value, BLB_TRANSFORM_TYPE_SET_SCALE); }
+void BLB_Object2D_SetScale(BLB_Object2D *object, BLB_Vec2 value) {
+  apply_scale(object, value, BLB_TRANSFORM_TYPE_SET_SCALE);
+}
 
 void BLB_Object2D_Transform(BLB_Object2D *object, BLB_Vec2 position, float rotation, BLB_Vec2 scale) {
   apply_position(object, position, BLB_TRANSFORM_TYPE_TRANSFORM);
@@ -204,7 +212,9 @@ void BLB_Object2D_SetCameraAttached(BLB_Object2D *object, bool attached) {
     object->camera_attached = attached;
 }
 
-bool BLB_Object2D_IsCameraAttached(const BLB_Object2D *object) { return object && object->camera_attached; }
+bool BLB_Object2D_IsCameraAttached(const BLB_Object2D *object) {
+  return object && object->camera_attached;
+}
 
 void BLB_Object2D_SetMaterial(BLB_Object2D *object, BLB_Material *material) {
   if (!object || object->material == material)
@@ -309,7 +319,8 @@ void BLB_Object2D_ClearHandler(BLB_Object2D *object) {
 }
 
 void BLB_Object2D_SetPhysicsSyncMode(BLB_Object2D *object, BLB_PhysicsSyncMode mode, BLB_TransformType operation) {
-  if (!object || operation < 0 || operation >= BLB_TRANSFORM_TYPE_COUNT || mode < BLB_PHYSICS_SYNC_NONE || mode > BLB_PHYSICS_SYNC_BIDIRECTIONAL)
+  if (!object || operation < 0 || operation >= BLB_TRANSFORM_TYPE_COUNT || mode < BLB_PHYSICS_SYNC_NONE ||
+      mode > BLB_PHYSICS_SYNC_BIDIRECTIONAL)
     return;
 
   if (operation == BLB_TRANSFORM_TYPE_TRANSFORM) {
@@ -320,7 +331,7 @@ void BLB_Object2D_SetPhysicsSyncMode(BLB_Object2D *object, BLB_PhysicsSyncMode m
   }
 }
 
-void BLB_Object2D_SetColor(BLB_Object2D *object, BLB_Vec4 color) {
+void BLB_Object2D_SetColor(BLB_Object2D *object, BLB_Color color) {
   if (!object)
     return;
 

@@ -30,7 +30,7 @@ int Demo_Skybox(const Demo_Settings *settings) {
   sunlight->ambient = .055f;
   sunlight->intensity = 2.1f * demo.settings.light_intensity;
   BLB_Object3D_SetRotation(sunlight->object, BLB_V3(-30, -45, 0));
-  BLB_Object3D_SetColor(sunlight->object, BLB_V4(255, 246, 228, 255));
+  BLB_Object3D_SetColor(sunlight->object, BLB_ColorRGBA(255, 246, 228, 255));
 
   float radius = 1.4f * demo.settings.solar_radius_scale;
   Saturn_Study *study = calloc(1, sizeof(*study));

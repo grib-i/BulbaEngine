@@ -37,12 +37,12 @@ int Demo_Lights3d(const Demo_Settings *settings) {
     float angle = i * 2 * BLB_PI / count;
     BLB_Object3D *object = Demo_Add3D(
         &demo, BLB_CreateSphere3D(BLB_V3(1, 1, 1), BLB_V3(sinf(angle) * 3, 0.65f, cosf(angle) * 2.5f), demo.settings.detail, NULL, BLB_TEXMAP_UV));
-    Demo_Color(&demo, object, BLB_V4(75 + i % 3 * 70, 190 - i % 3 * 45, 220, 255), i % 2 ? 0.85f : 0.1f, 0.12f + i % 4 * 0.18f);
+    Demo_Color(&demo, object, BLB_ColorRGBA(75 + i % 3 * 70, 190 - i % 3 * 45, 220, 255), i % 2 ? 0.85f : 0.1f, 0.12f + i % 4 * 0.18f);
   }
 
   BLB_Object3D *ring =
       Demo_Add3D(&demo, BLB_CreateTorus3D(BLB_V3(1, 1, 1), BLB_V3(0, 1.3f, 0), demo.settings.detail, 1.3f, 0.95f, NULL, BLB_TEXMAP_UV));
-  Demo_Color(&demo, ring, BLB_V4(245, 185, 72, 255), 0.85f, 0.15f);
+  Demo_Color(&demo, ring, BLB_ColorRGBA(245, 185, 72, 255), 0.85f, 0.15f);
 
   Light_Orbit *orbit = calloc(1, sizeof(*orbit));
 
@@ -71,12 +71,12 @@ int Demo_Lights3d(const Demo_Settings *settings) {
 
     BLB_Object3D *marker = Demo_Add3D(&demo, BLB_CreateSphere3D(BLB_V3(0.16f, 0.16f, 0.16f), BLB_V3(0, 3, 2), 12, NULL, BLB_TEXMAP_UV));
 
-    Demo_Color(&demo, marker, BLB_V4(255, 213, 125, 255), 0, 0.5f);
+    Demo_Color(&demo, marker, BLB_ColorRGBA(255, 213, 125, 255), 0, 0.5f);
     orbit->markers[i] = marker;
 
     if (marker) {
       BLB_Material_SetUnlit(marker->material, true);
-      BLB_Material_SetEmission(marker->material, 1, 0.75f, 0.3f, 1, 2);
+      BLB_Material_SetEmission(marker->material, BLB_ColorFromNormalized(1.0f, 0.75f, 0.3f, 1.0f), 2.0f);
     }
   }
 

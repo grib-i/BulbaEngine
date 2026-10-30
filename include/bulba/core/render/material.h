@@ -2,6 +2,7 @@
 #define BULBA_CORE_RENDER_MATERIAL_H
 
 #include "bulba/core/render/shader.h"
+#include "bulba/core/utils/colors.h"
 #include "bulba/core/render_mode.h"
 
 #include <stdbool.h>
@@ -62,33 +63,33 @@ struct BLB_Material {
   bool double_sided;
   bool unlit;
 
-  float base_color[4];
+  BLB_Color base_color;
   float metallic;
   float roughness;
 
   float normal_scale;
   float occlusion_strength;
 
-  float emission_color[4];
+  BLB_Color emission_color;
   float emission_strength;
 
   float alpha_cutoff;
 
   float specular_factor;
-  float specular_color[3];
+  BLB_Color specular_color;
 
   float ior;
   float transmission;
 
   float volume_thickness;
-  float attenuation_color[3];
+  BLB_Color attenuation_color;
   float attenuation_distance;
 
   float clearcoat_factor;
   float clearcoat_roughness;
   float clearcoat_normal_scale;
 
-  float sheen_color[3];
+  BLB_Color sheen_color;
   float sheen_roughness;
 
   float iridescence_factor;
@@ -160,18 +161,18 @@ BLB_Material *BLB_Material_Clone(const BLB_Material *material);
 
 void BLB_Material_SetName(BLB_Material *material, const char *name);
 int BLB_Material_SetDomain(BLB_Material *material, BLB_MaterialDomain domain);
-void BLB_Material_SetBaseColor(BLB_Material *material, float r, float g, float b, float a);
-void BLB_Material_SetEmission(BLB_Material *material, float r, float g, float b, float a, float strength);
+void BLB_Material_SetBaseColor(BLB_Material *material, BLB_Color color);
+void BLB_Material_SetEmission(BLB_Material *material, BLB_Color color, float strength);
 void BLB_Material_SetAlphaCutoff(BLB_Material *material, float cutoff);
 void BLB_Material_SetPBR(BLB_Material *material, float metallic, float roughness);
 void BLB_Material_SetNormal(BLB_Material *material, float scale);
 void BLB_Material_SetOcclusion(BLB_Material *material, float strength);
-void BLB_Material_SetSpecular(BLB_Material *material, float factor, float r, float g, float b);
+void BLB_Material_SetSpecular(BLB_Material *material, float factor, BLB_Color color);
 void BLB_Material_SetIOR(BLB_Material *material, float ior);
 void BLB_Material_SetTransmission(BLB_Material *material, float transmission);
-void BLB_Material_SetVolume(BLB_Material *material, float thickness, float attenuation_distance, float r, float g, float b);
+void BLB_Material_SetVolume(BLB_Material *material, float thickness, float attenuation_distance, BLB_Color attenuation_color);
 void BLB_Material_SetClearcoat(BLB_Material *material, float factor, float roughness, float normal_scale);
-void BLB_Material_SetSheen(BLB_Material *material, float r, float g, float b, float roughness);
+void BLB_Material_SetSheen(BLB_Material *material, BLB_Color color, float roughness);
 void BLB_Material_SetIridescence(BLB_Material *material, float factor, float ior, float thickness_min, float thickness_max);
 void BLB_Material_SetAnisotropy(BLB_Material *material, float strength, float rotation);
 void BLB_Material_SetDispersion(BLB_Material *material, float dispersion);

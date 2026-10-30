@@ -11,7 +11,7 @@ int Demo_Transparency(const Demo_Settings *settings) {
     BLB_Material *material = BLB_Material_Create2D();
 
     if (object && material) {
-      BLB_Material_SetBaseColor(material, i / 8.0f, 0.6f, 1 - i / 8.0f, demo.settings.opacity);
+      BLB_Material_SetBaseColor(material, BLB_ColorFromNormalized(i / 8.0f, 0.6f, 1 - i / 8.0f, demo.settings.opacity));
       BLB_Material_SetAlphaMode(material, BLB_ALPHA_BLEND);
       BLB_Material_SetRenderMode(material, BLB_RENDER_TRANSPARENT);
       BLB_Object2D_SetMaterial(object, material);

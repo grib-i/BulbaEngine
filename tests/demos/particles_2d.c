@@ -19,8 +19,8 @@ int Demo_Particles2d(const Demo_Settings *settings) {
   system->particle_scale = BLB_V2(6, 6);
   BLB_ParticleSystem2D_SetCameraAttached(system, true);
   system->emission_rate = demo.settings.emission_rate;
-  system->color = BLB_V4(255, 170, 40, 255);
-  system->color_end = BLB_V4(60, 100, 255, 0);
+  system->color = BLB_ColorRGBA(255, 170, 40, 255);
+  system->color_end = BLB_ColorRGBA(60, 100, 255, 0);
   system->looping = false;
   return Demo_Finish(&demo, NULL);
 }

@@ -21,10 +21,10 @@ static void write_light_3d(VulkanGPULight *destination, BLB_Light3D *source) {
   destination->position[2] = source->object->position.z;
   destination->position[3] = 1.0f;
 
-  destination->color[0] = source->object->color.x / 255.0f;
-  destination->color[1] = source->object->color.y / 255.0f;
-  destination->color[2] = source->object->color.z / 255.0f;
-  destination->color[3] = source->object->color.w / 255.0f;
+  destination->color[0] = source->object->color.r / 255.0f;
+  destination->color[1] = source->object->color.g / 255.0f;
+  destination->color[2] = source->object->color.b / 255.0f;
+  destination->color[3] = source->object->color.a / 255.0f;
 
   destination->parameters[0] = source->intensity;
   destination->parameters[1] = source->ambient;
@@ -110,9 +110,9 @@ static size_t write_emissive_lights_3d(VulkanGPULight *destination, size_t capac
     light->position[1] = world.y;
     light->position[2] = world.z;
     light->position[3] = 1.0f;
-    light->color[0] = material->emission_color[0] * temperature.x;
-    light->color[1] = material->emission_color[1] * temperature.y;
-    light->color[2] = material->emission_color[2] * temperature.z;
+    light->color[0] = material->emission_color.r / 255.0f * temperature.x;
+    light->color[1] = material->emission_color.g / 255.0f * temperature.y;
+    light->color[2] = material->emission_color.b / 255.0f * temperature.z;
     light->color[3] = 1.0f;
     light->parameters[0] = sample_strength;
     light->parameters[1] = 0.0f;
@@ -167,9 +167,9 @@ static size_t write_emissive_lights_2d(VulkanGPULight *destination, size_t capac
     light->position[1] = world.y;
     light->position[2] = 0.0f;
     light->position[3] = object->camera_attached ? 1.0f : 0.0f;
-    light->color[0] = material->emission_color[0] * temperature.x;
-    light->color[1] = material->emission_color[1] * temperature.y;
-    light->color[2] = material->emission_color[2] * temperature.z;
+    light->color[0] = material->emission_color.r / 255.0f * temperature.x;
+    light->color[1] = material->emission_color.g / 255.0f * temperature.y;
+    light->color[2] = material->emission_color.b / 255.0f * temperature.z;
     light->color[3] = 1.0f;
     light->parameters[0] = sample_strength;
     light->parameters[1] = 0.0f;
@@ -201,10 +201,10 @@ static void write_light_2d(VulkanGPULight *destination, BLB_Light2D *source) {
   destination->position[2] = 0.0f;
   destination->position[3] = source->object->camera_attached ? 1.0f : 0.0f;
 
-  destination->color[0] = source->object->color.x / 255.0f;
-  destination->color[1] = source->object->color.y / 255.0f;
-  destination->color[2] = source->object->color.z / 255.0f;
-  destination->color[3] = source->object->color.w / 255.0f;
+  destination->color[0] = source->object->color.r / 255.0f;
+  destination->color[1] = source->object->color.g / 255.0f;
+  destination->color[2] = source->object->color.b / 255.0f;
+  destination->color[3] = source->object->color.a / 255.0f;
 
   destination->parameters[0] = source->intensity;
   destination->parameters[1] = source->ambient;

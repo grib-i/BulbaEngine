@@ -8,7 +8,7 @@
 
 typedef struct BLB_Scene BLB_Scene;
 
-#define BLB_OBJECT_FILE_VERSION 3
+#define BLB_OBJECT_FILE_VERSION 4
 
 typedef enum { BLB_OBJECT_FILE_2D = 2, BLB_OBJECT_FILE_3D = 3 } BLB_ObjectFileType;
 

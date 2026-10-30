@@ -74,7 +74,7 @@ int Demo_Finish(Demo_Context *demo, Demo_Update update);
 bool Demo_IsStage(const Demo_Context *demo, const BLB_Object3D *object);
 void Demo_Stage(Demo_Context *demo, float width);
 void Demo_AimCamera(Demo_Context *demo, BLB_Vec3 position, BLB_Vec3 target);
-void Demo_Color(Demo_Context *demo, BLB_Object3D *object, BLB_Vec4 color, float metallic, float roughness);
+void Demo_Color(Demo_Context *demo, BLB_Object3D *object, BLB_Color color, float metallic, float roughness);
 unsigned Demo_Count(const Demo_Context *demo, unsigned fallback);
 BLB_Object2D *Demo_Add2D(Demo_Context *demo, BLB_Object2D *object);
 BLB_Object3D *Demo_Add3D(Demo_Context *demo, BLB_Object3D *object);

@@ -1,5 +1,6 @@
 #include "bulba/core/objects3d/particles3d.h"
 #include "bulba/core/utils/delta_time.h"
+#include "bulba/core/utils/colors.h"
 
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
@@ -40,16 +41,6 @@ static float variation_value(uint32_t id) {
   float value = fmodf((float)id * 0.61803398875f, 1.0f);
 
   return value * 2.0f - 1.0f;
-}
-
-static BLB_Vec4 color_lerp(BLB_Vec4 a, BLB_Vec4 b, float t) {
-  if (t < 0.0f)
-    t = 0.0f;
-
-  if (t > 1.0f)
-    t = 1.0f;
-
-  return BLB_V4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
 }
 
 static BLB_Polygon3D *create_quad_polygon(void) {
@@ -272,7 +263,7 @@ static BLB_Vec3 particle_velocity_from_system(const BLB_ParticleSystem3D *ps, ui
 }
 
 static bool initialize_particle(BLB_Particle3D *particle, BLB_ParticleID id, BLB_Vec3 position, BLB_Vec3 velocity, BLB_Vec3 scale, BLB_Vec3 rotation,
-                                BLB_Vec4 color, float lifetime, float lifetime_max, BLB_Texture *texture, BLB_Material *material) {
+                                BLB_Color color, float lifetime, float lifetime_max, BLB_Texture *texture, BLB_Material *material) {
   if (particle == NULL)
     return false;
 
@@ -367,7 +358,7 @@ static BLB_ParticleSystemID generate_particle_system_id(void) {
   return id;
 }
 
-BLB_Particle3D *BLB_CreateParticle3D(BLB_ParticleID id, BLB_Vec3 position, BLB_Vec3 velocity, BLB_Vec3 scale, BLB_Vec3 rotation, BLB_Vec4 color,
+BLB_Particle3D *BLB_CreateParticle3D(BLB_ParticleID id, BLB_Vec3 position, BLB_Vec3 velocity, BLB_Vec3 scale, BLB_Vec3 rotation, BLB_Color color,
                                      float lifetime, float lifetime_max, BLB_Texture *texture, BLB_Material *material) {
   if (id.id == BLB_INVALID_PARTICLE_ID)
     id = generate_particle_id();
@@ -547,7 +538,7 @@ BLB_ParticleSystem3D *BLB_CreateParticleSystem3D(BLB_Vec3 particle_system_scale,
   ps->particle_scale = BLB_V3(1.0f, 1.0f, 0.0f);
   ps->particle_scale_variation = BLB_V3(0.0f, 0.0f, 0.0f);
 
-  ps->color = BLB_V4(255.0f, 255.0f, 255.0f, 255.0f);
+  ps->color = BLB_COLOR_WHITE;
   ps->color_end = ps->color;
 
   ps->rotation = BLB_V3(0.0f, 0.0f, 0.0f);
@@ -785,7 +776,7 @@ void BLB_ParticleSystem3D_Update(BLB_ParticleSystem3D *ps, float delta_time) {
       if (t > 1.0f)
         t = 1.0f;
 
-      p->color = color_lerp(ps->color, ps->color_end, t);
+      p->color = BLB_ColorLerp(ps->color, ps->color_end, t);
 
       if (p->lifetime >= p->lifetime_max) {
         if (ps->looping) {

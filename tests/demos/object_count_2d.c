@@ -23,7 +23,7 @@ int Demo_ObjectCount2d(const Demo_Settings *settings) {
     BLB_Object2D *object = Demo_Square(&demo, 40 + (i % columns + 0.5f) * dx, 145 + (i / columns + 0.5f) * dy, dx * 0.65f, dy * 0.65f);
 
     if (object)
-      BLB_Object2D_SetColor(object, BLB_V4(60 + i % columns * 150.0f / columns, 180, 235, 255));
+      BLB_Object2D_SetColor(object, BLB_ColorRGBA((unsigned char)(60 + i % columns * 150.0f / columns), 180, 235, 255));
   }
 
   Demo_Text(&demo, "Screen-space canvas / camera intentionally fixed / configurable tile count & transforms", 20, 680, 17);

@@ -10,6 +10,7 @@
 #include "bulba/core/render/shader.h"
 #include "bulba/core/render/texture.h"
 #include "bulba/core/render_mode.h"
+#include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/font.h"
 
 #include <stdbool.h>
@@ -45,20 +46,20 @@ typedef struct {
   float normal_scale;
   float occlusion;
   float specular;
-  float specular_color[3];
-  float emission_color[4];
+  BLB_Color specular_color;
+  BLB_Color emission_color;
   float temperature;
   float entity_id;
 
   float ior;
   float transmission;
   float volume_thickness;
-  float attenuation_color[3];
+  BLB_Color attenuation_color;
   float attenuation_distance;
   float clearcoat_factor;
   float clearcoat_roughness;
   float clearcoat_normal_scale;
-  float sheen_color[3];
+  BLB_Color sheen_color;
   float sheen_roughness;
   float iridescence_factor;
   float iridescence_ior;
@@ -183,7 +184,7 @@ int BLB_RendererEndFrame(BLB_Renderer *renderer);
 int BLB_RendererPrepareFrame(BLB_Renderer *renderer, BLB_Window *window);
 bool BLB_RendererIsFrameReady(const BLB_Renderer *renderer);
 int BLB_RendererSetVSync(BLB_Renderer *renderer, bool vsync);
-void BLB_RendererSetClearColor(BLB_Renderer *renderer, float r, float g, float b, float a);
+void BLB_RendererSetClearColor(BLB_Renderer *renderer, BLB_Color color);
 void BLB_RendererBeginMainPass(BLB_Renderer *renderer);
 void BLB_RendererSetCameraPosition(BLB_Renderer *renderer, BLB_Vec3 position);
 void BLB_RendererSetLights3D(BLB_Renderer *renderer, BLB_Light3D **lights, size_t light_count);

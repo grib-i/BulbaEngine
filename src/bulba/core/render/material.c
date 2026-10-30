@@ -176,45 +176,33 @@ BLB_Material *BLB_Material_Create(BLB_MaterialDomain domain) {
   material->double_sided = domain == BLB_MATERIAL_2D;
   material->unlit = false;
 
-  material->base_color[0] = 1.0f;
-  material->base_color[1] = 1.0f;
-  material->base_color[2] = 1.0f;
-  material->base_color[3] = 1.0f;
+  material->base_color = BLB_COLOR_WHITE;
 
   material->metallic = 0.0f;
   material->roughness = 0.65f;
   material->normal_scale = 1.0f;
   material->occlusion_strength = 1.0f;
 
-  material->emission_color[0] = 1.0f;
-  material->emission_color[1] = 1.0f;
-  material->emission_color[2] = 1.0f;
-  material->emission_color[3] = 1.0f;
+  material->emission_color = BLB_COLOR_WHITE;
 
   material->emission_strength = 0.0f;
   material->alpha_cutoff = 0.5f;
 
   material->specular_factor = 1.0f;
-  material->specular_color[0] = 1.0f;
-  material->specular_color[1] = 1.0f;
-  material->specular_color[2] = 1.0f;
+  material->specular_color = BLB_COLOR_WHITE;
 
   material->ior = 1.5f;
   material->transmission = 0.0f;
 
   material->volume_thickness = 0.0f;
-  material->attenuation_color[0] = 1.0f;
-  material->attenuation_color[1] = 1.0f;
-  material->attenuation_color[2] = 1.0f;
+  material->attenuation_color = BLB_COLOR_WHITE;
   material->attenuation_distance = INFINITY;
 
   material->clearcoat_factor = 0.0f;
   material->clearcoat_roughness = 0.0f;
   material->clearcoat_normal_scale = 1.0f;
 
-  material->sheen_color[0] = 0.0f;
-  material->sheen_color[1] = 0.0f;
-  material->sheen_color[2] = 0.0f;
+  material->sheen_color = BLB_COLOR_BLACK;
   material->sheen_roughness = 0.0f;
 
   material->iridescence_factor = 0.0f;
@@ -395,25 +383,19 @@ int BLB_Material_SetDomain(BLB_Material *material, BLB_MaterialDomain domain) {
   return 0;
 }
 
-void BLB_Material_SetBaseColor(BLB_Material *material, float r, float g, float b, float a) {
+void BLB_Material_SetBaseColor(BLB_Material *material, BLB_Color color) {
   if (!material)
     return;
 
-  material->base_color[0] = r;
-  material->base_color[1] = g;
-  material->base_color[2] = b;
-  material->base_color[3] = a;
+  material->base_color = color;
   material_touch(material);
 }
 
-void BLB_Material_SetEmission(BLB_Material *material, float r, float g, float b, float a, float strength) {
+void BLB_Material_SetEmission(BLB_Material *material, BLB_Color color, float strength) {
   if (!material)
     return;
 
-  material->emission_color[0] = r;
-  material->emission_color[1] = g;
-  material->emission_color[2] = b;
-  material->emission_color[3] = a;
+  material->emission_color = color;
   material->emission_strength = non_negative(strength);
   material_touch(material);
 }
@@ -448,14 +430,12 @@ void BLB_Material_SetOcclusion(BLB_Material *material, float strength) {
   }
 }
 
-void BLB_Material_SetSpecular(BLB_Material *material, float factor, float r, float g, float b) {
+void BLB_Material_SetSpecular(BLB_Material *material, float factor, BLB_Color color) {
   if (!material)
     return;
 
   material->specular_factor = clamp01(factor);
-  material->specular_color[0] = r;
-  material->specular_color[1] = g;
-  material->specular_color[2] = b;
+  material->specular_color = color;
   material_touch(material);
 }
 
@@ -473,16 +453,14 @@ void BLB_Material_SetTransmission(BLB_Material *material, float transmission) {
   }
 }
 
-void BLB_Material_SetVolume(BLB_Material *material, float thickness, float attenuation_distance, float r, float g,
-                            float b) {
+void BLB_Material_SetVolume(BLB_Material *material, float thickness, float attenuation_distance,
+                            BLB_Color attenuation_color) {
   if (!material)
     return;
 
   material->volume_thickness = non_negative(thickness);
   material->attenuation_distance = attenuation_distance > 0.0f ? attenuation_distance : INFINITY;
-  material->attenuation_color[0] = r;
-  material->attenuation_color[1] = g;
-  material->attenuation_color[2] = b;
+  material->attenuation_color = attenuation_color;
   material_touch(material);
 }
 
@@ -496,13 +474,11 @@ void BLB_Material_SetClearcoat(BLB_Material *material, float factor, float rough
   material_touch(material);
 }
 
-void BLB_Material_SetSheen(BLB_Material *material, float r, float g, float b, float roughness) {
+void BLB_Material_SetSheen(BLB_Material *material, BLB_Color color, float roughness) {
   if (!material)
     return;
 
-  material->sheen_color[0] = r;
-  material->sheen_color[1] = g;
-  material->sheen_color[2] = b;
+  material->sheen_color = color;
   material->sheen_roughness = clamp01(roughness);
   material_touch(material);
 }
@@ -767,6 +743,19 @@ static int parse_float_list(const char *text, float *values, size_t count) {
     p = end;
   }
 
+  return 1;
+}
+
+static int parse_color_list(const char *text, BLB_Color *color, size_t count) {
+  if (!color || (count != 3 && count != 4))
+    return 0;
+
+  float channels[4] = {0.0f, 0.0f, 0.0f, BLB_ColorChannelToNormalized(color->a)};
+
+  if (!parse_float_list(text, channels, count))
+    return 0;
+
+  *color = BLB_ColorFromNormalized(channels[0], channels[1], channels[2], channels[3]);
   return 1;
 }
 
@@ -1214,7 +1203,7 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
 
     if (section == BLB_MAT_SEC_BASE) {
       if (strcmp(clean_key, "color") == 0)
-        parse_float_list(value, material->base_color, 4);
+        parse_color_list(value, &material->base_color, 4);
       else if (strcmp(clean_key, "metallic") == 0)
         material->metallic = clamp01(parse_float_value(value, material->metallic));
       else if (strcmp(clean_key, "roughness") == 0)
@@ -1229,7 +1218,7 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
 
     if (section == BLB_MAT_SEC_EMISSION) {
       if (strcmp(clean_key, "color") == 0)
-        parse_float_list(value, material->emission_color, 4);
+        parse_color_list(value, &material->emission_color, 4);
       else if (strcmp(clean_key, "strength") == 0)
         material->emission_strength = non_negative(parse_float_value(value, material->emission_strength));
       material_touch(material);
@@ -1240,7 +1229,7 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
       if (strcmp(clean_key, "factor") == 0)
         material->specular_factor = clamp01(parse_float_value(value, material->specular_factor));
       else if (strcmp(clean_key, "color") == 0)
-        parse_float_list(value, material->specular_color, 3);
+        parse_color_list(value, &material->specular_color, 3);
       material_touch(material);
       continue;
     }
@@ -1258,7 +1247,7 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
       else if (strcmp(clean_key, "attenuation_distance") == 0)
         material->attenuation_distance = parse_float_value(value, material->attenuation_distance);
       else if (strcmp(clean_key, "attenuation_color") == 0)
-        parse_float_list(value, material->attenuation_color, 3);
+        parse_color_list(value, &material->attenuation_color, 3);
       material_touch(material);
       continue;
     }
@@ -1276,7 +1265,7 @@ BLB_Material *BLB_Material_Load(const char *path, BLB_MaterialTextureLoadFn text
 
     if (section == BLB_MAT_SEC_SHEEN) {
       if (strcmp(clean_key, "color") == 0)
-        parse_float_list(value, material->sheen_color, 3);
+        parse_color_list(value, &material->sheen_color, 3);
       else if (strcmp(clean_key, "roughness") == 0)
         material->sheen_roughness = clamp01(parse_float_value(value, material->sheen_roughness));
       material_touch(material);

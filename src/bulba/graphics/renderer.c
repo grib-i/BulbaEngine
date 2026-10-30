@@ -150,9 +150,11 @@ int BLB_RendererSetVSync(BLB_Renderer *renderer, bool vsync) {
   return 0;
 }
 
-void BLB_RendererSetClearColor(BLB_Renderer *renderer, float r, float g, float b, float a) {
+void BLB_RendererSetClearColor(BLB_Renderer *renderer, BLB_Color color) {
   if (renderer && renderer->ops && renderer->ops->set_clear_color)
-    renderer->ops->set_clear_color(renderer->backend, r, g, b, a);
+    renderer->ops->set_clear_color(renderer->backend, BLB_ColorChannelToNormalized(color.r),
+                                   BLB_ColorChannelToNormalized(color.g), BLB_ColorChannelToNormalized(color.b),
+                                   BLB_ColorChannelToNormalized(color.a));
 }
 
 void BLB_RendererBeginMainPass(BLB_Renderer *renderer) {

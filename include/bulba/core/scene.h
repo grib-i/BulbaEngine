@@ -14,6 +14,7 @@
 #include "bulba/core/objects3d/skybox.h"
 #include "bulba/core/physics/physics2d.h"
 #include "bulba/core/physics/physics3d.h"
+#include "bulba/core/utils/colors.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -32,7 +33,7 @@ typedef struct BLB_Scene {
   bool visible;
 
   bool clear_enabled;
-  unsigned char clear_color[4];
+  BLB_Color clear_color;
 
   float delta_time;
   bool delta_time_manual;
@@ -128,7 +129,7 @@ void BLB_SetSceneLayer(BLB_Scene *scene, unsigned short layer);
 void BLB_SetSceneDeltaTime(BLB_Scene *scene, float delta_time);
 void BLB_SetSceneSkybox(BLB_Scene *scene, BLB_Skybox *skybox);
 
-void BLB_SetSceneClear(BLB_Scene *scene, bool enabled, unsigned char r, unsigned char g, unsigned char b, unsigned char a); // char in number
+void BLB_SetSceneClear(BLB_Scene *scene, bool enabled, BLB_Color color);
 
 /*
  * Functions for added objects from the scene

@@ -52,7 +52,8 @@ static size_t circle_get_segments(int level_of_detail) {
   return lod_segments[index];
 }
 
-BLB_Object2D *BLB_CreateCircle2D(BLB_Vec2 scale, BLB_Vec2 position, int level_of_detail, BLB_Texture *texture, bool camera_attached) {
+BLB_Object2D *BLB_CreateCircle2D(BLB_Vec2 scale, BLB_Vec2 position, int level_of_detail, BLB_Texture *texture,
+                                 bool camera_attached) {
   BLB_Object2D *object = calloc(1, sizeof(*object));
 
   if (object == NULL)
@@ -152,7 +153,7 @@ BLB_Object2D *BLB_CreateCircle2D(BLB_Vec2 scale, BLB_Vec2 position, int level_of
 
   object->render_mode = BLB_RENDER_OPAQUE;
 
-  object->color = BLB_V4(255.0f, 255.0f, 255.0f, 255.0f);
+  object->color = BLB_COLOR_WHITE;
   object->visible = true;
   object->camera_attached = camera_attached;
 

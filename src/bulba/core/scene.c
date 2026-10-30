@@ -57,10 +57,7 @@ BLB_Scene *BLB_CreateScene(const char *name) {
 
   scene->clear_enabled = true;
 
-  scene->clear_color[0] = 10;
-  scene->clear_color[1] = 10;
-  scene->clear_color[2] = 15;
-  scene->clear_color[3] = 255;
+  scene->clear_color = BLB_ColorRGBA(10, 10, 15, 255);
 
   scene->delta_time = BLB_DeltaTime_Get();
   scene->time = 0.0;
@@ -222,16 +219,12 @@ void BLB_SetSceneSkybox(BLB_Scene *scene, BLB_Skybox *skybox) {
   scene->skybox = skybox;
 }
 
-void BLB_SetSceneClear(BLB_Scene *scene, bool enabled, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+void BLB_SetSceneClear(BLB_Scene *scene, bool enabled, BLB_Color color) {
   if (!scene)
     return;
 
   scene->clear_enabled = enabled;
-
-  scene->clear_color[0] = r;
-  scene->clear_color[1] = g;
-  scene->clear_color[2] = b;
-  scene->clear_color[3] = a;
+  scene->clear_color = color;
 }
 
 #define ADD_ITEM(array, count, capacity, type, value)                                                                                                 \

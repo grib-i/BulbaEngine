@@ -14,7 +14,7 @@ int Demo_Lod(const Demo_Settings *settings) {
     if (object) {
       if (!BLB_Object3D_SetLODLevel(object, i % BLB_OBJECT_LOD_LEVELS))
         demo.failed = true;
-      BLB_Object3D_SetColor(object, BLB_V4(70 + i * 50.0f, 180, 230, 255));
+      BLB_Object3D_SetColor(object, BLB_ColorRGBA((unsigned char)(70 + i * 50.0f), 180, 230, 255));
     }
   }
   Demo_Light(&demo);

@@ -1,4 +1,5 @@
 #include "bulba/core/objects2d/particles2d.h"
+#include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/delta_time.h"
 #undef BLB_CreateParticle2D
 #undef BLB_CreateParticleSystem2D
@@ -100,12 +101,6 @@ static float variation_value(uint32_t id) {
   return value * 2.0f - 1.0f;
 }
 
-static BLB_Vec4 color_lerp(BLB_Vec4 a, BLB_Vec4 b, float t) {
-  t = t > 0.0f ? t : 0.0f;
-
-  return BLB_V4(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t);
-}
-
 static BLB_ParticleID generate_particle_id(void) {
   BLB_ParticleID id = {0};
 
@@ -171,9 +166,10 @@ static BLB_Vec2 particle_velocity_from_system(const BLB_ParticleSystem2D *ps, ui
                 ps->velocity.y + ps->velocity_variation.y * variation_value(id + 31u));
 }
 
-static bool initialize_particle(BLB_Particle2D *particle, BLB_ParticleID id, BLB_Vec2 position, BLB_Vec2 velocity, BLB_Vec2 scale, float rotation,
-                                float rotation_speed, BLB_Vec4 color, float lifetime, float lifetime_max, BLB_Texture *texture,
-                                BLB_Material *material, bool camera_attached) {
+static bool initialize_particle(BLB_Particle2D *particle, BLB_ParticleID id, BLB_Vec2 position, BLB_Vec2 velocity,
+                                BLB_Vec2 scale, float rotation, float rotation_speed, BLB_Color color, float lifetime,
+                                float lifetime_max, BLB_Texture *texture, BLB_Material *material,
+                                bool camera_attached) {
   if (particle == NULL || id.id == BLB_INVALID_PARTICLE_ID)
     return false;
 
@@ -228,8 +224,9 @@ static bool initialize_particle(BLB_Particle2D *particle, BLB_ParticleID id, BLB
   return true;
 }
 
-BLB_Particle2D *BLB_CreateParticle2D(BLB_ParticleID id, BLB_Vec2 position, BLB_Vec2 velocity, BLB_Vec2 scale, float rotation, float rotation_speed,
-                                     BLB_Vec4 color, float lifetime, float lifetime_max, BLB_Texture *texture, BLB_Material *material) {
+BLB_Particle2D *BLB_CreateParticle2D(BLB_ParticleID id, BLB_Vec2 position, BLB_Vec2 velocity, BLB_Vec2 scale,
+                                     float rotation, float rotation_speed, BLB_Color color, float lifetime,
+                                     float lifetime_max, BLB_Texture *texture, BLB_Material *material) {
   if (id.id == BLB_INVALID_PARTICLE_ID)
     id = generate_particle_id();
 
@@ -238,8 +235,8 @@ BLB_Particle2D *BLB_CreateParticle2D(BLB_ParticleID id, BLB_Vec2 position, BLB_V
   if (particle == NULL)
     return NULL;
 
-  if (!initialize_particle(particle, id, position, velocity, scale, rotation, rotation_speed, color, lifetime, lifetime_max, texture, material,
-                           false)) {
+  if (!initialize_particle(particle, id, position, velocity, scale, rotation, rotation_speed, color, lifetime,
+                           lifetime_max, texture, material, false)) {
     free(particle);
 
     return NULL;
@@ -364,8 +361,9 @@ void BLB_Particle2D_FlipY(BLB_Particle2D *p) {
   p->scale.y *= -1.0f;
 }
 
-BLB_ParticleSystem2D *BLB_CreateParticleSystem2D(BLB_Vec2 particle_system_scale, BLB_Vec2 position, size_t count, size_t capacity, float lifetime,
-                                                 float lifetime_variation, BLB_Texture *texture) {
+BLB_ParticleSystem2D *BLB_CreateParticleSystem2D(BLB_Vec2 particle_system_scale, BLB_Vec2 position, size_t count,
+                                                 size_t capacity, float lifetime, float lifetime_variation,
+                                                 BLB_Texture *texture) {
   BLB_ParticleSystem2D *ps = calloc(1, sizeof(*ps));
 
   if (ps == NULL)
@@ -401,7 +399,7 @@ BLB_ParticleSystem2D *BLB_CreateParticleSystem2D(BLB_Vec2 particle_system_scale,
   ps->rotation = 0.0f;
   ps->rotation_speed = 0.0f;
 
-  ps->color = BLB_V4(255.0f, 255.0f, 255.0f, 255.0f);
+  ps->color = BLB_COLOR_WHITE;
   ps->color_end = ps->color;
 
   ps->lifetime = lifetime;
@@ -448,8 +446,9 @@ BLB_ParticleSystem2D *BLB_CreateParticleSystem2D(BLB_Vec2 particle_system_scale,
     if (particle_lifetime < 0.0f)
       particle_lifetime = 0.0f;
 
-    if (!initialize_particle(&ps->particles[i], id, ps->position, particle_velocity_from_system(ps, id.id), scale, ps->rotation, ps->rotation_speed,
-                             ps->color, 0.0f, particle_lifetime, ps->texture, ps->material, ps->camera_attached)) {
+    if (!initialize_particle(&ps->particles[i], id, ps->position, particle_velocity_from_system(ps, id.id), scale,
+                             ps->rotation, ps->rotation_speed, ps->color, 0.0f, particle_lifetime, ps->texture,
+                             ps->material, ps->camera_attached)) {
       ps->count = i;
       BLB_DestroyParticleSystem2D(ps);
 
@@ -496,8 +495,9 @@ size_t BLB_ParticleSystem2D_Emit(BLB_ParticleSystem2D *ps, size_t count) {
       lifetime = 0.0f;
     release_particle_resources(&ps->particles[i]);
 
-    if (!initialize_particle(&ps->particles[i], id, ps->position, particle_velocity_from_system(ps, id.id), scale, ps->rotation, ps->rotation_speed,
-                             ps->color, 0.0f, lifetime, ps->texture, ps->material, ps->camera_attached))
+    if (!initialize_particle(&ps->particles[i], id, ps->position, particle_velocity_from_system(ps, id.id), scale,
+                             ps->rotation, ps->rotation_speed, ps->color, 0.0f, lifetime, ps->texture, ps->material,
+                             ps->camera_attached))
       continue;
     emitted++;
   }
@@ -510,8 +510,9 @@ size_t BLB_ParticleSystem2D_Emit(BLB_ParticleSystem2D *ps, size_t count) {
     if (lifetime < 0.0f)
       lifetime = 0.0f;
 
-    if (!initialize_particle(&ps->particles[ps->count], id, ps->position, particle_velocity_from_system(ps, id.id), scale, ps->rotation,
-                             ps->rotation_speed, ps->color, 0.0f, lifetime, ps->texture, ps->material, ps->camera_attached))
+    if (!initialize_particle(&ps->particles[ps->count], id, ps->position, particle_velocity_from_system(ps, id.id),
+                             scale, ps->rotation, ps->rotation_speed, ps->color, 0.0f, lifetime, ps->texture,
+                             ps->material, ps->camera_attached))
       break;
     ps->count++;
     emitted++;
@@ -571,8 +572,9 @@ bool BLB_ParticleSystem2D_SetCount(BLB_ParticleSystem2D *ps, size_t count) {
     if (particle_lifetime < 0.0f)
       particle_lifetime = 0.0f;
 
-    if (!initialize_particle(&ps->particles[i], id, ps->position, particle_velocity_from_system(ps, id.id), scale, ps->rotation, ps->rotation_speed,
-                             ps->color, 0.0f, particle_lifetime, ps->texture, ps->material, ps->camera_attached)) {
+    if (!initialize_particle(&ps->particles[i], id, ps->position, particle_velocity_from_system(ps, id.id), scale,
+                             ps->rotation, ps->rotation_speed, ps->color, 0.0f, particle_lifetime, ps->texture,
+                             ps->material, ps->camera_attached)) {
       for (size_t j = old_count; j < i; j++)
         release_particle_resources(&ps->particles[j]);
 
@@ -633,7 +635,7 @@ void BLB_ParticleSystem2D_Update(BLB_ParticleSystem2D *ps, float delta_time) {
 
     p->lifetime += delta_time;
 
-    p->color = color_lerp(ps->color, ps->color_end, p->lifetime_max > 0.0f ? p->lifetime / p->lifetime_max : 0.0f);
+    p->color = BLB_ColorLerp(ps->color, ps->color_end, p->lifetime_max > 0.0f ? p->lifetime / p->lifetime_max : 0.0f);
 
     if (p->lifetime_max <= 0.0f)
       continue;
@@ -863,7 +865,9 @@ void BLB_Particle2D_SetCameraAttached(BLB_Particle2D *p, bool attached) {
   p->camera_attached = attached;
 }
 
-bool BLB_Particle2D_IsCameraAttached(const BLB_Particle2D *p) { return p && p->camera_attached; }
+bool BLB_Particle2D_IsCameraAttached(const BLB_Particle2D *p) {
+  return p && p->camera_attached;
+}
 
 void BLB_ParticleSystem2D_SetCameraAttached(BLB_ParticleSystem2D *ps, bool attached) {
   if (!ps)
@@ -874,4 +878,6 @@ void BLB_ParticleSystem2D_SetCameraAttached(BLB_ParticleSystem2D *ps, bool attac
     ps->particles[i].camera_attached = attached;
 }
 
-bool BLB_ParticleSystem2D_IsCameraAttached(const BLB_ParticleSystem2D *ps) { return ps && ps->camera_attached; }
+bool BLB_ParticleSystem2D_IsCameraAttached(const BLB_ParticleSystem2D *ps) {
+  return ps && ps->camera_attached;
+}

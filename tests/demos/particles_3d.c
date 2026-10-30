@@ -23,8 +23,8 @@ int Demo_Particles3d(const Demo_Settings *settings) {
   system->gravity = BLB_V3(-1, -1, -1);
   system->particle_scale = BLB_V3(0.07f, 0.07f, 0.07f);
   system->emission_rate = demo.settings.emission_rate;
-  system->color = BLB_V4(255, 170, 40, 255);
-  system->color_end = BLB_V4(60, 100, 255, 0);
+  system->color = BLB_ColorRGBA(255, 170, 40, 255);
+  system->color_end = BLB_ColorRGBA(60, 100, 255, 0);
   system->looping = false;
   return Demo_Finish(&demo, NULL);
 }

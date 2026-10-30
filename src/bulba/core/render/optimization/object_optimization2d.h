@@ -18,7 +18,7 @@ typedef struct BLB_RenderInstances2DGroup {
   const BLB_ShaderProgram *shader;
   unsigned short layer;
   BLB_RenderMode render_mode;
-  unsigned char color[4];
+  BLB_Color color;
   bool camera_attached;
   bool enabled;
   bool rendered;

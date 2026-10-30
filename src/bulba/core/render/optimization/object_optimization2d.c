@@ -35,7 +35,7 @@ static uint64_t mix64(uint64_t value) {
 static void normalize_material_key(BLB_Material *material) {
   if (!material)
     return;
-  memset(material->base_color, 0, sizeof(material->base_color));
+  material->base_color = BLB_COLOR_TRANSPARENT;
   memset(material->name, 0, sizeof(material->name));
   material->texture_retain = NULL;
   material->texture_release = NULL;
@@ -253,7 +253,7 @@ BLB_ObjectOptimization2D *BLB_ObjectOptimization2D_Create(BLB_Object2D **objects
       group->shader = object->material ? object->material->shader_program : NULL;
       group->layer = object->layer;
       group->render_mode = object_render_mode(object);
-      memcpy(group->color, &object->color, sizeof(group->color));
+      group->color = object->color;
       group->camera_attached = object->camera_attached;
       group->enabled = true;
       result->groups[result->group_count++] = group;

@@ -5,6 +5,7 @@
 #include "bulba/core/math3v/math3v.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/render_mode.h"
+#include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/font.h"
 
 #include <stdbool.h>
@@ -21,7 +22,7 @@ typedef struct BLB_Text2D {
 
   float delta_time;
 
-  unsigned char color[4];
+  BLB_Color color;
 
   float glow;
   float emission;
@@ -43,7 +44,8 @@ typedef struct BLB_Text2D {
   bool font_loaded;
 } BLB_Text2D;
 
-BLB_Text2D *BLB_CreateText2D(const char *text, const char *font_path, BLB_Vec2 position, float size, bool camera_attached);
+BLB_Text2D *BLB_CreateText2D(const char *text, const char *font_path, BLB_Vec2 position, float size,
+                             bool camera_attached);
 
 void BLB_DestroyText2D(BLB_Text2D *text);
 

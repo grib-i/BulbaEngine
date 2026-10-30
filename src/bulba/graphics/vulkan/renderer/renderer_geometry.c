@@ -262,8 +262,8 @@ void VULKAN_RendererDrawTriangle(VULKAN *vulkan, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec
       .roughness = 0.65f,
       .specular = 1.0f,
       .occlusion = 1.0f,
-      .specular_color = {1.0f, 1.0f, 1.0f},
-      .emission_color = {1.0f, 1.0f, 1.0f, 1.0f},
+      .specular_color = BLB_COLOR_WHITE,
+      .emission_color = BLB_COLOR_WHITE,
       .temperature = 6500.0f,
       .render_mode = BLB_RENDER_OPAQUE,
   };
@@ -342,8 +342,8 @@ void VULKAN_RendererDrawTriangle2D(VULKAN *vulkan, BLB_Vec3 a, BLB_Vec3 b, BLB_V
       .roughness = 0.65f,
       .specular = 1.0f,
       .occlusion = 1.0f,
-      .specular_color = {1.0f, 1.0f, 1.0f},
-      .emission_color = {1.0f, 1.0f, 1.0f, 1.0f},
+      .specular_color = BLB_COLOR_WHITE,
+      .emission_color = BLB_COLOR_WHITE,
       .temperature = 6500.0f,
       .render_mode = BLB_RENDER_OPAQUE,
   };
@@ -435,8 +435,8 @@ void VULKAN_RendererDrawMesh(VULKAN *vulkan, const Mesh *mesh, const float *mvp,
       .roughness = 0.65f,
       .specular = 1.0f,
       .occlusion = 1.0f,
-      .specular_color = {1.0f, 1.0f, 1.0f},
-      .emission_color = {1.0f, 1.0f, 1.0f, 1.0f},
+      .specular_color = BLB_COLOR_WHITE,
+      .emission_color = BLB_COLOR_WHITE,
       .temperature = 6500.0f,
       .render_mode = BLB_RENDER_OPAQUE,
   };
@@ -1021,10 +1021,10 @@ static uint32_t pack_pair16(float a, float a_min, float a_max, float b, float b_
   return pa | (pb << 16u);
 }
 
-static uint32_t pack_rgb10(const float color[3]) {
-  uint32_t r = (uint32_t)lroundf(fminf(fmaxf(color[0], 0.0f), 1.0f) * 1023.0f);
-  uint32_t g = (uint32_t)lroundf(fminf(fmaxf(color[1], 0.0f), 1.0f) * 1023.0f);
-  uint32_t b = (uint32_t)lroundf(fminf(fmaxf(color[2], 0.0f), 1.0f) * 1023.0f);
+static uint32_t pack_rgb10(BLB_Color color) {
+  uint32_t r = (uint32_t)lroundf(BLB_ColorChannelToNormalized(color.r) * 1023.0f);
+  uint32_t g = (uint32_t)lroundf(BLB_ColorChannelToNormalized(color.g) * 1023.0f);
+  uint32_t b = (uint32_t)lroundf(BLB_ColorChannelToNormalized(color.b) * 1023.0f);
 
   return r | (g << 10u) | (b << 20u);
 }
@@ -1114,9 +1114,9 @@ static void pack_material_payload(float material_out[4], float pbr_out[4], float
   pbr_out[2] = fminf(fmaxf(material->specular, 0.0f), 1.0f);
   pbr_out[3] = fminf(fmaxf(material->occlusion, 0.0f), 1.0f);
 
-  emission_out[0] = material->emission_color[0];
-  emission_out[1] = material->emission_color[1];
-  emission_out[2] = material->emission_color[2];
+  emission_out[0] = BLB_ColorChannelToNormalized(material->emission_color.r);
+  emission_out[1] = BLB_ColorChannelToNormalized(material->emission_color.g);
+  emission_out[2] = BLB_ColorChannelToNormalized(material->emission_color.b);
   emission_out[3] = material->temperature;
 
   material_ext_out[0] = pack_rgb10(material->specular_color);
@@ -1205,8 +1205,8 @@ static VulkanMaterial create_cached_mesh_material(void) {
       .roughness = 0.65f,
       .specular = 1.0f,
       .occlusion = 1.0f,
-      .specular_color = {1.0f, 1.0f, 1.0f},
-      .emission_color = {1.0f, 1.0f, 1.0f, 1.0f},
+      .specular_color = BLB_COLOR_WHITE,
+      .emission_color = BLB_COLOR_WHITE,
       .temperature = 6500.0f,
       .render_mode = BLB_RENDER_OPAQUE,
   };

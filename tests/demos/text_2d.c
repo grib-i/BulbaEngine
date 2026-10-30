@@ -25,8 +25,8 @@ int Demo_Text2d(const Demo_Settings *settings) {
     if (!text)
       break;
 
-    text->color[0] = (unsigned char)(255 + i * 35);
-    text->color[1] = 220;
+    text->color.r = (unsigned char)(255 + i * 35);
+    text->color.g = 220;
   }
   return Demo_Finish(&demo, animate);
 }

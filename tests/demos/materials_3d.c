@@ -17,7 +17,7 @@ int Demo_Materials3d(const Demo_Settings *settings) {
       if (!object || !material)
         demo.failed = true;
       else {
-        BLB_Material_SetBaseColor(material, 0.82f, 0.54f, 0.22f, 1);
+        BLB_Material_SetBaseColor(material, BLB_ColorFromNormalized(0.82f, 0.54f, 0.22f, 1.0f));
         BLB_Material_SetPBR(material, row / 2.0f, 0.05f + column * 0.23f);
         BLB_Object3D_SetMaterial(object, material);
       }

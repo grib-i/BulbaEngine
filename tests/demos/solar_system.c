@@ -103,7 +103,7 @@ static void add_orbits(Demo_Context *demo) {
                              BLB_V3(0, 0, 0), NULL, BLB_TEXMAP_UV));
 
   if (orbits) {
-    Demo_Color(demo, orbits, BLB_V4(50, 71, 91, 255), 0, 1);
+    Demo_Color(demo, orbits, BLB_ColorRGBA(50, 71, 91, 255), 0, 1);
     BLB_Material_SetUnlit(orbits->material, true);
     BLB_Material_SetDoubleSided(orbits->material, true);
   }
@@ -158,7 +158,7 @@ int Demo_SolarSystem(const Demo_Settings *settings) {
   sun->intensity = 7 * demo.settings.light_intensity;
   sun->ambient = .055f;
   sun->range = 120 * distance;
-  BLB_Object3D_SetColor(sun->object, BLB_V4(255, 248, 235, 255));
+  BLB_Object3D_SetColor(sun->object, BLB_ColorRGBA(255, 248, 235, 255));
 
   if (demo.settings.solar_orbits)
     add_orbits(&demo);

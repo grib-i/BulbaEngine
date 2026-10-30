@@ -34,7 +34,7 @@ static void animate(Demo_Context *demo) {
                         BLB_V2(dx * demo->dt * 300, dy * demo->dt * 300)));
 
   if (BLB_MouseDown(handlers, 0)) {
-    BLB_Object2D_SetColor(object, BLB_V4(255, 120, 70, 255));
+    BLB_Object2D_SetColor(object, BLB_ColorRGBA(255, 120, 70, 255));
 
     BLB_RayHit2D **ray2d = BLB_Ray2D(demo->scene, BLB_V2(-2, -2), BLB_V2(2, 2),
                                      BLB_RAY_ALL_HITS, NULL, NULL);
@@ -45,7 +45,7 @@ static void animate(Demo_Context *demo) {
       printf("%d\n", false);
 
   } else {
-    BLB_Object2D_SetColor(object, BLB_V4(80, 200, 240, 255));
+    BLB_Object2D_SetColor(object, BLB_ColorRGBA(80, 200, 240, 255));
   }
 }
 

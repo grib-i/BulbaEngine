@@ -4,6 +4,7 @@
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/object_lod.h"
 #include "bulba/core/render/texture.h"
+#include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/delta_time.h"
 #include "bulba/core/utils/object.h"
 
@@ -100,7 +101,7 @@ BLB_Object2D *BLB_CreateSquare2D(BLB_Vec2 scale, BLB_Vec2 position, BLB_Texture 
 
   object->render_mode = BLB_RENDER_OPAQUE;
 
-  object->color = BLB_V4(255.0f, 255.0f, 255.0f, 255.0f);
+  object->color = BLB_COLOR_WHITE;
   object->visible = true;
   object->camera_attached = camera_attached;
 

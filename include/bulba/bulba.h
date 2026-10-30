@@ -36,6 +36,7 @@
 #include "bulba/core/render/texture.h"
 #include "bulba/core/scene.h"
 #include "bulba/core/utils/audio.h"
+#include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/config.h"
 #include "bulba/core/utils/delta_time.h"
 #include "bulba/core/utils/font.h"

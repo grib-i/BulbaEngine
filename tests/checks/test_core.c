@@ -59,9 +59,9 @@ static void delta_and_scene_configuration(void) {
   BLB_SetSceneEnabled(scene, false);
   BLB_SetSceneVisible(scene, false);
   BLB_SetSceneLayer(scene, 12);
-  BLB_SetSceneClear(scene, true, 1, 2, 3, 255);
+  BLB_SetSceneClear(scene, true, BLB_ColorRGBA(1, 2, 3, 255));
   TEST_CHECK(!scene->enabled && !scene->visible && scene->layer == 12);
-  TEST_CHECK(scene->clear_color[2] == 3);
+  TEST_CHECK(scene->clear_color.b == 3);
 
   BLB_SetSceneDeltaTime(scene, 2.0f);
   TEST_NEAR(scene->delta_time, 0.1, 1e-6);
@@ -122,18 +122,19 @@ static void shapes_and_transforms(void) {
     TEST_NEAR(square->scale.y, 9, 1e-6);
     BLB_Object2D_SetCameraAttached(square, false);
     TEST_CHECK(!BLB_Object2D_IsCameraAttached(square));
-    BLB_Object2D_SetColor(square, BLB_V4(10, 20, 30, 255));
+    BLB_Object2D_SetColor(square, BLB_ColorRGBA(10, 20, 30, 255));
     square->visible = false;
     square->layer = 7;
     TEST_CHECK(!square->visible && square->layer == 7);
-    TEST_NEAR(square->color.y, 20, 1e-6);
+    TEST_NEAR(square->color.g, 20, 1e-6);
 
     BLB_Object3D_Transform(cube, BLB_V3(7, 8, 9), BLB_V3(10, 20, 30), BLB_V3(3, 4, 5));
     TEST_NEAR(cube->position.z, 9, 1e-6);
     TEST_NEAR(cube->scale.y, 4, 1e-6);
     BLB_Object3D_SetCameraAttached(cube, true);
     TEST_CHECK(BLB_Object3D_IsCameraAttached(cube));
-    BLB_Object3D_SetColor(cube, BLB_V4(20, 40, 60, 255));
+    BLB_Object3D_SetColor(cube, BLB_ColorRGBA(20, 40, 60, 255));
+    TEST_CHECK(cube->color.r == 20 && cube->color.g == 40 && cube->color.b == 60 && cube->color.a == 255);
     BLB_Object3D_SetLayer(cube, 9);
     BLB_Object3D_SetVisible(cube, false);
     TEST_CHECK(!cube->visible && cube->layer == 9);

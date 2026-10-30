@@ -39,7 +39,7 @@ BLB_Skybox *BLB_Skybox_Create(BLB_Texture *texture) {
   BLB_Material_SetDoubleSided(material, true);
   BLB_Material_SetAlphaMode(material, BLB_ALPHA_OPAQUE);
   BLB_Material_SetRenderMode(material, BLB_RENDER_OPAQUE);
-  BLB_Material_SetBaseColor(material, 1.0f, 1.0f, 1.0f, 1.0f);
+  BLB_Material_SetBaseColor(material, BLB_COLOR_WHITE);
 
   if (texture->type == BLB_TEXTURE_2D) {
     BLB_MaterialTexture_SetSampler(&material->base_color_texture, BLB_TEXTURE_WRAP_REPEAT, BLB_TEXTURE_WRAP_CLAMP_TO_EDGE, BLB_TEXTURE_FILTER_LINEAR,

@@ -30,8 +30,8 @@ int Demo_Transparency3d(const Demo_Settings *settings) {
       break;
 
     BLB_Object3D_SetScale(pane, BLB_V3(1.9f, 2.7f, 0.12f));
-    Demo_Color(&demo, pane, BLB_V4(65 + i % 4 * 50, 215 - i % 3 * 45, 235, 255), 0.1f, 0.16f);
-    BLB_Material_SetBaseColor(pane->material, (65 + i % 4 * 50) / 255.0f, (215 - i % 3 * 45) / 255.0f, 0.92f, demo.settings.opacity);
+    Demo_Color(&demo, pane, BLB_ColorRGBA(65 + i % 4 * 50, 215 - i % 3 * 45, 235, 255), 0.1f, 0.16f);
+    BLB_Material_SetBaseColor(pane->material, BLB_ColorRGBA((unsigned char)(65 + i % 4 * 50), (unsigned char)(215 - i % 3 * 45), 235, BLB_ColorChannelFromNormalized(demo.settings.opacity)));
     BLB_Material_SetAlphaMode(pane->material, BLB_ALPHA_BLEND);
     BLB_Material_SetRenderMode(pane->material, BLB_RENDER_TRANSPARENT);
     BLB_Material_SetDepth(pane->material, true, false);

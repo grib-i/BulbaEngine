@@ -8,6 +8,7 @@
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
 #include "bulba/core/render_mode.h"
+#include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/object.h"
 #include "bulba/handlers/object.h"
 
@@ -55,7 +56,7 @@ typedef struct BLB_Object2D {
 
   float delta_time;
 
-  BLB_Vec4 color;
+  BLB_Color color;
 
   float roundness;
 
@@ -106,7 +107,7 @@ void BLB_Object2D_FlipY(BLB_Object2D *object);
 void BLB_Object2D_SetHandler(BLB_Object2D *object, const BLB_ObjectHandler *handler);
 void BLB_Object2D_ClearHandler(BLB_Object2D *object);
 
-void BLB_Object2D_SetColor(BLB_Object2D *object, BLB_Vec4 color);
+void BLB_Object2D_SetColor(BLB_Object2D *object, BLB_Color color);
 
 void BLB_Object2D_SetPhysicsSyncMode(BLB_Object2D *object, BLB_PhysicsSyncMode mode, BLB_TransformType transform);
 #endif

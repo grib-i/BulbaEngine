@@ -110,7 +110,7 @@ bool Demo_Open(Demo_Context *demo, const char *title,
                           demo->window->handle) != 0)
     goto fail;
 
-  BLB_SetSceneClear(demo->scene, true, 2, 3, 7, 255);
+  BLB_SetSceneClear(demo->scene, true, BLB_ColorRGBA(2, 3, 7, 255));
   Demo_Text(demo, title, 20, 32, 24);
   Demo_Text(demo, "Esc: exit  |  F11: fullscreen  |  fly: WASD / QE, IJKL", 20,
             62, 17);
@@ -322,7 +322,7 @@ void Demo_AimCamera(Demo_Context *demo, BLB_Vec3 position, BLB_Vec3 target) {
              atan2f(direction.x, -direction.z) * 180 / BLB_PI, 0));
 }
 
-void Demo_Color(Demo_Context *demo, BLB_Object3D *object, BLB_Vec4 color,
+void Demo_Color(Demo_Context *demo, BLB_Object3D *object, BLB_Color color,
                 float metallic, float roughness) {
   BLB_Material *material = BLB_Material_Create3D();
 
@@ -332,8 +332,7 @@ void Demo_Color(Demo_Context *demo, BLB_Object3D *object, BLB_Vec4 color,
     return;
   }
 
-  BLB_Material_SetBaseColor(material, color.x / 255, color.y / 255,
-                            color.z / 255, color.w / 255);
+  BLB_Material_SetBaseColor(material, color);
   BLB_Material_SetPBR(material, metallic, roughness);
   BLB_Object3D_SetMaterial(object, material);
   BLB_Material_Release(material);
@@ -351,7 +350,7 @@ void Demo_Stage(Demo_Context *demo, float width) {
 
   if (floor) {
     BLB_Object3D_SetScale(floor, BLB_V3(width, 0.24f, width * 0.65f));
-    Demo_Color(demo, floor, BLB_V4(15, 22, 32, 255), 0.15f, 0.72f);
+    Demo_Color(demo, floor, BLB_ColorRGBA(15, 22, 32, 255), 0.15f, 0.72f);
   }
 
   for (int side = -1; side <= 1; side += 2) {
@@ -361,7 +360,7 @@ void Demo_Stage(Demo_Context *demo, float width) {
 
     if (strip) {
       BLB_Object3D_SetScale(strip, BLB_V3(width * 0.86f, 0.012f, 0.018f));
-      Demo_Color(demo, strip, BLB_V4(50, 190, 220, 255), 0.1f, 0.25f);
+      Demo_Color(demo, strip, BLB_ColorRGBA(50, 190, 220, 255), 0.1f, 0.25f);
     }
   }
 

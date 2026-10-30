@@ -29,7 +29,7 @@ int Demo_SpriteAnimation(const Demo_Settings *settings) {
   if (!Demo_Open(&demo, "SPRITE LAB / atlas animation & character parade", settings))
     return Demo_Finish(&demo, NULL);
 
-  BLB_SetSceneClear(demo.scene, true, 18, 29, 49, 255);
+  BLB_SetSceneClear(demo.scene, true, BLB_ColorRGBA(18, 29, 49, 255));
   Demo_Text(&demo, "KENNEY CHARACTERS   /   WALK + CLIMB CYCLES", 250, 170, 22);
   Demo_Text(&demo, "Real RGBA atlas frames / mirrored movement / layered scenery", 250, 210, 17);
 
@@ -40,7 +40,7 @@ int Demo_SpriteAnimation(const Demo_Settings *settings) {
       BLB_Object2D *tower = Demo_Square(&demo, i * 115.0f, 490 - height * 0.5f - row * 22, 70, height);
 
       if (tower)
-        BLB_Object2D_SetColor(tower, BLB_V4(22 + row * 8, 42 + row * 10, 65 + row * 15, 255));
+        BLB_Object2D_SetColor(tower, BLB_ColorRGBA((unsigned char)(22 + row * 8), (unsigned char)(42 + row * 10), (unsigned char)(65 + row * 15), 255));
     }
   }
 
@@ -48,20 +48,20 @@ int Demo_SpriteAnimation(const Demo_Settings *settings) {
   BLB_Object2D *edge = Demo_Square(&demo, 640, 540, 1280, 3);
 
   if (ground)
-    BLB_Object2D_SetColor(ground, BLB_V4(15, 23, 38, 255));
+    BLB_Object2D_SetColor(ground, BLB_ColorRGBA(15, 23, 38, 255));
   if (edge)
-    BLB_Object2D_SetColor(edge, BLB_V4(68, 212, 187, 255));
+    BLB_Object2D_SetColor(edge, BLB_ColorRGBA(68, 212, 187, 255));
 
   for (int i = 0; i < 10; ++i) {
     BLB_Object2D *rung = Demo_Square(&demo, 1120, 305 + i * 25, 72, 5);
     if (rung)
-      BLB_Object2D_SetColor(rung, BLB_V4(80, 128, 151, 255));
+      BLB_Object2D_SetColor(rung, BLB_ColorRGBA(80, 128, 151, 255));
   }
 
   for (int side = -1; side <= 1; side += 2) {
     BLB_Object2D *rail = Demo_Square(&demo, 1120 + side * 32, 420, 5, 250);
     if (rail)
-      BLB_Object2D_SetColor(rail, BLB_V4(104, 168, 184, 255));
+      BLB_Object2D_SetColor(rail, BLB_ColorRGBA(104, 168, 184, 255));
   }
 
   BLB_Object2D **actors = calloc(Demo_Count(&demo, 5), sizeof(*actors));

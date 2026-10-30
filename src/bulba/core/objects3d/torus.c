@@ -321,7 +321,7 @@ BLB_Object3D *BLB_CreateTorus3D(BLB_Vec3 scale, BLB_Vec3 position, int level_of_
   object->rotation = BLB_V3(0.0f, 0.0f, 0.0f);
   object->scale = scale;
   object->render_mode = BLB_RENDER_OPAQUE;
-  object->color = BLB_V4(255.0f, 255.0f, 255.0f, 255.0f);
+  object->color = BLB_COLOR_WHITE;
   object->visible = true;
   object->entity_id = BLB_INVALID_ENTITY_ID;
   object->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;

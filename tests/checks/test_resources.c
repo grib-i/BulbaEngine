@@ -35,18 +35,18 @@ static void material_properties(void) {
 
   TEST_REQUIRE(material);
   BLB_Material_SetName(material, "test material");
-  BLB_Material_SetBaseColor(material, 0.2f, 0.4f, 0.6f, 1);
+  BLB_Material_SetBaseColor(material, BLB_ColorFromNormalized(0.2f, 0.4f, 0.6f, 1.0f));
   BLB_Material_SetPBR(material, 0.8f, 0.3f);
-  BLB_Material_SetEmission(material, 1, 0.5f, 0, 1, 2);
+  BLB_Material_SetEmission(material, BLB_ColorFromNormalized(1.0f, 0.5f, 0.0f, 1.0f), 2.0f);
   BLB_Material_SetAlphaCutoff(material, 0.25f);
   BLB_Material_SetNormal(material, 0.7f);
   BLB_Material_SetOcclusion(material, 0.6f);
-  BLB_Material_SetSpecular(material, 0.5f, 1, 0.9f, 0.8f);
+  BLB_Material_SetSpecular(material, 0.5f, BLB_ColorFromNormalized(1.0f, 0.9f, 0.8f, 1.0f));
   BLB_Material_SetIOR(material, 1.5f);
   BLB_Material_SetTransmission(material, 0.4f);
-  BLB_Material_SetVolume(material, 0.2f, 4, 0.8f, 0.7f, 0.6f);
+  BLB_Material_SetVolume(material, 0.2f, 4, BLB_ColorFromNormalized(0.8f, 0.7f, 0.6f, 1.0f));
   BLB_Material_SetClearcoat(material, 0.5f, 0.2f, 1);
-  BLB_Material_SetSheen(material, 0.2f, 0.3f, 0.4f, 0.5f);
+  BLB_Material_SetSheen(material, BLB_ColorFromNormalized(0.2f, 0.3f, 0.4f, 1.0f), 0.5f);
   BLB_Material_SetIridescence(material, 0.4f, 1.3f, 100, 400);
   BLB_Material_SetAnisotropy(material, 0.6f, 0.8f);
   BLB_Material_SetDispersion(material, 0.1f);
@@ -60,7 +60,11 @@ static void material_properties(void) {
   BLB_Material_SetUnlit(material, true);
 
   TEST_CHECK(!strcmp(material->name, "test material"));
-  TEST_NEAR(material->base_color[1], 0.4, 1e-6);
+  TEST_CHECK(material->base_color.r == 51 && material->base_color.g == 102 && material->base_color.b == 153 && material->base_color.a == 255);
+  TEST_CHECK(material->emission_color.r == 255 && material->emission_color.g == 128 && material->emission_color.b == 0);
+  TEST_CHECK(material->specular_color.r == 255 && material->specular_color.g == 230 && material->specular_color.b == 204);
+  TEST_CHECK(material->attenuation_color.r == 204 && material->attenuation_color.g == 179 && material->attenuation_color.b == 153);
+  TEST_CHECK(material->sheen_color.r == 51 && material->sheen_color.g == 77 && material->sheen_color.b == 102);
   TEST_NEAR(material->metallic, 0.8, 1e-6);
   TEST_NEAR(material->roughness, 0.3, 1e-6);
   TEST_NEAR(material->emission_strength, 2, 1e-6);
@@ -140,6 +144,9 @@ static void text_buffer_and_attachment(void) {
 
   TEST_REQUIRE(text);
   TEST_CHECK(!strcmp(text->text, "FPS: 0"));
+  TEST_CHECK(text->color.r == 255 && text->color.g == 255 && text->color.b == 255 && text->color.a == 255);
+  text->color = BLB_ColorRGBA(12, 34, 56, 78);
+  TEST_CHECK(text->color.r == 12 && text->color.g == 34 && text->color.b == 56 && text->color.a == 78);
   BLB_SetText2D(text, "A longer text forces the buffer to grow safely: 0123456789");
   TEST_CHECK(text->text_capacity > strlen(text->text));
   BLB_SetText2D(text, "short");

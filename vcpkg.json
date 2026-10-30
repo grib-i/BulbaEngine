@@ -1,11 +1,5 @@
 {
   "name": "bulba-engine",
-  "version-string": "0.1.0",
-  "dependencies": [
-    "assimp",
-    "freetype",
-    "glfw3",
-    "libjpeg-turbo",
-    "libpng"
-  ]
+  "version-string": "1.1.2",
+  "dependencies": ["assimp", "freetype", "glfw3", "libjpeg-turbo", "libpng"]
 }

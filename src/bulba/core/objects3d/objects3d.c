@@ -326,12 +326,12 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
       float r, g, b;
 
       if (sscanf(argument, "%f %f %f", &r, &g, &b) == 3 && strcmp(value, "Kd") == 0)
-        BLB_Material_SetBaseColor(current, r, g, b, current->base_color[3]);
+        BLB_Material_SetBaseColor(current, BLB_ColorFromNormalized(r, g, b, BLB_ColorChannelToNormalized(current->base_color.a)));
     } else if (strcmp(value, "Ks") == 0) {
       float r, g, b;
 
       if (sscanf(argument, "%f %f %f", &r, &g, &b) == 3)
-        BLB_Material_SetSpecular(current, 1.0f, r, g, b);
+        BLB_Material_SetSpecular(current, 1.0f, BLB_ColorFromNormalized(r, g, b, 1.0f));
     } else if (strcmp(value, "Ns") == 0) {
       float shininess;
 
@@ -346,18 +346,17 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
       float alpha;
 
       if (sscanf(argument, "%f", &alpha) == 1)
-        BLB_Material_SetBaseColor(current, current->base_color[0], current->base_color[1], current->base_color[2], fminf(1.0f, fmaxf(0.0f, alpha)));
+        BLB_Material_SetBaseColor(current, BLB_ColorFromNormalized(BLB_ColorChannelToNormalized(current->base_color.r), BLB_ColorChannelToNormalized(current->base_color.g), BLB_ColorChannelToNormalized(current->base_color.b), fminf(1.0f, fmaxf(0.0f, alpha))));
     } else if (strcmp(value, "Tr") == 0) {
       float transparency;
 
       if (sscanf(argument, "%f", &transparency) == 1)
-        BLB_Material_SetBaseColor(current, current->base_color[0], current->base_color[1], current->base_color[2],
-                                  1.0f - fminf(1.0f, fmaxf(0.0f, transparency)));
+        BLB_Material_SetBaseColor(current, BLB_ColorFromNormalized(BLB_ColorChannelToNormalized(current->base_color.r), BLB_ColorChannelToNormalized(current->base_color.g), BLB_ColorChannelToNormalized(current->base_color.b), 1.0f - fminf(1.0f, fmaxf(0.0f, transparency))));
     } else if (strcmp(value, "illum") == 0) {
       int illumination;
 
       if (sscanf(argument, "%d", &illumination) == 1 && illumination <= 1)
-        BLB_Material_SetSpecular(current, 0.0f, current->specular_color[0], current->specular_color[1], current->specular_color[2]);
+        BLB_Material_SetSpecular(current, 0.0f, current->specular_color);
     } else if (strcmp(value, "map_Kd") == 0) {
       char *texture_name = argument;
 
@@ -400,7 +399,7 @@ static int material_load_mtl(BLB_Object3D *object, const char *path) {
   for (size_t i = 0; i < material_count; ++i) {
     mtl_apply_texture(materials[i].material, path, materials[i].texture_path);
 
-    if (materials[i].material->base_color[3] < 0.999f)
+    if (materials[i].material->base_color.a < 255)
       BLB_Material_SetAlphaMode(materials[i].material, BLB_ALPHA_BLEND);
   }
 
@@ -552,7 +551,7 @@ void BLB_Object3D_ClearHandler(BLB_Object3D *object) {
   object->handler = NULL;
 }
 
-void BLB_Object3D_SetColor(BLB_Object3D *object, BLB_Vec4 color) {
+void BLB_Object3D_SetColor(BLB_Object3D *object, BLB_Color color) {
   if (!object)
     return;
 

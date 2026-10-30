@@ -32,7 +32,7 @@ int Demo_ObjectCount3d(const Demo_Settings *settings) {
     BLB_Object3D *object = Demo_Cube(&demo, x, y, z, 0.45f);
 
     if (object)
-      BLB_Object3D_SetColor(object, BLB_V4(65 + i % edge * 150.0f / edge, 175, 235 - (i / edge) % edge * 100.0f / edge, 255));
+      BLB_Object3D_SetColor(object, BLB_ColorRGBA((unsigned char)(65 + i % edge * 150.0f / edge), 175, (unsigned char)(235 - (i / edge) % edge * 100.0f / edge), 255));
   }
 
   Demo_Light(&demo);

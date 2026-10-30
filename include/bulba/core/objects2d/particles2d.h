@@ -2,10 +2,11 @@
 #define BULBA_CORE_OBJECTS2D_PARTICLES2D_H
 
 #include "bulba/core/entity.h"
-#include "bulba/core/math3v/vec_math.h"
 #include "bulba/core/math3v/polygon.h"
+#include "bulba/core/math3v/vec_math.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
+#include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/particle.h"
 
 #include <stdbool.h>
@@ -22,7 +23,7 @@ typedef struct {
   float rotation;
   float rotation_speed;
 
-  BLB_Vec4 color;
+  BLB_Color color;
 
   float lifetime;
   float lifetime_max;
@@ -67,8 +68,8 @@ typedef struct {
   BLB_Vec2 particle_scale;
   BLB_Vec2 particle_scale_variation;
 
-  BLB_Vec4 color;
-  BLB_Vec4 color_end;
+  BLB_Color color;
+  BLB_Color color_end;
 
   float rotation;
   float rotation_speed;
@@ -80,8 +81,9 @@ typedef struct {
   BLB_Material *material;
 } BLB_ParticleSystem2D;
 
-BLB_Particle2D *BLB_CreateParticle2D(BLB_ParticleID id, BLB_Vec2 position, BLB_Vec2 velocity, BLB_Vec2 scale, float rotation, float rotation_speed,
-                                     BLB_Vec4 color, float lifetime, float lifetime_max, BLB_Texture *texture, BLB_Material *material);
+BLB_Particle2D *BLB_CreateParticle2D(BLB_ParticleID id, BLB_Vec2 position, BLB_Vec2 velocity, BLB_Vec2 scale,
+                                     float rotation, float rotation_speed, BLB_Color color, float lifetime,
+                                     float lifetime_max, BLB_Texture *texture, BLB_Material *material);
 
 void BLB_DestroyParticle2D(BLB_Particle2D *p);
 
@@ -97,8 +99,9 @@ void BLB_Particle2D_SetMaterial(BLB_Particle2D *p, BLB_Material *material);
 void BLB_Particle2D_FlipX(BLB_Particle2D *p);
 void BLB_Particle2D_FlipY(BLB_Particle2D *p);
 
-BLB_ParticleSystem2D *BLB_CreateParticleSystem2D(BLB_Vec2 particle_system_scale, BLB_Vec2 position, size_t count, size_t capacity, float lifetime,
-                                                 float lifetime_variation, BLB_Texture *texture);
+BLB_ParticleSystem2D *BLB_CreateParticleSystem2D(BLB_Vec2 particle_system_scale, BLB_Vec2 position, size_t count,
+                                                 size_t capacity, float lifetime, float lifetime_variation,
+                                                 BLB_Texture *texture);
 
 void BLB_DestroyParticleSystem2D(BLB_ParticleSystem2D *ps);
 

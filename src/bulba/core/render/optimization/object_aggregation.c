@@ -20,7 +20,7 @@ typedef struct {
   uintptr_t texture;
   int layer;
   int render_mode;
-  float color[4];
+  BLB_Color color;
   bool used;
   BLB_RenderObjects3DCluster *cluster;
 } BLB_ClusterHashEntry;
@@ -33,7 +33,6 @@ typedef struct {
   uintptr_t shader;
   int layer;
   int render_mode;
-  float color[4];
   bool used;
   BLB_RenderInstances3DGroup *group;
 } BLB_InstanceHashEntry;
@@ -62,7 +61,7 @@ static uint64_t hash_pointer(uintptr_t value) {
   return x;
 }
 
-static uint64_t hash_cluster_key(int64_t x, int64_t y, int64_t z, uintptr_t material, uintptr_t texture, int layer, int render_mode, BLB_Vec4 color) {
+static uint64_t hash_cluster_key(int64_t x, int64_t y, int64_t z, uintptr_t material, uintptr_t texture, int layer, int render_mode, BLB_Color color) {
   uint64_t hash = UINT64_C(1469598103934665603);
 
   hash ^= (uint64_t)x;
@@ -86,12 +85,8 @@ static uint64_t hash_cluster_key(int64_t x, int64_t y, int64_t z, uintptr_t mate
   hash ^= (uint64_t)(uint32_t)render_mode;
   hash *= UINT64_C(1099511628211);
 
-  const float values[4] = {color.x, color.y, color.z, color.w};
-
   for (size_t i = 0; i < 4; ++i) {
-    uint32_t bits;
-    memcpy(&bits, &values[i], sizeof(bits));
-    hash ^= bits;
+    hash ^= color.rgba[i];
     hash *= UINT64_C(1099511628211);
   }
 
@@ -121,8 +116,7 @@ static void instance_material_key(const BLB_Object3D *object, BLB_Material *key)
   memcpy(key, object->material, sizeof(*key));
   key->ref_count = 0;
 
-  for (int c = 0; c < 4; ++c)
-    key->base_color[c] = 1.0f;
+  key->base_color = BLB_COLOR_WHITE;
   memset(key->name, 0, sizeof(key->name));
   key->texture_retain = NULL;
   key->texture_release = NULL;
@@ -243,7 +237,7 @@ static uint64_t source_signature(BLB_Object3D **objects, size_t object_count) {
       if (!object->optimization_instance_group || !((BLB_RenderInstances3DGroup *)object->optimization_instance_group)->enabled) {
         for (size_t c = 0; c < 4; ++c) {
           uint32_t bits;
-          memcpy(&bits, &object->color.Elements[c], sizeof(bits));
+          bits = object->color.rgba[c];
           hash ^= bits;
           hash *= UINT64_C(1099511628211);
         }
@@ -396,14 +390,14 @@ static bool append_cluster(BLB_ObjectAggregation3D *aggregation, BLB_RenderObjec
 }
 
 static BLB_RenderObjects3DCluster *find_cluster_by_key(BLB_ClusterHashEntry *table, size_t capacity, int64_t x, int64_t y, int64_t z,
-                                                       uintptr_t material, uintptr_t texture, int layer, int render_mode, BLB_Vec4 color) {
+                                                       uintptr_t material, uintptr_t texture, int layer, int render_mode, BLB_Color color) {
   uint64_t hash = hash_cluster_key(x, y, z, material, texture, layer, render_mode, color);
 
   size_t index = (size_t)(hash & (capacity - 1));
 
   while (table[index].used) {
     if (table[index].x == x && table[index].y == y && table[index].z == z && table[index].material == material && table[index].texture == texture &&
-        table[index].layer == layer && table[index].render_mode == render_mode && memcmp(table[index].color, &color, sizeof(table[index].color)) == 0)
+        table[index].layer == layer && table[index].render_mode == render_mode && memcmp(&table[index].color, &color, sizeof(color)) == 0)
       return table[index].cluster;
 
     index = (index + 1) & (capacity - 1);
@@ -413,7 +407,7 @@ static BLB_RenderObjects3DCluster *find_cluster_by_key(BLB_ClusterHashEntry *tab
 }
 
 static bool insert_cluster_key(BLB_ClusterHashEntry *table, size_t capacity, int64_t x, int64_t y, int64_t z, uintptr_t material, uintptr_t texture,
-                               int layer, int render_mode, BLB_Vec4 color, BLB_RenderObjects3DCluster *cluster) {
+                               int layer, int render_mode, BLB_Color color, BLB_RenderObjects3DCluster *cluster) {
   uint64_t hash = hash_cluster_key(x, y, z, material, texture, layer, render_mode, color);
 
   size_t index = (size_t)(hash & (capacity - 1));
@@ -429,7 +423,7 @@ static bool insert_cluster_key(BLB_ClusterHashEntry *table, size_t capacity, int
   table[index].texture = texture;
   table[index].layer = layer;
   table[index].render_mode = render_mode;
-  memcpy(table[index].color, &color, sizeof(table[index].color));
+  table[index].color = color;
   table[index].cluster = cluster;
 
   return true;
@@ -539,8 +533,6 @@ static bool insert_instance_group_key(BLB_InstanceHashEntry *table, size_t capac
   table[index].shader = shader;
   table[index].layer = object->layer;
   table[index].render_mode = object_render_mode(object);
-
-  memcpy(table[index].color, &object->color, sizeof(table[index].color));
   table[index].group = group;
 
   return true;

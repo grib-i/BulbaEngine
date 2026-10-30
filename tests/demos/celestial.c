@@ -12,7 +12,7 @@ BLB_Object3D *Demo_Planet(Demo_Context *demo, const char *name, BLB_Vec3 positio
     demo->failed = true;
 
   if (body) {
-    Demo_Color(demo, body, BLB_V4(255, 255, 255, 255), 0, .92f);
+    Demo_Color(demo, body, BLB_ColorRGBA(255, 255, 255, 255), 0, .92f);
     BLB_MaterialTexture_SetProjection(&body->material->base_color_texture, BLB_TEXMAP_UV);
   }
 
@@ -29,7 +29,7 @@ BLB_Object3D *Demo_SaturnRings(Demo_Context *demo, BLB_Vec3 position, float radi
     demo->failed = true;
 
   if (rings) {
-    Demo_Color(demo, rings, BLB_V4(255, 244, 225, 255), .02f, .88f);
+    Demo_Color(demo, rings, BLB_ColorRGBA(255, 244, 225, 255), .02f, .88f);
     BLB_MaterialTexture_SetProjection(&rings->material->base_color_texture, BLB_TEXMAP_UV);
     BLB_Material_SetDoubleSided(rings->material, true);
     BLB_Material_SetAlphaMode(rings->material, BLB_ALPHA_BLEND);

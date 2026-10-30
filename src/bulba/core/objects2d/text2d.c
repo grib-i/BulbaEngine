@@ -112,10 +112,7 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, BLB_Vec2 pos, floa
 
   t->size = isfinite(size) && size > 0.0f ? size : 16.0f;
 
-  t->color[0] = 255;
-  t->color[1] = 255;
-  t->color[2] = 255;
-  t->color[3] = 255;
+  t->color = BLB_COLOR_WHITE;
 
   t->glow = 0.0f;
   t->emission = 0.0f;
@@ -129,12 +126,6 @@ BLB_Text2D *BLB_CreateText2D(const char *s, const char *font, BLB_Vec2 pos, floa
   t->component_mask = BLB_COMPONENT_TRANSFORM | BLB_COMPONENT_RENDERABLE;
 
   t->material = NULL;
-
-  // // if (!t->material) {
-  // //   BLB_DestroyText2D(t);
-
-  //   return NULL;
-  // }
 
   t->delta_time = BLB_DeltaTime_Get();
 

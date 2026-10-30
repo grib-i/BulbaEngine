@@ -3,7 +3,7 @@
 #include "tests.h"
 
 int main(void) {
-  int result = -1;
+  int result = 0;
   BLB_DEBUG = false;
 
   /*  Uncomment one return below to launch directly without command-line
@@ -27,7 +27,7 @@ int main(void) {
   // result = Demo_Primitives3d(NULL);
   // result = Demo_Textures2d(NULL);
   // result = Demo_SpriteAnimation(NULL);
-  result = Demo_Text2d(NULL);
+  // result = Demo_Text2d(NULL);
   // result = Demo_Particles2d(NULL);
   // result = Demo_Particles3d(NULL);
   // result = Demo_Textures3d(NULL);
@@ -70,6 +70,5 @@ int main(void) {
   // result = Test_Lifecycle(NULL);
 
   // result = Tests_Main(argc, argv);
-
   return result;
 }
