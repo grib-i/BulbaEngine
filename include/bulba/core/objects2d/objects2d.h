@@ -2,14 +2,13 @@
 #define OBJECTS2D_H
 
 #include "bulba/core/entity.h"
-#include "bulba/core/math3v/math3v.h"
-#include "bulba/core/math3v/polygon.h"
 #include "bulba/core/physics/physics2d.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
 #include "bulba/core/render_mode.h"
 #include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/object.h"
+#include "bulba/core/utils/polygon.h"
 #include "bulba/handlers/object.h"
 
 #include <stdbool.h>

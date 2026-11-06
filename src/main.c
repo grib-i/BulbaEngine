@@ -39,7 +39,7 @@ int main(void) {
   // result = Demo_Skybox(NULL);
   // result = Demo_SolarSystem(NULL);
 
-  // result = Demo_ObjectCount2d(NULL);
+  result = Demo_ObjectCount2d(NULL);
   // result = Demo_ObjectCount3d(NULL);
   // result = Demo_Transparency(NULL);
   // result = Demo_Lod(NULL);
