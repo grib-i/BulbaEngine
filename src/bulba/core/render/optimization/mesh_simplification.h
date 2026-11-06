@@ -1,7 +1,7 @@
 #ifndef BLB_MESH_SIMPLIFICATION_H
 #define BLB_MESH_SIMPLIFICATION_H
 
-#include "bulba/core/math3v/polygon.h"
+#include "bulba/core/utils/polygon.h"
 
 #include <stdbool.h>
 #include <stddef.h>

@@ -1,9 +1,9 @@
 #ifndef BULBA_CORE_MATH3V_PHYSICS3D_INTERNAL_H
 #define BULBA_CORE_MATH3V_PHYSICS3D_INTERNAL_H
 
-#include "bulba/core/math3v/polygon.h"
 #include "bulba/core/objects3d/objects3d.h"
 #include "bulba/core/physics/physics3d.h"
+#include "bulba/core/utils/polygon.h"
 #include <box3d/box3d.h>
 #include <stdbool.h>
 #include <stddef.h>

@@ -2,12 +2,12 @@
 #define BULBA_CORE_OBJECTS2D_PARTICLES2D_H
 
 #include "bulba/core/entity.h"
-#include "bulba/core/math3v/polygon.h"
 #include "bulba/core/math3v/vec_math.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
 #include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/particle.h"
+#include "bulba/core/utils/polygon.h"
 
 #include <stdbool.h>
 #include <stddef.h>

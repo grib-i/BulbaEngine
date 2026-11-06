@@ -2,7 +2,6 @@
 #define BULBA_GRAPHICS_RENDERER_H
 
 #include "bulba/core/math3v/lights.h"
-#include "bulba/core/math3v/polygon.h"
 #include "bulba/core/objects2d/objects2d.h"
 #include "bulba/core/objects2d/text2d.h"
 #include "bulba/core/objects3d/objects3d.h"
@@ -12,6 +11,7 @@
 #include "bulba/core/render_mode.h"
 #include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/font.h"
+#include "bulba/core/utils/polygon.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -85,7 +85,8 @@ typedef struct {
   uint32_t padding[3];
 } BLB_RenderInstanceData;
 
-_Static_assert(sizeof(BLB_RenderInstanceData) == 96, "BLB_RenderInstanceData layout changed; update renderer backend layout");
+_Static_assert(sizeof(BLB_RenderInstanceData) == 96,
+               "BLB_RenderInstanceData layout changed; update renderer backend layout");
 
 typedef struct BLB_Renderer BLB_Renderer;
 typedef struct BLB_RenderBackendOps BLB_RenderBackendOps;
@@ -118,44 +119,54 @@ struct BLB_RenderBackendOps {
 
   void (*draw_shadow_polygon3d)(void *backend, const BLB_Polygon3D *polygon, const float *model_mvp);
   void (*draw_cached_shadow_mesh)(void *backend, const Mesh *mesh, const float *model_mvp);
-  void (*draw_instanced_shadow_mesh)(void *backend, const Mesh *mesh, const float *mvp, const BLB_RenderInstanceData *instances,
-                                     size_t instance_count);
-  void (*draw_instanced_shadow_polygon3d)(void *backend, const BLB_Polygon3D *polygon, const float *mvp, const BLB_RenderInstanceData *instances,
-                                          size_t instance_count);
+  void (*draw_instanced_shadow_mesh)(void *backend, const Mesh *mesh, const float *mvp,
+                                     const BLB_RenderInstanceData *instances, size_t instance_count);
+  void (*draw_instanced_shadow_polygon3d)(void *backend, const BLB_Polygon3D *polygon, const float *mvp,
+                                          const BLB_RenderInstanceData *instances, size_t instance_count);
 
-  void (*draw_triangle)(void *backend, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r, float g, float b_color, float a_color,
-                        BLB_Vec3 camera_position);
-  void (*draw_triangle2d)(void *backend, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r, float g, float b_color, float a_color,
-                          BLB_Vec3 camera_position, int lighting_enabled);
-  void (*draw_mesh)(void *backend, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, BLB_Vec3 camera_position);
-  void (*draw_cached_mesh)(void *backend, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, BLB_Vec3 camera_position);
-  void (*draw_cached_mesh_material)(void *backend, const Mesh *mesh, const float *mvp, const float *model_rows, float r, float g, float b, float a,
-                                    const BLB_RenderMaterial *material, BLB_Texture *texture, BLB_Vec3 camera_position);
-  void (*draw_instanced_mesh)(void *backend, const Mesh *mesh, const float *mvp, const BLB_RenderMaterial *material, BLB_Texture *texture,
-                              const BLB_RenderInstanceData *instances, size_t instance_count, BLB_Vec3 camera_position);
-  void (*draw_instanced_polygon3d)(void *backend, const BLB_Polygon3D *polygon, const float *mvp, const BLB_RenderMaterial *material,
-                                   BLB_Texture *texture, const BLB_RenderInstanceData *instances, size_t instance_count, BLB_Vec3 camera_position);
-  void (*draw_polygon3d)(void *backend, const BLB_Polygon3D *polygon, const float *mvp, const float *model_rows, float r, float g, float b, float a,
-                         const BLB_RenderMaterial *material, BLB_Texture *texture);
-  void (*draw_polygon2d)(void *backend, const BLB_Polygon2D *polygon, const BLB_Vec2 *world_positions, float viewport_width, float viewport_height,
+  void (*draw_triangle)(void *backend, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r, float g,
+                        float b_color, float a_color, BLB_Vec3 camera_position);
+  void (*draw_triangle2d)(void *backend, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r, float g,
+                          float b_color, float a_color, BLB_Vec3 camera_position, int lighting_enabled);
+  void (*draw_mesh)(void *backend, const Mesh *mesh, const float *mvp, float r, float g, float b, float a,
+                    BLB_Vec3 camera_position);
+  void (*draw_cached_mesh)(void *backend, const Mesh *mesh, const float *mvp, float r, float g, float b, float a,
+                           BLB_Vec3 camera_position);
+  void (*draw_cached_mesh_material)(void *backend, const Mesh *mesh, const float *mvp, const float *model_rows, float r,
+                                    float g, float b, float a, const BLB_RenderMaterial *material, BLB_Texture *texture,
+                                    BLB_Vec3 camera_position);
+  void (*draw_instanced_mesh)(void *backend, const Mesh *mesh, const float *mvp, const BLB_RenderMaterial *material,
+                              BLB_Texture *texture, const BLB_RenderInstanceData *instances, size_t instance_count,
+                              BLB_Vec3 camera_position);
+  void (*draw_instanced_polygon3d)(void *backend, const BLB_Polygon3D *polygon, const float *mvp,
+                                   const BLB_RenderMaterial *material, BLB_Texture *texture,
+                                   const BLB_RenderInstanceData *instances, size_t instance_count,
+                                   BLB_Vec3 camera_position);
+  void (*draw_polygon3d)(void *backend, const BLB_Polygon3D *polygon, const float *mvp, const float *model_rows,
                          float r, float g, float b, float a, const BLB_RenderMaterial *material, BLB_Texture *texture);
-  void (*draw_batched_polygon2d)(void *backend, const BLB_Polygon2D *polygon, float viewport_width, float viewport_height,
-                                 const BLB_RenderMaterial *material, BLB_Texture *texture, const BLB_RenderInstanceData *instances,
-                                 size_t instance_count, bool camera_attached);
-  void (*draw_instanced_polygon2d)(void *backend, const BLB_Polygon2D *polygon, float viewport_width, float viewport_height,
-                                   const BLB_RenderMaterial *material, BLB_Texture *texture, const BLB_RenderInstanceData *instances,
-                                   size_t instance_count, bool camera_attached);
+  void (*draw_polygon2d)(void *backend, const BLB_Polygon2D *polygon, const BLB_Vec2 *world_positions,
+                         float viewport_width, float viewport_height, float r, float g, float b, float a,
+                         const BLB_RenderMaterial *material, BLB_Texture *texture);
+  void (*draw_batched_polygon2d)(void *backend, const BLB_Polygon2D *polygon, float viewport_width,
+                                 float viewport_height, const BLB_RenderMaterial *material, BLB_Texture *texture,
+                                 const BLB_RenderInstanceData *instances, size_t instance_count, bool camera_attached);
+  void (*draw_instanced_polygon2d)(void *backend, const BLB_Polygon2D *polygon, float viewport_width,
+                                   float viewport_height, const BLB_RenderMaterial *material, BLB_Texture *texture,
+                                   const BLB_RenderInstanceData *instances, size_t instance_count,
+                                   bool camera_attached);
 
   int (*ensure_instance_capacity)(void *backend, size_t required_instances);
   void (*clear_cached_meshes)(void *backend);
 
   int (*load_font)(void *backend, const Font *font);
   void (*unload_font)(void *backend);
-  void (*draw_text)(void *backend, const Font *font, const char *text, float x, float y, float glyph_scale, BLB_Vec2 transform_scale, float rotation,
-                    float r, float g, float b, float a, float emission, float glow, float roundness, BLB_RenderMode render_mode);
-  void (*draw_text_transformed)(void *backend, const Font *font, const char *text, float x, float y, float glyph_scale, BLB_Vec2 transform_scale,
-                                float rotation, float r, float g, float b, float a, float emission, float glow, float roundness,
-                                BLB_RenderMode render_mode, const float *mvp);
+  void (*draw_text)(void *backend, const Font *font, const char *text, float x, float y, float glyph_scale,
+                    BLB_Vec2 transform_scale, float rotation, float r, float g, float b, float a, float emission,
+                    float glow, float roundness, BLB_RenderMode render_mode);
+  void (*draw_text_transformed)(void *backend, const Font *font, const char *text, float x, float y, float glyph_scale,
+                                BLB_Vec2 transform_scale, float rotation, float r, float g, float b, float a,
+                                float emission, float glow, float roundness, BLB_RenderMode render_mode,
+                                const float *mvp);
 
   int (*recreate_swapchain)(void *backend, bool vsync);
   bool (*get_vsync)(const void *backend);
@@ -202,44 +213,55 @@ void BLB_RendererBeginShadowPass(BLB_Renderer *renderer, uint32_t shadow_map_ind
 void BLB_RendererEndShadowPass(BLB_Renderer *renderer);
 void BLB_RendererDrawShadowPolygon3D(BLB_Renderer *renderer, const BLB_Polygon3D *polygon, const float *model_mvp);
 void BLB_RendererDrawCachedShadowMesh(BLB_Renderer *renderer, const Mesh *mesh, const float *model_mvp);
-void BLB_RendererDrawInstancedShadowMesh(BLB_Renderer *renderer, const Mesh *mesh, const float *mvp, const BLB_RenderInstanceData *instances,
-                                         size_t instance_count);
+void BLB_RendererDrawInstancedShadowMesh(BLB_Renderer *renderer, const Mesh *mesh, const float *mvp,
+                                         const BLB_RenderInstanceData *instances, size_t instance_count);
 void BLB_RendererDrawInstancedShadowPolygon3D(BLB_Renderer *renderer, const BLB_Polygon3D *polygon, const float *mvp,
                                               const BLB_RenderInstanceData *instances, size_t instance_count);
-void BLB_RendererDrawTriangle(BLB_Renderer *renderer, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r, float g, float b_color,
-                              float a_color, BLB_Vec3 camera_position);
-void BLB_RendererDrawTriangle2D(BLB_Renderer *renderer, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r, float g, float b_color,
-                                float a_color, BLB_Vec3 camera_position, int lighting_enabled);
-void BLB_RendererDrawMesh(BLB_Renderer *renderer, const Mesh *mesh, const float *mvp, float r, float g, float b, float a, BLB_Vec3 camera_position);
-void BLB_RendererDrawCachedMesh(BLB_Renderer *renderer, const Mesh *mesh, const float *mvp, float r, float g, float b, float a,
-                                BLB_Vec3 camera_position);
-void BLB_RendererDrawCachedMeshMaterial(BLB_Renderer *renderer, const Mesh *mesh, const float *mvp, const float *model_rows, float r, float g,
-                                        float b, float a, const BLB_RenderMaterial *material, BLB_Texture *texture, BLB_Vec3 camera_position);
-void BLB_RendererDrawInstancedMesh(BLB_Renderer *renderer, const Mesh *mesh, const float *mvp, const BLB_RenderMaterial *material,
-                                   BLB_Texture *texture, const BLB_RenderInstanceData *instances, size_t instance_count, BLB_Vec3 camera_position);
-void BLB_RendererDrawInstancedPolygon3D(BLB_Renderer *renderer, const BLB_Polygon3D *polygon, const float *mvp, const BLB_RenderMaterial *material,
-                                        BLB_Texture *texture, const BLB_RenderInstanceData *instances, size_t instance_count,
+void BLB_RendererDrawTriangle(BLB_Renderer *renderer, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r,
+                              float g, float b_color, float a_color, BLB_Vec3 camera_position);
+void BLB_RendererDrawTriangle2D(BLB_Renderer *renderer, BLB_Vec3 a, BLB_Vec3 b, BLB_Vec3 c, const float *mvp, float r,
+                                float g, float b_color, float a_color, BLB_Vec3 camera_position, int lighting_enabled);
+void BLB_RendererDrawMesh(BLB_Renderer *renderer, const Mesh *mesh, const float *mvp, float r, float g, float b,
+                          float a, BLB_Vec3 camera_position);
+void BLB_RendererDrawCachedMesh(BLB_Renderer *renderer, const Mesh *mesh, const float *mvp, float r, float g, float b,
+                                float a, BLB_Vec3 camera_position);
+void BLB_RendererDrawCachedMeshMaterial(BLB_Renderer *renderer, const Mesh *mesh, const float *mvp,
+                                        const float *model_rows, float r, float g, float b, float a,
+                                        const BLB_RenderMaterial *material, BLB_Texture *texture,
                                         BLB_Vec3 camera_position);
-void BLB_RendererDrawPolygon3D(BLB_Renderer *renderer, const BLB_Polygon3D *polygon, const float *mvp, const float *model_rows, float r, float g,
-                               float b, float a, const BLB_RenderMaterial *material, BLB_Texture *texture);
-void BLB_RendererDrawPolygon2D(BLB_Renderer *renderer, const BLB_Polygon2D *polygon, const BLB_Vec2 *world_positions, float viewport_width,
-                               float viewport_height, float r, float g, float b, float a, const BLB_RenderMaterial *material, BLB_Texture *texture);
-void BLB_RendererDrawBatchedPolygon2D(BLB_Renderer *renderer, const BLB_Polygon2D *polygon, float viewport_width, float viewport_height,
-                                      const BLB_RenderMaterial *material, BLB_Texture *texture, const BLB_RenderInstanceData *instances,
-                                      size_t instance_count, bool camera_attached);
-void BLB_RendererDrawInstancedPolygon2D(BLB_Renderer *renderer, const BLB_Polygon2D *polygon, float viewport_width, float viewport_height,
-                                        const BLB_RenderMaterial *material, BLB_Texture *texture, const BLB_RenderInstanceData *instances,
-                                        size_t instance_count, bool camera_attached);
+void BLB_RendererDrawInstancedMesh(BLB_Renderer *renderer, const Mesh *mesh, const float *mvp,
+                                   const BLB_RenderMaterial *material, BLB_Texture *texture,
+                                   const BLB_RenderInstanceData *instances, size_t instance_count,
+                                   BLB_Vec3 camera_position);
+void BLB_RendererDrawInstancedPolygon3D(BLB_Renderer *renderer, const BLB_Polygon3D *polygon, const float *mvp,
+                                        const BLB_RenderMaterial *material, BLB_Texture *texture,
+                                        const BLB_RenderInstanceData *instances, size_t instance_count,
+                                        BLB_Vec3 camera_position);
+void BLB_RendererDrawPolygon3D(BLB_Renderer *renderer, const BLB_Polygon3D *polygon, const float *mvp,
+                               const float *model_rows, float r, float g, float b, float a,
+                               const BLB_RenderMaterial *material, BLB_Texture *texture);
+void BLB_RendererDrawPolygon2D(BLB_Renderer *renderer, const BLB_Polygon2D *polygon, const BLB_Vec2 *world_positions,
+                               float viewport_width, float viewport_height, float r, float g, float b, float a,
+                               const BLB_RenderMaterial *material, BLB_Texture *texture);
+void BLB_RendererDrawBatchedPolygon2D(BLB_Renderer *renderer, const BLB_Polygon2D *polygon, float viewport_width,
+                                      float viewport_height, const BLB_RenderMaterial *material, BLB_Texture *texture,
+                                      const BLB_RenderInstanceData *instances, size_t instance_count,
+                                      bool camera_attached);
+void BLB_RendererDrawInstancedPolygon2D(BLB_Renderer *renderer, const BLB_Polygon2D *polygon, float viewport_width,
+                                        float viewport_height, const BLB_RenderMaterial *material, BLB_Texture *texture,
+                                        const BLB_RenderInstanceData *instances, size_t instance_count,
+                                        bool camera_attached);
 int BLB_RendererEnsureInstanceCapacity(BLB_Renderer *renderer, size_t required_instances);
 void BLB_RendererClearCachedMeshes(BLB_Renderer *renderer);
 int BLB_RendererLoadFont(BLB_Renderer *renderer, const Font *font);
 void BLB_RendererUnloadFont(BLB_Renderer *renderer);
-void BLB_RendererDrawText(BLB_Renderer *renderer, const Font *font, const char *text, float x, float y, float glyph_scale, BLB_Vec2 transform_scale,
-                          float rotation, float r, float g, float b, float a, float emission, float glow, float roundness,
-                          BLB_RenderMode render_mode);
-void BLB_RendererDrawTextTransformed(BLB_Renderer *renderer, const Font *font, const char *text, float x, float y, float glyph_scale,
-                                     BLB_Vec2 transform_scale, float rotation, float r, float g, float b, float a, float emission, float glow,
-                                     float roundness, BLB_RenderMode render_mode, const float *mvp);
+void BLB_RendererDrawText(BLB_Renderer *renderer, const Font *font, const char *text, float x, float y,
+                          float glyph_scale, BLB_Vec2 transform_scale, float rotation, float r, float g, float b,
+                          float a, float emission, float glow, float roundness, BLB_RenderMode render_mode);
+void BLB_RendererDrawTextTransformed(BLB_Renderer *renderer, const Font *font, const char *text, float x, float y,
+                                     float glyph_scale, BLB_Vec2 transform_scale, float rotation, float r, float g,
+                                     float b, float a, float emission, float glow, float roundness,
+                                     BLB_RenderMode render_mode, const float *mvp);
 int BLB_RendererRecreateSwapchain(BLB_Renderer *renderer, bool vsync);
 bool BLB_RendererGetVSync(const BLB_Renderer *renderer);
 void BLB_RendererGetViewport(const BLB_Renderer *renderer, uint32_t *width, uint32_t *height);

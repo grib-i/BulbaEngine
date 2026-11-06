@@ -4,7 +4,6 @@
 #include "bulba/core/camera.h"
 #include "bulba/core/entity.h"
 #include "bulba/core/math3v/lights.h"
-#include "bulba/core/math3v/polygon.h"
 #include "bulba/core/objects2d/audio2d.h"
 #include "bulba/core/objects2d/circle.h"
 #include "bulba/core/objects2d/objects2d.h"
@@ -15,6 +14,7 @@
 #include "bulba/core/objects3d/cube.h"
 #include "bulba/core/physics/physics2d.h"
 #include "bulba/core/physics/physics3d.h"
+#include "bulba/core/utils/polygon.h"
 
 #include "bulba/core/objects3d/model_loader_fbx.h"
 #include "bulba/core/objects3d/model_loader_glb.h"

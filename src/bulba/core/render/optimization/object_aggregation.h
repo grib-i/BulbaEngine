@@ -1,8 +1,8 @@
 #ifndef BLB_OBJECT_AGGREGATION_H
 #define BLB_OBJECT_AGGREGATION_H
 
-#include "bulba/core/math3v/polygon.h"
 #include "bulba/core/objects3d/objects3d.h"
+#include "bulba/core/utils/polygon.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -79,24 +79,29 @@ typedef struct BLB_ObjectAggregation3D {
   size_t map_capacity;
 } BLB_ObjectAggregation3D;
 
-BLB_ObjectAggregation3D *BLB_ObjectAggregation3D_Create(BLB_Object3D **objects, size_t object_count, float cluster_distance, int hsa_levels,
-                                                        float hsa_error);
-BLB_ObjectAggregation3D *BLB_ObjectAggregation3D_CreateLightweight(BLB_Object3D **objects, size_t object_count, float cluster_distance,
-                                                                   int hsa_levels, float hsa_error);
+BLB_ObjectAggregation3D *BLB_ObjectAggregation3D_Create(BLB_Object3D **objects, size_t object_count,
+                                                        float cluster_distance, int hsa_levels, float hsa_error);
+BLB_ObjectAggregation3D *BLB_ObjectAggregation3D_CreateLightweight(BLB_Object3D **objects, size_t object_count,
+                                                                   float cluster_distance, int hsa_levels,
+                                                                   float hsa_error);
 
 void BLB_ObjectAggregation3D_Destroy(BLB_ObjectAggregation3D *aggregation);
 
-BLB_RenderObjects3DCluster *BLB_ObjectAggregation3D_FindCluster(BLB_ObjectAggregation3D *aggregation, BLB_Object3D *object);
-BLB_RenderInstances3DGroup *BLB_ObjectAggregation3D_FindInstanceGroup(BLB_ObjectAggregation3D *aggregation, BLB_Object3D *object);
+BLB_RenderObjects3DCluster *BLB_ObjectAggregation3D_FindCluster(BLB_ObjectAggregation3D *aggregation,
+                                                                BLB_Object3D *object);
+BLB_RenderInstances3DGroup *BLB_ObjectAggregation3D_FindInstanceGroup(BLB_ObjectAggregation3D *aggregation,
+                                                                      BLB_Object3D *object);
 bool BLB_ObjectAggregation3D_ClusterTransformChanged(const BLB_RenderObjects3DCluster *cluster);
-bool BLB_ObjectAggregation3D_MatchesSource(const BLB_ObjectAggregation3D *aggregation, BLB_Object3D **objects, size_t object_count);
-bool BLB_ObjectAggregation3D_RebindSource(BLB_ObjectAggregation3D *aggregation, BLB_Object3D **objects, BLB_Object3D **snapshots,
-                                          size_t object_count);
+bool BLB_ObjectAggregation3D_MatchesSource(const BLB_ObjectAggregation3D *aggregation, BLB_Object3D **objects,
+                                           size_t object_count);
+bool BLB_ObjectAggregation3D_RebindSource(BLB_ObjectAggregation3D *aggregation, BLB_Object3D **objects,
+                                          BLB_Object3D **snapshots, size_t object_count);
 
 void BLB_ObjectAggregation3D_ResetDrawState(BLB_ObjectAggregation3D *aggregation);
 
 Mesh *BLB_ObjectAggregation3D_GetLOD(BLB_RenderObjects3DCluster *cluster, size_t level);
-bool BLB_ObjectAggregation3D_EnsureLOD(BLB_ObjectAggregation3D *aggregation, BLB_RenderObjects3DCluster *cluster, size_t level);
+bool BLB_ObjectAggregation3D_EnsureLOD(BLB_ObjectAggregation3D *aggregation, BLB_RenderObjects3DCluster *cluster,
+                                       size_t level);
 
 void BLB_ObjectAggregation3D_RebuildCluster(BLB_ObjectAggregation3D *aggregation, BLB_RenderObjects3DCluster *cluster);
 

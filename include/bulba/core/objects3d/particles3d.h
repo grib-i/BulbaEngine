@@ -3,11 +3,11 @@
 
 #include "bulba/core/entity.h"
 #include "bulba/core/math3v/vec_math.h"
-#include "bulba/core/math3v/polygon.h"
 #include "bulba/core/render/material.h"
 #include "bulba/core/render/texture.h"
 #include "bulba/core/utils/colors.h"
 #include "bulba/core/utils/particle.h"
+#include "bulba/core/utils/polygon.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -79,8 +79,9 @@ typedef struct {
   BLB_Material *material;
 } BLB_ParticleSystem3D;
 
-BLB_Particle3D *BLB_CreateParticle3D(BLB_ParticleID id, BLB_Vec3 position, BLB_Vec3 velocity, BLB_Vec3 scale, BLB_Vec3 rotation, BLB_Color color,
-                                     float lifetime, float lifetime_max, BLB_Texture *texture, BLB_Material *material);
+BLB_Particle3D *BLB_CreateParticle3D(BLB_ParticleID id, BLB_Vec3 position, BLB_Vec3 velocity, BLB_Vec3 scale,
+                                     BLB_Vec3 rotation, BLB_Color color, float lifetime, float lifetime_max,
+                                     BLB_Texture *texture, BLB_Material *material);
 
 void BLB_DestroyParticle3D(BLB_Particle3D *p);
 
@@ -97,8 +98,9 @@ void BLB_Particle3D_FlipX(BLB_Particle3D *p);
 void BLB_Particle3D_FlipY(BLB_Particle3D *p);
 void BLB_Particle3D_FlipZ(BLB_Particle3D *p);
 
-BLB_ParticleSystem3D *BLB_CreateParticleSystem3D(BLB_Vec3 particle_system_scale, BLB_Vec3 position, size_t count, size_t capacity, float lifetime,
-                                                 float lifetime_variation, BLB_Texture *texture);
+BLB_ParticleSystem3D *BLB_CreateParticleSystem3D(BLB_Vec3 particle_system_scale, BLB_Vec3 position, size_t count,
+                                                 size_t capacity, float lifetime, float lifetime_variation,
+                                                 BLB_Texture *texture);
 
 void BLB_DestroyParticleSystem3D(BLB_ParticleSystem3D *ps);
 

@@ -4,13 +4,13 @@
 #define GLFW_INCLUDE_VULKAN
 
 #include "bulba/core/math3v/lights.h"
-#include "bulba/core/math3v/polygon.h"
 #include "bulba/core/objects2d/objects2d.h"
 #include "bulba/core/objects2d/text2d.h"
 #include "bulba/core/objects3d/objects3d.h"
 #include "bulba/core/render/texture.h"
 #include "bulba/core/scene.h"
 #include "bulba/core/utils/font.h"
+#include "bulba/core/utils/polygon.h"
 #include "bulba/core/window.h"
 
 #include <GLFW/glfw3.h>

@@ -66,36 +66,48 @@ static int BLB_ObjectFile_ReadBool(FILE *file, bool *value) {
   return 0;
 }
 
-static int BLB_ObjectFile_WriteU64(FILE *file, uint64_t value) { return BLB_ObjectFile_Write(file, &value, sizeof(value), 1); }
+static int BLB_ObjectFile_WriteU64(FILE *file, uint64_t value) {
+  return BLB_ObjectFile_Write(file, &value, sizeof(value), 1);
+}
 
-static int BLB_ObjectFile_ReadU64(FILE *file, uint64_t *value) { return BLB_ObjectFile_Read(file, value, sizeof(*value), 1); }
+static int BLB_ObjectFile_ReadU64(FILE *file, uint64_t *value) {
+  return BLB_ObjectFile_Read(file, value, sizeof(*value), 1);
+}
 
 static int BLB_ObjectFile_WriteVec2(FILE *file, BLB_Vec2 value) {
-  return BLB_ObjectFile_Write(file, &value.x, sizeof(value.x), 1) || BLB_ObjectFile_Write(file, &value.y, sizeof(value.y), 1);
+  return BLB_ObjectFile_Write(file, &value.x, sizeof(value.x), 1) ||
+         BLB_ObjectFile_Write(file, &value.y, sizeof(value.y), 1);
 }
 
 static int BLB_ObjectFile_ReadVec2(FILE *file, BLB_Vec2 *value) {
-  return BLB_ObjectFile_Read(file, &value->x, sizeof(value->x), 1) || BLB_ObjectFile_Read(file, &value->y, sizeof(value->y), 1);
+  return BLB_ObjectFile_Read(file, &value->x, sizeof(value->x), 1) ||
+         BLB_ObjectFile_Read(file, &value->y, sizeof(value->y), 1);
 }
 
 static int BLB_ObjectFile_WriteVec3(FILE *file, BLB_Vec3 value) {
-  return BLB_ObjectFile_Write(file, &value.x, sizeof(value.x), 1) || BLB_ObjectFile_Write(file, &value.y, sizeof(value.y), 1) ||
+  return BLB_ObjectFile_Write(file, &value.x, sizeof(value.x), 1) ||
+         BLB_ObjectFile_Write(file, &value.y, sizeof(value.y), 1) ||
          BLB_ObjectFile_Write(file, &value.z, sizeof(value.z), 1);
 }
 
 static int BLB_ObjectFile_ReadVec3(FILE *file, BLB_Vec3 *value) {
-  return BLB_ObjectFile_Read(file, &value->x, sizeof(value->x), 1) || BLB_ObjectFile_Read(file, &value->y, sizeof(value->y), 1) ||
+  return BLB_ObjectFile_Read(file, &value->x, sizeof(value->x), 1) ||
+         BLB_ObjectFile_Read(file, &value->y, sizeof(value->y), 1) ||
          BLB_ObjectFile_Read(file, &value->z, sizeof(value->z), 1);
 }
 
 static int BLB_ObjectFile_WriteQuat(FILE *file, BLB_Quat value) {
-  return BLB_ObjectFile_Write(file, &value.x, sizeof(value.x), 1) || BLB_ObjectFile_Write(file, &value.y, sizeof(value.y), 1) ||
-         BLB_ObjectFile_Write(file, &value.z, sizeof(value.z), 1) || BLB_ObjectFile_Write(file, &value.w, sizeof(value.w), 1);
+  return BLB_ObjectFile_Write(file, &value.x, sizeof(value.x), 1) ||
+         BLB_ObjectFile_Write(file, &value.y, sizeof(value.y), 1) ||
+         BLB_ObjectFile_Write(file, &value.z, sizeof(value.z), 1) ||
+         BLB_ObjectFile_Write(file, &value.w, sizeof(value.w), 1);
 }
 
 static int BLB_ObjectFile_ReadQuat(FILE *file, BLB_Quat *value) {
-  return BLB_ObjectFile_Read(file, &value->x, sizeof(value->x), 1) || BLB_ObjectFile_Read(file, &value->y, sizeof(value->y), 1) ||
-         BLB_ObjectFile_Read(file, &value->z, sizeof(value->z), 1) || BLB_ObjectFile_Read(file, &value->w, sizeof(value->w), 1);
+  return BLB_ObjectFile_Read(file, &value->x, sizeof(value->x), 1) ||
+         BLB_ObjectFile_Read(file, &value->y, sizeof(value->y), 1) ||
+         BLB_ObjectFile_Read(file, &value->z, sizeof(value->z), 1) ||
+         BLB_ObjectFile_Read(file, &value->w, sizeof(value->w), 1);
 }
 
 /* Material colors are persisted as normalized floats to preserve the existing file layout. */
@@ -154,7 +166,8 @@ static int BLB_ObjectFile_CheckExtension(const char *path, const char *extension
 }
 
 static int BLB_ObjectFile_WriteHeader(FILE *file, BLB_ObjectFileType type) {
-  BLB_ObjectFileHeader header = {.magic = {'B', (char)('0' + type), 'O', '\0'}, .version = BLB_OBJECT_FILE_VERSION, .type = (uint32_t)type};
+  BLB_ObjectFileHeader header = {
+      .magic = {'B', (char)('0' + type), 'O', '\0'}, .version = BLB_OBJECT_FILE_VERSION, .type = (uint32_t)type};
 
   return BLB_ObjectFile_Write(file, &header, sizeof(header), 1);
 }
@@ -331,10 +344,12 @@ static int BLB_ObjectFile_WriteTexture(FILE *file, const BLB_Texture *texture) {
   uint32_t type = (uint32_t)texture->type;
   uint32_t format = (uint32_t)texture->format;
 
-  if (BLB_ObjectFile_Write(file, &type, sizeof(type), 1) != 0 || BLB_ObjectFile_Write(file, &format, sizeof(format), 1) != 0 ||
+  if (BLB_ObjectFile_Write(file, &type, sizeof(type), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &format, sizeof(format), 1) != 0 ||
       BLB_ObjectFile_Write(file, &texture->width, sizeof(texture->width), 1) != 0 ||
       BLB_ObjectFile_Write(file, &texture->height, sizeof(texture->height), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &texture->depth, sizeof(texture->depth), 1) != 0 || BLB_ObjectFile_WriteBool(file, texture->clamp_to_edge) != 0 ||
+      BLB_ObjectFile_Write(file, &texture->depth, sizeof(texture->depth), 1) != 0 ||
+      BLB_ObjectFile_WriteBool(file, texture->clamp_to_edge) != 0 ||
       BLB_ObjectFile_WriteU64(file, (uint64_t)texture->pixel_size) != 0)
     return -1;
 
@@ -363,8 +378,10 @@ static int BLB_ObjectFile_ReadTexture(FILE *file, BLB_Texture **out_texture) {
   if (!present)
     return 0;
 
-  if (BLB_ObjectFile_Read(file, &type, sizeof(type), 1) != 0 || BLB_ObjectFile_Read(file, &format, sizeof(format), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &width, sizeof(width), 1) != 0 || BLB_ObjectFile_Read(file, &height, sizeof(height), 1) != 0 ||
+  if (BLB_ObjectFile_Read(file, &type, sizeof(type), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &format, sizeof(format), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &width, sizeof(width), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &height, sizeof(height), 1) != 0 ||
       BLB_ObjectFile_Read(file, &depth, sizeof(depth), 1) != 0 || BLB_ObjectFile_ReadBool(file, &clamp_to_edge) != 0 ||
       BLB_ObjectFile_ReadU64(file, &pixel_size64) != 0)
     return -1;
@@ -431,11 +448,14 @@ static int BLB_ObjectFile_WriteMaterialTexture(FILE *file, const BLB_MaterialTex
   uint32_t min_filter = (uint32_t)slot->min_filter;
   uint32_t mag_filter = (uint32_t)slot->mag_filter;
 
-  if (BLB_ObjectFile_WriteTexture(file, slot->texture) != 0 || BLB_ObjectFile_Write(file, &slot->uv_set, sizeof(slot->uv_set), 1) != 0 ||
+  if (BLB_ObjectFile_WriteTexture(file, slot->texture) != 0 ||
+      BLB_ObjectFile_Write(file, &slot->uv_set, sizeof(slot->uv_set), 1) != 0 ||
       BLB_ObjectFile_Write(file, slot->offset, sizeof(slot->offset), 1) != 0 ||
       BLB_ObjectFile_Write(file, slot->scale, sizeof(slot->scale), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &slot->rotation, sizeof(slot->rotation), 1) != 0 || BLB_ObjectFile_Write(file, &wrap_u, sizeof(wrap_u), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &wrap_v, sizeof(wrap_v), 1) != 0 || BLB_ObjectFile_Write(file, &min_filter, sizeof(min_filter), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &slot->rotation, sizeof(slot->rotation), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &wrap_u, sizeof(wrap_u), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &wrap_v, sizeof(wrap_v), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &min_filter, sizeof(min_filter), 1) != 0 ||
       BLB_ObjectFile_Write(file, &mag_filter, sizeof(mag_filter), 1) != 0)
     return -1;
 
@@ -453,9 +473,12 @@ static int BLB_ObjectFile_ReadMaterialTexture(FILE *file, BLB_MaterialTexture *s
     return -1;
 
   if (BLB_ObjectFile_Read(file, &slot->uv_set, sizeof(slot->uv_set), 1) != 0 ||
-      BLB_ObjectFile_Read(file, slot->offset, sizeof(slot->offset), 1) != 0 || BLB_ObjectFile_Read(file, slot->scale, sizeof(slot->scale), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &slot->rotation, sizeof(slot->rotation), 1) != 0 || BLB_ObjectFile_Read(file, &wrap_u, sizeof(wrap_u), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &wrap_v, sizeof(wrap_v), 1) != 0 || BLB_ObjectFile_Read(file, &min_filter, sizeof(min_filter), 1) != 0 ||
+      BLB_ObjectFile_Read(file, slot->offset, sizeof(slot->offset), 1) != 0 ||
+      BLB_ObjectFile_Read(file, slot->scale, sizeof(slot->scale), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &slot->rotation, sizeof(slot->rotation), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &wrap_u, sizeof(wrap_u), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &wrap_v, sizeof(wrap_v), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &min_filter, sizeof(min_filter), 1) != 0 ||
       BLB_ObjectFile_Read(file, &mag_filter, sizeof(mag_filter), 1) != 0) {
     if (texture)
       BLB_Texture_Release(texture);
@@ -491,10 +514,14 @@ static int BLB_ObjectFile_WriteMaterial(FILE *file, const BLB_Material *material
   uint32_t render_mode = (uint32_t)material->render_mode;
   uint32_t alpha_mode = (uint32_t)material->alpha_mode;
 
-  if (BLB_ObjectFile_Write(file, &domain, sizeof(domain), 1) != 0 || BLB_ObjectFile_Write(file, &render_mode, sizeof(render_mode), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &alpha_mode, sizeof(alpha_mode), 1) != 0 || BLB_ObjectFile_WriteBool(file, material->lighting_enabled) != 0 ||
-      BLB_ObjectFile_WriteBool(file, material->depth_enabled) != 0 || BLB_ObjectFile_WriteBool(file, material->depth_write) != 0 ||
-      BLB_ObjectFile_WriteBool(file, material->double_sided) != 0 || BLB_ObjectFile_WriteBool(file, material->unlit) != 0 ||
+  if (BLB_ObjectFile_Write(file, &domain, sizeof(domain), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &render_mode, sizeof(render_mode), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &alpha_mode, sizeof(alpha_mode), 1) != 0 ||
+      BLB_ObjectFile_WriteBool(file, material->lighting_enabled) != 0 ||
+      BLB_ObjectFile_WriteBool(file, material->depth_enabled) != 0 ||
+      BLB_ObjectFile_WriteBool(file, material->depth_write) != 0 ||
+      BLB_ObjectFile_WriteBool(file, material->double_sided) != 0 ||
+      BLB_ObjectFile_WriteBool(file, material->unlit) != 0 ||
       BLB_ObjectFile_WriteColor4(file, material->base_color) != 0 ||
       BLB_ObjectFile_Write(file, &material->metallic, sizeof(material->metallic), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->roughness, sizeof(material->roughness), 1) != 0 ||
@@ -517,8 +544,10 @@ static int BLB_ObjectFile_WriteMaterial(FILE *file, const BLB_Material *material
       BLB_ObjectFile_Write(file, &material->sheen_roughness, sizeof(material->sheen_roughness), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->iridescence_factor, sizeof(material->iridescence_factor), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->iridescence_ior, sizeof(material->iridescence_ior), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &material->iridescence_thickness_min, sizeof(material->iridescence_thickness_min), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &material->iridescence_thickness_max, sizeof(material->iridescence_thickness_max), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &material->iridescence_thickness_min, sizeof(material->iridescence_thickness_min),
+                           1) != 0 ||
+      BLB_ObjectFile_Write(file, &material->iridescence_thickness_max, sizeof(material->iridescence_thickness_max),
+                           1) != 0 ||
       BLB_ObjectFile_Write(file, &material->anisotropy_strength, sizeof(material->anisotropy_strength), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->anisotropy_rotation, sizeof(material->anisotropy_rotation), 1) != 0 ||
       BLB_ObjectFile_Write(file, &material->dispersion, sizeof(material->dispersion), 1) != 0 ||
@@ -569,7 +598,8 @@ static int BLB_ObjectFile_ReadMaterial(FILE *file, BLB_Material **out_material) 
   if (!present)
     return 0;
 
-  if (BLB_ObjectFile_Read(file, &domain, sizeof(domain), 1) != 0 || BLB_ObjectFile_Read(file, &render_mode, sizeof(render_mode), 1) != 0 ||
+  if (BLB_ObjectFile_Read(file, &domain, sizeof(domain), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &render_mode, sizeof(render_mode), 1) != 0 ||
       BLB_ObjectFile_Read(file, &alpha_mode, sizeof(alpha_mode), 1) != 0)
     return -1;
 
@@ -584,9 +614,12 @@ static int BLB_ObjectFile_ReadMaterial(FILE *file, BLB_Material **out_material) 
   material->render_mode = (BLB_RenderMode)render_mode;
   material->alpha_mode = (BLB_AlphaMode)alpha_mode;
 
-  if (BLB_ObjectFile_ReadBool(file, &material->lighting_enabled) != 0 || BLB_ObjectFile_ReadBool(file, &material->depth_enabled) != 0 ||
-      BLB_ObjectFile_ReadBool(file, &material->depth_write) != 0 || BLB_ObjectFile_ReadBool(file, &material->double_sided) != 0 ||
-      BLB_ObjectFile_ReadBool(file, &material->unlit) != 0 || BLB_ObjectFile_ReadColor4(file, &material->base_color) != 0 ||
+  if (BLB_ObjectFile_ReadBool(file, &material->lighting_enabled) != 0 ||
+      BLB_ObjectFile_ReadBool(file, &material->depth_enabled) != 0 ||
+      BLB_ObjectFile_ReadBool(file, &material->depth_write) != 0 ||
+      BLB_ObjectFile_ReadBool(file, &material->double_sided) != 0 ||
+      BLB_ObjectFile_ReadBool(file, &material->unlit) != 0 ||
+      BLB_ObjectFile_ReadColor4(file, &material->base_color) != 0 ||
       BLB_ObjectFile_Read(file, &material->metallic, sizeof(material->metallic), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->roughness, sizeof(material->roughness), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->normal_scale, sizeof(material->normal_scale), 1) != 0 ||
@@ -608,8 +641,10 @@ static int BLB_ObjectFile_ReadMaterial(FILE *file, BLB_Material **out_material) 
       BLB_ObjectFile_Read(file, &material->sheen_roughness, sizeof(material->sheen_roughness), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->iridescence_factor, sizeof(material->iridescence_factor), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->iridescence_ior, sizeof(material->iridescence_ior), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &material->iridescence_thickness_min, sizeof(material->iridescence_thickness_min), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &material->iridescence_thickness_max, sizeof(material->iridescence_thickness_max), 1) != 0 ||
+      BLB_ObjectFile_Read(file, &material->iridescence_thickness_min, sizeof(material->iridescence_thickness_min), 1) !=
+          0 ||
+      BLB_ObjectFile_Read(file, &material->iridescence_thickness_max, sizeof(material->iridescence_thickness_max), 1) !=
+          0 ||
       BLB_ObjectFile_Read(file, &material->anisotropy_strength, sizeof(material->anisotropy_strength), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->anisotropy_rotation, sizeof(material->anisotropy_rotation), 1) != 0 ||
       BLB_ObjectFile_Read(file, &material->dispersion, sizeof(material->dispersion), 1) != 0 ||
@@ -713,9 +748,12 @@ static int BLB_ObjectFile_WritePolygon3D(FILE *file, const BLB_Polygon3D *polygo
   if (!polygon)
     return 0;
 
-  if (BLB_ObjectFile_WriteOptionalArray(file, polygon->vertices, polygon->vertex_count, sizeof(*polygon->vertices)) != 0 ||
-      BLB_ObjectFile_WriteOptionalArray(file, polygon->base_vertices, polygon->vertex_count, sizeof(*polygon->base_vertices)) != 0 ||
-      BLB_ObjectFile_WriteOptionalArray(file, polygon->normals, polygon->vertex_count, sizeof(*polygon->normals)) != 0 ||
+  if (BLB_ObjectFile_WriteOptionalArray(file, polygon->vertices, polygon->vertex_count, sizeof(*polygon->vertices)) !=
+          0 ||
+      BLB_ObjectFile_WriteOptionalArray(file, polygon->base_vertices, polygon->vertex_count,
+                                        sizeof(*polygon->base_vertices)) != 0 ||
+      BLB_ObjectFile_WriteOptionalArray(file, polygon->normals, polygon->vertex_count, sizeof(*polygon->normals)) !=
+          0 ||
       BLB_ObjectFile_WriteOptionalArray(file, polygon->uvs, polygon->vertex_count, sizeof(*polygon->uvs)) != 0 ||
       BLB_ObjectFile_WriteOptionalArray(file, polygon->indices, polygon->index_count, sizeof(*polygon->indices)) != 0 ||
       BLB_ObjectFile_WriteVec3(file, polygon->normal) != 0)
@@ -746,18 +784,23 @@ static int BLB_ObjectFile_ReadPolygon3D(FILE *file, BLB_Polygon3D **out_polygon)
   if (!polygon)
     return -1;
 
-  if (BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->vertices, &vertices_count, sizeof(*polygon->vertices)) != 0 ||
-      BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->base_vertices, &base_count, sizeof(*polygon->base_vertices)) != 0 ||
-      BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->normals, &normals_count, sizeof(*polygon->normals)) != 0 ||
+  if (BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->vertices, &vertices_count,
+                                       sizeof(*polygon->vertices)) != 0 ||
+      BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->base_vertices, &base_count,
+                                       sizeof(*polygon->base_vertices)) != 0 ||
+      BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->normals, &normals_count, sizeof(*polygon->normals)) !=
+          0 ||
       BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->uvs, &uvs_count, sizeof(*polygon->uvs)) != 0 ||
-      BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->indices, &indices_count, sizeof(*polygon->indices)) != 0 ||
+      BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->indices, &indices_count, sizeof(*polygon->indices)) !=
+          0 ||
       BLB_ObjectFile_ReadVec3(file, &polygon->normal) != 0)
     goto error;
 
   polygon->vertex_count = vertices_count;
   polygon->index_count = indices_count;
 
-  if ((polygon->base_vertices && base_count != polygon->vertex_count) || (polygon->normals && normals_count != polygon->vertex_count) ||
+  if ((polygon->base_vertices && base_count != polygon->vertex_count) ||
+      (polygon->normals && normals_count != polygon->vertex_count) ||
       (polygon->uvs && uvs_count != polygon->vertex_count))
     goto error;
 
@@ -781,8 +824,10 @@ static int BLB_ObjectFile_WritePolygon2D(FILE *file, const BLB_Polygon2D *polygo
   if (!polygon)
     return 0;
 
-  if (BLB_ObjectFile_WriteOptionalArray(file, polygon->vertices, polygon->vertex_count, sizeof(*polygon->vertices)) != 0 ||
-      BLB_ObjectFile_WriteOptionalArray(file, polygon->base_vertices, polygon->vertex_count, sizeof(*polygon->base_vertices)) != 0 ||
+  if (BLB_ObjectFile_WriteOptionalArray(file, polygon->vertices, polygon->vertex_count, sizeof(*polygon->vertices)) !=
+          0 ||
+      BLB_ObjectFile_WriteOptionalArray(file, polygon->base_vertices, polygon->vertex_count,
+                                        sizeof(*polygon->base_vertices)) != 0 ||
       BLB_ObjectFile_WriteOptionalArray(file, polygon->uvs, polygon->vertex_count, sizeof(*polygon->uvs)) != 0 ||
       BLB_ObjectFile_WriteOptionalArray(file, polygon->indices, polygon->index_count, sizeof(*polygon->indices)) != 0)
     return -1;
@@ -811,16 +856,20 @@ static int BLB_ObjectFile_ReadPolygon2D(FILE *file, BLB_Polygon2D **out_polygon)
   if (!polygon)
     return -1;
 
-  if (BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->vertices, &vertices_count, sizeof(*polygon->vertices)) != 0 ||
-      BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->base_vertices, &base_count, sizeof(*polygon->base_vertices)) != 0 ||
+  if (BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->vertices, &vertices_count,
+                                       sizeof(*polygon->vertices)) != 0 ||
+      BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->base_vertices, &base_count,
+                                       sizeof(*polygon->base_vertices)) != 0 ||
       BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->uvs, &uvs_count, sizeof(*polygon->uvs)) != 0 ||
-      BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->indices, &indices_count, sizeof(*polygon->indices)) != 0)
+      BLB_ObjectFile_ReadOptionalArray(file, (void **)&polygon->indices, &indices_count, sizeof(*polygon->indices)) !=
+          0)
     goto error;
 
   polygon->vertex_count = vertices_count;
   polygon->index_count = indices_count;
 
-  if ((polygon->base_vertices && base_count != polygon->vertex_count) || (polygon->uvs && uvs_count != polygon->vertex_count))
+  if ((polygon->base_vertices && base_count != polygon->vertex_count) ||
+      (polygon->uvs && uvs_count != polygon->vertex_count))
     goto error;
 
   *out_polygon = polygon;
@@ -946,7 +995,8 @@ static int BLB_ObjectFile_WritePhysicsShape3D(FILE *file, const BLB_Physics3DSha
            BLB_ObjectFile_Write(file, &shape->data.capsule.height, sizeof(float), 1);
 
   case BLB_PHYSICS3D_SHAPE_PLANE:
-    return BLB_ObjectFile_WriteVec3(file, shape->data.plane.normal) || BLB_ObjectFile_Write(file, &shape->data.plane.distance, sizeof(float), 1);
+    return BLB_ObjectFile_WriteVec3(file, shape->data.plane.normal) ||
+           BLB_ObjectFile_Write(file, &shape->data.plane.distance, sizeof(float), 1);
 
   case BLB_PHYSICS3D_SHAPE_CONVEX_HULL:
     return BLB_ObjectFile_WriteArray(file, shape->data.convex_hull.vertices, shape->data.convex_hull.vertex_count,
@@ -961,7 +1011,8 @@ static int BLB_ObjectFile_WritePhysicsShape3D(FILE *file, const BLB_Physics3DSha
                                   sizeof(*shape->data.triangle_mesh.indices)) != 0)
       return -1;
 
-    return BLB_ObjectFile_WriteArray(file, &shape->data.triangle_mesh.scale, sizeof(shape->data.triangle_mesh.scale), 1);
+    return BLB_ObjectFile_WriteArray(file, &shape->data.triangle_mesh.scale, sizeof(shape->data.triangle_mesh.scale),
+                                     1);
 
   case BLB_PHYSICS3D_SHAPE_COMPOUND:
     BLB_ObjectFile_Error("compound 3D physics shape is not supported", NULL);
@@ -998,19 +1049,21 @@ static int BLB_ObjectFile_ReadPhysicsShape3D(FILE *file, BLB_Physics3DShape *sha
            BLB_ObjectFile_Read(file, &shape->data.capsule.height, sizeof(float), 1);
 
   case BLB_PHYSICS3D_SHAPE_PLANE:
-    return BLB_ObjectFile_ReadVec3(file, &shape->data.plane.normal) || BLB_ObjectFile_Read(file, &shape->data.plane.distance, sizeof(float), 1);
+    return BLB_ObjectFile_ReadVec3(file, &shape->data.plane.normal) ||
+           BLB_ObjectFile_Read(file, &shape->data.plane.distance, sizeof(float), 1);
 
   case BLB_PHYSICS3D_SHAPE_CONVEX_HULL:
-    return BLB_ObjectFile_ReadArray(file, (void **)&shape->data.convex_hull.vertices, &shape->data.convex_hull.vertex_count,
-                                    sizeof(*shape->data.convex_hull.vertices));
+    return BLB_ObjectFile_ReadArray(file, (void **)&shape->data.convex_hull.vertices,
+                                    &shape->data.convex_hull.vertex_count, sizeof(*shape->data.convex_hull.vertices));
 
   case BLB_PHYSICS3D_SHAPE_TRIANGLE_MESH:
-    if (BLB_ObjectFile_ReadArray(file, (void **)&shape->data.triangle_mesh.vertices, &shape->data.triangle_mesh.vertex_count,
+    if (BLB_ObjectFile_ReadArray(file, (void **)&shape->data.triangle_mesh.vertices,
+                                 &shape->data.triangle_mesh.vertex_count,
                                  sizeof(*shape->data.triangle_mesh.vertices)) != 0)
       return -1;
 
-    return BLB_ObjectFile_ReadArray(file, (void **)&shape->data.triangle_mesh.indices, &shape->data.triangle_mesh.index_count,
-                                    sizeof(*shape->data.triangle_mesh.indices));
+    return BLB_ObjectFile_ReadArray(file, (void **)&shape->data.triangle_mesh.indices,
+                                    &shape->data.triangle_mesh.index_count, sizeof(*shape->data.triangle_mesh.indices));
 
   case BLB_PHYSICS3D_SHAPE_COMPOUND:
     return -1;
@@ -1061,9 +1114,10 @@ static int BLB_ObjectFile_WritePhysics3D(FILE *file, const BLB_Object3D *object)
   BLB_Vec3 body_velocity = BLB_Physics3D_BodyGetVelocity(object);
   BLB_Vec3 body_angular_velocity = BLB_Physics3D_BodyGetAngularVelocity(object);
 
-  if (BLB_ObjectFile_Write(file, &body_type, sizeof(body_type), 1) != 0 || BLB_ObjectFile_WriteBool(file, body_active) != 0 ||
-      BLB_ObjectFile_WriteVec3(file, body_position) != 0 || BLB_ObjectFile_WriteQuat(file, body_rotation) != 0 ||
-      BLB_ObjectFile_WriteVec3(file, body_velocity) != 0 || BLB_ObjectFile_WriteVec3(file, body_angular_velocity) != 0)
+  if (BLB_ObjectFile_Write(file, &body_type, sizeof(body_type), 1) != 0 ||
+      BLB_ObjectFile_WriteBool(file, body_active) != 0 || BLB_ObjectFile_WriteVec3(file, body_position) != 0 ||
+      BLB_ObjectFile_WriteQuat(file, body_rotation) != 0 || BLB_ObjectFile_WriteVec3(file, body_velocity) != 0 ||
+      BLB_ObjectFile_WriteVec3(file, body_angular_velocity) != 0)
     return -1;
 
   if (!collider_present)
@@ -1081,10 +1135,12 @@ static int BLB_ObjectFile_WritePhysics3D(FILE *file, const BLB_Object3D *object)
   bool trigger = BLB_Physics3D_ColliderIsTrigger(object);
   bool active = BLB_Physics3D_ColliderIsActive(object);
 
-  if (BLB_ObjectFile_WritePhysicsShape3D(file, shape) != 0 || BLB_ObjectFile_Write(file, &filter, sizeof(filter), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &density, sizeof(density), 1) != 0 || BLB_ObjectFile_Write(file, &friction, sizeof(friction), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &restitution, sizeof(restitution), 1) != 0 || BLB_ObjectFile_WriteBool(file, trigger) != 0 ||
-      BLB_ObjectFile_WriteBool(file, active) != 0)
+  if (BLB_ObjectFile_WritePhysicsShape3D(file, shape) != 0 ||
+      BLB_ObjectFile_Write(file, &filter, sizeof(filter), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &density, sizeof(density), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &friction, sizeof(friction), 1) != 0 ||
+      BLB_ObjectFile_Write(file, &restitution, sizeof(restitution), 1) != 0 ||
+      BLB_ObjectFile_WriteBool(file, trigger) != 0 || BLB_ObjectFile_WriteBool(file, active) != 0)
     return -1;
 
   return 0;
@@ -1115,7 +1171,8 @@ static int BLB_ObjectFile_ReadPhysics3D(FILE *file, BLB_Object3D *object, BLB_Sc
   if (!body_present)
     return 0;
 
-  if (BLB_ObjectFile_ReadBool(file, &collider_present) != 0 || BLB_ObjectFile_Read(file, &body_type, sizeof(body_type), 1) != 0 ||
+  if (BLB_ObjectFile_ReadBool(file, &collider_present) != 0 ||
+      BLB_ObjectFile_Read(file, &body_type, sizeof(body_type), 1) != 0 ||
       BLB_ObjectFile_ReadBool(file, &body_active) != 0 || BLB_ObjectFile_ReadVec3(file, &body_position) != 0 ||
       BLB_ObjectFile_ReadQuat(file, &body_rotation) != 0 || BLB_ObjectFile_ReadVec3(file, &body_velocity) != 0 ||
       BLB_ObjectFile_ReadVec3(file, &body_angular_velocity) != 0)
@@ -1128,8 +1185,10 @@ static int BLB_ObjectFile_ReadPhysics3D(FILE *file, BLB_Object3D *object, BLB_Sc
     if (BLB_ObjectFile_ReadPhysicsShape3D(file, &shape) != 0)
       return -1;
 
-    if (BLB_ObjectFile_Read(file, &filter, sizeof(filter), 1) != 0 || BLB_ObjectFile_Read(file, &density, sizeof(density), 1) != 0 ||
-        BLB_ObjectFile_Read(file, &friction, sizeof(friction), 1) != 0 || BLB_ObjectFile_Read(file, &restitution, sizeof(restitution), 1) != 0 ||
+    if (BLB_ObjectFile_Read(file, &filter, sizeof(filter), 1) != 0 ||
+        BLB_ObjectFile_Read(file, &density, sizeof(density), 1) != 0 ||
+        BLB_ObjectFile_Read(file, &friction, sizeof(friction), 1) != 0 ||
+        BLB_ObjectFile_Read(file, &restitution, sizeof(restitution), 1) != 0 ||
         BLB_ObjectFile_ReadBool(file, &trigger) != 0 || BLB_ObjectFile_ReadBool(file, &collider_active) != 0) {
       BLB_ObjectFile_DestroyPhysicsShape3D(&shape);
 
@@ -1206,15 +1265,18 @@ static int BLB_ObjectFile_Read3DData(FILE *file, BLB_Object3D *object, BLB_Scene
   bool delta_time_present;
 
   if (BLB_ObjectFile_ReadU64(file, &entity_id) != 0 || BLB_ObjectFile_ReadU64(file, &component_mask) != 0 ||
-      BLB_ObjectFile_Read(file, &type, sizeof(type), 1) != 0 || BLB_ObjectFile_ReadU64(file, &object->geometry_id) != 0 ||
+      BLB_ObjectFile_Read(file, &type, sizeof(type), 1) != 0 ||
+      BLB_ObjectFile_ReadU64(file, &object->geometry_id) != 0 ||
       BLB_ObjectFile_ReadVec3(file, &object->position) != 0 || BLB_ObjectFile_ReadVec3(file, &object->rotation) != 0 ||
-      BLB_ObjectFile_ReadVec3(file, &object->scale) != 0 || BLB_ObjectFile_Read(file, &render_mode, sizeof(render_mode), 1) != 0 ||
+      BLB_ObjectFile_ReadVec3(file, &object->scale) != 0 ||
+      BLB_ObjectFile_Read(file, &render_mode, sizeof(render_mode), 1) != 0 ||
       (version >= 4 ? BLB_ObjectFile_Read(file, &object->color, sizeof(object->color), 1)
                     : BLB_ObjectFile_ReadLegacyColor4(file, &object->color)) != 0 ||
       BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_ReadBool(file, &object->visible) != 0)
+      BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 ||
+      BLB_ObjectFile_ReadBool(file, &object->visible) != 0)
     return -1;
 
   if (version >= 2 && BLB_ObjectFile_ReadBool(file, &object->camera_attached) != 0)
@@ -1448,8 +1510,11 @@ BLB_Object3D *BLB_Object3D_Load(const char *path, BLB_Scene *scene) {
     if (object->texture)
       BLB_Texture_Release(object->texture);
 
-    if (object->polygon)
-      BLB_DestroyPolygon3D(object->polygon);
+    if (object->polygon) {
+      free(object->polygon->normals);
+      free(object->polygon->base_vertices);
+      free(object->polygon);
+    }
 
     BLB_ObjectFile_DestroyMesh(&object->mesh);
 
@@ -1475,23 +1540,29 @@ static int BLB_ObjectFile_Write2DData(FILE *file, const BLB_Object2D *object) {
   uint32_t render_mode = (uint32_t)object->render_mode;
 
   if (BLB_ObjectFile_WriteU64(file, entity_id) != 0 || BLB_ObjectFile_WriteU64(file, component_mask) != 0 ||
-      BLB_ObjectFile_Write(file, &type, sizeof(type), 1) != 0 || BLB_ObjectFile_WriteVec2(file, object->position) != 0 ||
-      BLB_ObjectFile_Write(file, &object->rotation, sizeof(object->rotation), 1) != 0 || BLB_ObjectFile_WriteVec2(file, object->scale) != 0 ||
+      BLB_ObjectFile_Write(file, &type, sizeof(type), 1) != 0 ||
+      BLB_ObjectFile_WriteVec2(file, object->position) != 0 ||
+      BLB_ObjectFile_Write(file, &object->rotation, sizeof(object->rotation), 1) != 0 ||
+      BLB_ObjectFile_WriteVec2(file, object->scale) != 0 ||
       BLB_ObjectFile_Write(file, &render_mode, sizeof(render_mode), 1) != 0 ||
       BLB_ObjectFile_Write(file, &object->color, sizeof(object->color), 1) != 0 ||
       /* Preserve the two legacy glow/emission slots consumed by the reader. */
       BLB_ObjectFile_Write(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Write(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Write(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
-      BLB_ObjectFile_Write(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_WriteBool(file, object->visible) != 0 ||
-      BLB_ObjectFile_WriteBool(file, object->camera_attached) != 0 || BLB_ObjectFile_WriteBool(file, object->delta_time != 0) != 0)
+      BLB_ObjectFile_Write(file, &object->layer, sizeof(object->layer), 1) != 0 ||
+      BLB_ObjectFile_WriteBool(file, object->visible) != 0 ||
+      BLB_ObjectFile_WriteBool(file, object->camera_attached) != 0 ||
+      BLB_ObjectFile_WriteBool(file, object->delta_time != 0) != 0)
     return -1;
 
   if (object->delta_time && BLB_ObjectFile_Write(file, &object->delta_time, sizeof(object->delta_time), 1) != 0)
     return -1;
 
-  if (BLB_ObjectFile_WriteObjectID(file, object->id) != 0 || BLB_ObjectFile_WriteMaterial(file, object->material) != 0 ||
-      BLB_ObjectFile_WriteTexture(file, object->texture) != 0 || BLB_ObjectFile_WriteAnimation(file, object->animation) != 0 ||
+  if (BLB_ObjectFile_WriteObjectID(file, object->id) != 0 ||
+      BLB_ObjectFile_WriteMaterial(file, object->material) != 0 ||
+      BLB_ObjectFile_WriteTexture(file, object->texture) != 0 ||
+      BLB_ObjectFile_WriteAnimation(file, object->animation) != 0 ||
       BLB_ObjectFile_WritePolygon2D(file, object->polygon) != 0)
     return -1;
 
@@ -1507,13 +1578,15 @@ static int BLB_ObjectFile_Read2DData(FILE *file, BLB_Object2D *object, uint32_t 
 
   if (BLB_ObjectFile_ReadU64(file, &entity_id) != 0 || BLB_ObjectFile_ReadU64(file, &component_mask) != 0 ||
       BLB_ObjectFile_Read(file, &type, sizeof(type), 1) != 0 || BLB_ObjectFile_ReadVec2(file, &object->position) != 0 ||
-      BLB_ObjectFile_Read(file, &object->rotation, sizeof(object->rotation), 1) != 0 || BLB_ObjectFile_ReadVec2(file, &object->scale) != 0 ||
+      BLB_ObjectFile_Read(file, &object->rotation, sizeof(object->rotation), 1) != 0 ||
+      BLB_ObjectFile_ReadVec2(file, &object->scale) != 0 ||
       BLB_ObjectFile_Read(file, &render_mode, sizeof(render_mode), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->color, sizeof(object->color), 1) != 0 ||
       BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Read(file, &(float){0.0f}, sizeof(float), 1) != 0 ||
       BLB_ObjectFile_Read(file, &object->roundness, sizeof(object->roundness), 1) != 0 ||
-      BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 || BLB_ObjectFile_ReadBool(file, &object->visible) != 0)
+      BLB_ObjectFile_Read(file, &object->layer, sizeof(object->layer), 1) != 0 ||
+      BLB_ObjectFile_ReadBool(file, &object->visible) != 0)
     return -1;
 
   if (version >= 3) {
@@ -1551,8 +1624,10 @@ static int BLB_ObjectFile_Read2DData(FILE *file, BLB_Object2D *object, uint32_t 
       return -1;
   }
 
-  if (BLB_ObjectFile_ReadObjectID(file, &object->id) != 0 || BLB_ObjectFile_ReadMaterial(file, &object->material) != 0 ||
-      BLB_ObjectFile_ReadTexture(file, &object->texture) != 0 || BLB_ObjectFile_ReadAnimation(file, &object->animation) != 0 ||
+  if (BLB_ObjectFile_ReadObjectID(file, &object->id) != 0 ||
+      BLB_ObjectFile_ReadMaterial(file, &object->material) != 0 ||
+      BLB_ObjectFile_ReadTexture(file, &object->texture) != 0 ||
+      BLB_ObjectFile_ReadAnimation(file, &object->animation) != 0 ||
       BLB_ObjectFile_ReadPolygon2D(file, &object->polygon) != 0)
     return -1;
 
@@ -1697,8 +1772,10 @@ BLB_Object2D *BLB_Object2D_Load(const char *path, BLB_Scene *scene) {
       free(object->animation);
     }
 
-    if (object->polygon)
-      BLB_DestroyPolygon2D(object->polygon);
+    if (object->polygon) {
+      free(object->polygon->base_vertices);
+      free(object->polygon);
+    }
 
     if (object->id && !BLB_ObjectFile_IsGlobalObjectID(object->id))
       free(object->id);
